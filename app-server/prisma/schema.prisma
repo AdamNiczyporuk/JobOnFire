@@ -6,195 +6,209 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-model User {
-  id           Int      @id @default(autoincrement())
-  username     String
-  email        String
-  passwordhash String
-  role         String
-  registerdate DateTime
-  isdeleted    Boolean
-
-  candidateProfile CandidateProfile?
-  employerProfile  EmployerProfile?
-  additionalCredentials AdditionalCredentials[]
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
+}
+enum UserRole {
+  CANDIDATE
+  EMPLOYER
+}
+enum MeetingType {
+  ONLINE
+  OFFLINE
 }
 
-model AdditionalCredentials {
-  userid   Int    @id
-  provider String?
-  value    String?
-
-  user     User   @relation(fields: [userid], references: [id])
-}
-
-model CandidateProfile {
-  id          Int      @id @default(autoincrement())
-  name        String?
-  lastname    String?
-  description String?
-  birthday    DateTime?
-  experience  String?
-  phonenumber Int?
-  skills      String?
-  place       String?
-  education   String?
-  userid      Int      @unique
-
-  user         User    @relation(fields: [userid], references: [id])
-  candidateCVs CandidateCV[]
-  externalJobOffers ExternalJobOffer[]
-  applications ApplicationForJobOffer[]
-  profileLinks ProfileLink[]
-}
-
-model EmployerProfile {
+model user {
   id              Int      @id @default(autoincrement())
-  companyname     String?
-  companyimageurl String?
+  username        String
+  email           String
+  passwordHash    String
+  role            UserRole
+  registerDate    DateTime
+  isDeleted       Boolean
+
+  candidateProfile        candidateProfile?
+  employerProfile         employerProfile?
+  additionalCredentials   additionalCredentials?
+}
+
+model additionalCredentials {
+  userId   Int    @id @unique
+  provider String
+  value    String
+
+  user     user   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model candidateProfile {
+  id             Int      @id @default(autoincrement())
+  name           String?
+  lastName       String?
+  description    String?
+  birthday       DateTime?
+  experience     String?
+  phoneNumber    Int?
+  skills         String?
+  place          String?
+  education      String?
+  userId         Int      @unique
+
+  user                user                  @relation(fields: [userId], references: [id])
+  candidateCVs        candidateCV[]
+  externalJobOffers   externalJobOffer[]
+  applications        applicationForJobOffer[]
+  profileLinks        profileLink[]
+}
+
+model employerProfile {
+  id              Int      @id @default(autoincrement())
+  companyName     String
+  companyImageUrl String?
   industry        String?
   description     String?
-  contracttype    String?
-  contactphone    String?
-  contactemail    String?
+  contractType    String?
+  contactPhone    String?
+  contactEmail    String?
   benefits        String?
-  userid          Int      @unique
+  userId          Int      @unique
 
-  user         User     @relation(fields: [userid], references: [id])
-  jobOffers    JobOffer[]
-  lokalizations LokalizationToEmployerProfile[]
+  user           user                           @relation(fields: [userId], references: [id])
+  jobOffers      jobOffer[]
+  lokalizations  lokalizationToEmployerProfile[]
 }
 
-model CandidateCV {
-  id                 Int      @id @default(autoincrement())
-  cvjson             String?
-  candidateprofileid Int
-  cvurl              String?
-  name               String?
+model candidateCV {
+  id                  Int      @id @default(autoincrement())
+  cvJson              String?
+  candidateProfileId  Int
+  cvUrl               String?
+  name                String?
 
-  candidateProfile CandidateProfile @relation(fields: [candidateprofileid], references: [id])
-  applications      ApplicationForJobOffer[] @relation("GeneratedCV")
+  candidateProfile    candidateProfile          @relation(fields: [candidateProfileId], references: [id])
+  applications        applicationForJobOffer[]  @relation("CandidateCV")
 }
 
-model ExternalJobOffer {
-  id                 Int    @id @default(autoincrement())
-  url                String
-  site               String?
-  name               String
-  company            String?
-  candidateprofileid Int
+model externalJobOffer {
+  id                  Int    @id @default(autoincrement())
+  url                 String
+  site                String?
+  name                String
+  company             String?
+  candidateProfileId  Int
 
-  candidateProfile CandidateProfile @relation(fields: [candidateprofileid], references: [id])
+  candidateProfile    candidateProfile @relation(fields: [candidateProfileId], references: [id])
 }
 
-model ApplicationForJobOffer {
-  id                 Int     @id @default(autoincrement())
-  message            String?
-  status             String
-  candidateprofileid Int
-  jobofferid         Int
-  cvid               Int
+model applicationForJobOffer {
+  id                  Int     @id @default(autoincrement())
+  message             String?
+  status              ApplicationStatus
+  candidateProfileId  Int
+  jobOfferId          Int
+  cvId                Int
 
-  candidateProfile CandidateProfile @relation(fields: [candidateprofileid], references: [id])
-  jobOffer         JobOffer         @relation(fields: [jobofferid], references: [id])
-  candidateCV      CandidateCV      @relation("GeneratedCV", fields: [cvid], references: [id])
-  response         ApplicationResponse?
-  answers          CandidateAnswer[]
-  meetings         Meeting[]
+  candidateProfile    candidateProfile         @relation(fields: [candidateProfileId], references: [id])
+  jobOffer            jobOffer                 @relation(fields: [jobOfferId], references: [id])
+  candidateCV         candidateCV              @relation("CandidateCV", fields: [cvId], references: [id])
+  response            applicationResponse?
+  answers             candidateAnswer[]
+  meetings            meeting[]
 }
 
-model ApplicationResponse {
-  applicationforjobofferid Int @id
+model applicationResponse {
+  applicationForJobOfferId Int @id
   response                 String?
 
-  application ApplicationForJobOffer @relation(fields: [applicationforjobofferid], references: [id])
+  application applicationForJobOffer @relation(fields: [applicationForJobOfferId], references: [id])
 }
 
-model CandidateAnswer {
-  applicationforjobofferid Int
-  recruitmentquestionid    Int
+model candidateAnswer {
+  applicationForJobOfferId Int
+  recruitmentQuestionId    Int
   answer                   String?
 
-  application ApplicationForJobOffer @relation(fields: [applicationforjobofferid], references: [id])
-  question     RecruitmentQuestion   @relation(fields: [recruitmentquestionid], references: [id])
+  application  applicationForJobOffer @relation(fields: [applicationForJobOfferId], references: [id])
+  question     recruitmentQuestion    @relation(fields: [recruitmentQuestionId], references: [id])
 
-  @@id([applicationforjobofferid, recruitmentquestionid])
+  @@id([applicationForJobOfferId, recruitmentQuestionId])
 }
 
-model JobOffer {
+model jobOffer {
   id                Int      @id @default(autoincrement())
   name              String
   description       String?
-  joblevel          String?
-  contracttype      String?
+  jobLevel          String?
+  contractType      String?
   salary            String?
-  createdate        DateTime
-  expiredate        DateTime
-  workingmode       String?
+  createDate        DateTime
+  expireDate        DateTime
+  workingMode       String?
   workload          String?
   responsibilities  String?
   requirements      String?
-  whatweoffer       String?
-  applicationurl    String?
-  lokalizationid    Int
-  employerprofileid Int
+  whatWeOffer       String?
+  applicationUrl    String?
+  lokalizationId    Int?
+  employerProfileId Int
 
-  employerProfile EmployerProfile @relation(fields: [employerprofileid], references: [id])
-  lokalization    Lokalization    @relation(fields: [lokalizationid], references: [id])
-  applications    ApplicationForJobOffer[]
-  questions       RecruitmentQuestion[]
+  employerProfile   employerProfile        @relation(fields: [employerProfileId], references: [id])
+  lokalization      lokalization?           @relation(fields: [lokalizationId], references: [id])
+  applications      applicationForJobOffer[]
+  questions         recruitmentQuestion[]
 }
 
-model Lokalization {
+model lokalization {
   id         Int     @id @default(autoincrement())
   city       String?
   state      String?
   street     String?
-  postalcode String?
+  postalCode String?
   latitude   Float?
   longtitude Float?
 
-  jobOffers  JobOffer[]
-  employers  LokalizationToEmployerProfile[]
+  jobOffers  jobOffer[]
+  employers  lokalizationToEmployerProfile[]
 }
 
-model LokalizationToEmployerProfile {
-  employerprofile_id Int
-  lokalization_id    Int
+model lokalizationToEmployerProfile {
+  employerProfileId Int
+  lokalizationId    Int
 
-  employer EmployerProfile @relation(fields: [employerprofile_id], references: [id])
-  lokalization Lokalization @relation(fields: [lokalization_id], references: [id])
+  employer     employerProfile @relation(fields: [employerProfileId], references: [id])
+  lokalization lokalization     @relation(fields: [lokalizationId], references: [id])
 
-  @@id([employerprofile_id, lokalization_id])
+  @@id([employerProfileId, lokalizationId])
 }
 
-model Meeting {
+model meeting {
   id                       Int      @id @default(autoincrement())
-  datetime                 DateTime
-  type                     String
+  dateTime                 DateTime
+  type                     MeetingType
   contributors             String?
-  onlinemeetingurl         String?
+  onlineMeetingUrl         String?
   message                  String?
-  applicationforjobofferid Int
+  applicationForJobOfferId Int
 
-  application ApplicationForJobOffer @relation(fields: [applicationforjobofferid], references: [id])
+  application applicationForJobOffer @relation(fields: [applicationForJobOfferId], references: [id])
 }
 
-model ProfileLink {
+model profileLink {
   id                 Int    @id @default(autoincrement())
   name               String
   url                String
-  candidateprofileid Int
+  candidateProfileId Int
 
-  candidateProfile CandidateProfile @relation(fields: [candidateprofileid], references: [id])
+  candidateProfile candidateProfile @relation(fields: [candidateProfileId], references: [id])
 }
 
-model RecruitmentQuestion {
+model recruitmentQuestion {
   id         Int    @id @default(autoincrement())
   question   String?
-  jobofferid Int
+  jobOfferId Int
 
-  jobOffer JobOffer @relation(fields: [jobofferid], references: [id])
-  answers  CandidateAnswer[]
+  jobOffer jobOffer          @relation(fields: [jobOfferId], references: [id])
+  answers  candidateAnswer[]
 }
