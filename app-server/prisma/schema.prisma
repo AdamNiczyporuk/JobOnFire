@@ -23,8 +23,8 @@ enum MeetingType {
 
 model user {
   id              Int      @id @default(autoincrement())
-  username        String
-  email           String
+  username        String @unique
+  email           String @unique
   passwordHash    String
   role            UserRole
   registerDate    DateTime
@@ -151,6 +151,8 @@ model jobOffer {
   requirements      String?
   whatWeOffer       String?
   applicationUrl    String?
+  tags              String?
+  isActive         Boolean
   lokalizationId    Int?
   employerProfileId Int
 
