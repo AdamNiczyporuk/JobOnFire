@@ -14,15 +14,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const express_1 = require("express");
+const passport_1 = __importDefault(require("passport"));
 const db_1 = require("../db");
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const userRegisterValidation_1 = require("../validation/userRegisterValidation");
+const authValidation_1 = require("../validation/authValidation");
 const client_1 = require("@prisma/client");
 exports.router = (0, express_1.Router)();
 // Register Route
 exports.router.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { error, value } = userRegisterValidation_1.userRegisterValidation.validate(req.body, { abortEarly: false });
+    const { error, value } = authValidation_1.userRegisterValidation.validate(req.body, { abortEarly: false });
     if (error) {
         const errors = error.details.map((detail) => detail.message);
         res.status(400).send({ message: 'Validation failed', errors });
@@ -90,3 +91,22 @@ exports.router.post('/register', (req, res) => __awaiter(void 0, void 0, void 0,
         res.status(500).send({ message: 'Error registering user', error });
     }
 }));
+// Login Route
+exports.router.post('/login', (req, res, next) => {
+    passport_1.default.authenticate('local', (err, user, info) => {
+        if (err) {
+            return next(err);
+        }
+        if (!user) {
+            return res.status(400).send({ message: info.message });
+        }
+        req.logIn(user, (err) => {
+            if (err) {
+                return next(err);
+            }
+            res.send({ message: 'Logged in successfully' });
+            role: user.role,
+            ;
+        });
+    })(req, res, next);
+});

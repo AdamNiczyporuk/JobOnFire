@@ -18,3 +18,19 @@ export const userRegisterValidation = Joi.object({
     'any.only': 'Role must be either CANDIDATE or EMPLOYER',
   }),
 });
+
+export const userLoginValidation = Joi.object({
+  login: Joi.alternatives().try(
+    Joi.string().email().messages({
+      'string.email': 'Login must be a valid email address',
+    }),
+    Joi.string().messages({
+      'string.empty': 'Login cannot be empty',
+    })
+  ).required().messages({
+    'any.required': 'Login is required',
+  }),
+  password: Joi.string().required().messages({
+    'any.required': 'Password is required',
+  }),
+});

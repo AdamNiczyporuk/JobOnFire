@@ -4,7 +4,7 @@ import { prisma } from '../db';
 import { env } from 'process';
 import bcrypt from 'bcrypt';
 import { ensureAuthenticated } from '../auth/auth_middleware';
-import { userRegisterValidation } from '../validation/userRegisterValidation';
+import { userRegisterValidation } from '../validation/authValidation';
 import { UserRole } from '@prisma/client';
 
 export const router = Router();
@@ -91,3 +91,20 @@ router.post(
         }
     }
 );
+
+
+// Login Route
+router.post('/login', (req, res, next) => {
+    passport.authenticate('local', (err: any, user: Express.User | false | null, info: any) => {
+        if (err) { return next(err); }
+        if (!user) { return res.status(400).send({ message: info.message }); }
+
+        req.logIn(user, (err) => {
+            if (err) { return next(err); }
+            res.send({ 
+                message: 'Logged in successfully',
+             });
+            
+        });
+    })(req, res, next);
+});
