@@ -7,10 +7,10 @@ import { MobileMenu } from "../components/mobile-menu";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col items-center">
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-white">
-        <div className="w-full px-4 md:px-8 flex h-16 items-center justify-between">
+      <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
+        <div className="w-full max-w-5xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
           <div className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -87,10 +87,10 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 w-full">
         {/* Hero Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-          <div className="container px-4 md:px-6">
+          <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -148,9 +148,33 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Stats Section */}
+        <section className="w-full py-12 md:py-16 lg:py-20">
+          <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <div className="space-y-2">
+                <h3 className="text-3xl font-bold">5000+</h3>
+                <p className="text-muted-foreground">Ofert pracy</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-bold">1200+</h3>
+                <p className="text-muted-foreground">Firm</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-bold">15000+</h3>
+                <p className="text-muted-foreground">Użytkowników</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-bold">98%</h3>
+                <p className="text-muted-foreground">Zadowolonych klientów</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-          <div className="container px-4 md:px-6">
+          <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
@@ -162,7 +186,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
+            <div className="mx-auto grid items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
               <div className="flex flex-col justify-center space-y-4 rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-all duration-300 group-hover:bg-primary/20">
                   <svg
@@ -250,7 +274,7 @@ export default function Home() {
 
         {/* CTA Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
-          <div className="container px-4 md:px-6">
+          <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
@@ -284,7 +308,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="w-full border-t bg-white">
-        <div className="container flex flex-col gap-8 px-4 py-10 md:px-6 lg:flex-row lg:gap-12">
+        <div className="w-full max-w-5xl mx-auto flex flex-col gap-8 px-4 py-10 md:px-6 lg:flex-row lg:gap-12">
           <div className="flex flex-col gap-4 lg:w-1/3">
             <div className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
               <svg
