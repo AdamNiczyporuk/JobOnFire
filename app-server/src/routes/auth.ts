@@ -108,3 +108,11 @@ router.post('/login', (req, res, next) => {
         });
     })(req, res, next);
 });
+
+router.get('/me', (req, res) => {
+  if (req.isAuthenticated() && req.user) {
+    res.json({ user: { username: req.user.username, role: req.user.role } });
+  } else {
+    res.status(401).json({ user: null });
+  }
+});

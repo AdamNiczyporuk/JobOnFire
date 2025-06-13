@@ -7,26 +7,27 @@ import { prisma } from '../db';
 
 
 passport.use(new LocalStrategy(
-    async (username, password, done) => {
-        try {
-            var user = await prisma.user.findFirst({ where: { username } });
-            if (!user) {
-                user = await prisma.user.findFirst({ where: { email: username } });
-                if (!user) {
-                    return done(null, false, { message: 'Incorrect username or email.' });
-                }
-            }
+  { usernameField: 'username', passwordField: 'password', passReqToCallback: true },
+  async (req, username, password, done) => {
+    try {
+      const role = req.body.role;
+      const user = await prisma.user.findFirst({ where: { username, role } }) 
+        ?? await prisma.user.findFirst({ where: { email: username, role } });
 
-            const isValid = await bcrypt.compare(password, user.passwordHash || '');
-            if (!isValid) {
-                return done(null, false, { message: 'Incorrect password.' });
-            }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username/email or role.' });
+      }
 
-            return done(null, user);
-        } catch (error) {
-            return done(error);
-        }
+      const isValid = await bcrypt.compare(password, user.passwordHash || '');
+      if (!isValid) {
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+
+      return done(null, user);
+    } catch (error) {
+      return done(error);
     }
+  }
 ));
 
 
