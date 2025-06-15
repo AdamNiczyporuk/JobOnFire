@@ -1,4 +1,7 @@
 "use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/authContext";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -6,6 +9,17 @@ import { Input } from "@/components/ui/input";
 import { MobileMenu } from "../components/mobile-menu";
 
 export default function Home() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.role === "CANDIDATE") {
+      router.replace("/candidate/dashboard");
+    } else if (user?.role === "EMPLOYER") {
+      router.replace("/employer/dashboard");
+    }
+  }, [user, router]);
+
   return (
     <div className="flex min-h-screen flex-col items-center">
       {/* Header */}
@@ -78,9 +92,11 @@ export default function Home() {
                     Zaloguj się
                   </Button>
                 </Link>
+                <Link href="/candidate/register">
                 <Button className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
                   Zarejestruj się
                 </Button>
+                </Link>
               </div>
             </nav>
           </div>

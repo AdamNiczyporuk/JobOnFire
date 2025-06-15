@@ -4,18 +4,21 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { login } from "@/services/authService";
+import { useAuth } from "@/context/authContext";
 
 export default function CandidateLogin() {
   const router = useRouter();
+  const { checkAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     try {
       await login(email, password, "CANDIDATE");
+      await checkAuth(); // pobierz aktualnego użytkownika
       router.push("/candidate/dashboard");
     } catch (err: any) {
       setError(err?.response?.data?.message || "Błąd logowania");
