@@ -80,7 +80,7 @@ export default function CandidateLayout({ children }: { children: ReactNode }) {
                         Profil: {user.username}
                       </Button>
                     </Link>
-                    <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-destructive/90" variant="destructive">
+                    <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90" >
                       Wyloguj się
                     </Button>
                   </>

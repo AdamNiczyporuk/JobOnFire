@@ -30,7 +30,36 @@ passport.use(new LocalStrategy(
   }
 ));
 
-
+// Google OAuth2 Strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID!,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+  callbackURL: `${process.env.BASE_SERVER_URL}/api/v1/auth/google/callback`,
+},
+  async function (_accessToken, _refreshToken, profile: GoogleProfile, done) {
+    try {
+      // Szukaj użytkownika po Google ID
+      let user = await prisma.user.findFirst({ where: { email: profile.emails?.[0]?.value } });
+      if (!user) {
+        // Domyślnie rejestrujemy jako kandydata, możesz dodać logikę wyboru roli
+        user = await prisma.user.create({
+          data: {
+            username: profile.displayName.replace(/\s/g, "").toLowerCase(),
+            email: profile.emails?.[0]?.value || '',
+            role: 'CANDIDATE',
+            registerDate: new Date(),
+            isDeleted: false,
+            candidateProfile: { create: {} },
+            passwordHash: null,
+          },
+        });
+      }
+      return done(null, user);
+    } catch (error) {
+      return done(error);
+    }
+  }
+));
 
 // Serialize user into the sessions
 passport.serializeUser((user: any, done) => {

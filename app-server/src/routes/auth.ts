@@ -128,3 +128,18 @@ router.post("/logout", (req, res) => {
     });
   });
 });
+
+// Google OAuth2
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback', passport.authenticate('google', {
+  failureRedirect: process.env.FRONTEND_BASE_URL + '/candidate/login',
+  session: true
+}), (req, res) => {
+  // Po udanym logowaniu przekieruj na dashboard kandydata lub pracodawcy
+  if (req.user && req.user.role === 'EMPLOYER') {
+    res.redirect(process.env.FRONTEND_BASE_URL + '/employer/dashboard');
+  } else {
+    res.redirect(process.env.FRONTEND_BASE_URL + '/candidate/dashboard');
+  }
+});

@@ -25,7 +25,7 @@ model user {
   id              Int      @id @default(autoincrement())
   username        String @unique
   email           String @unique
-  passwordHash    String
+  passwordHash    String?
   role            UserRole
   registerDate    DateTime
   isDeleted       Boolean

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { login } from "@/services/authService";
 import { useAuth } from "@/context/authContext";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 
 export default function CandidateLogin() {
   const router = useRouter();
@@ -45,6 +46,7 @@ export default function CandidateLogin() {
         />
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" className="w-full">Zaloguj się</Button>
+        <GoogleAuthButton label="Zaloguj się z Google" />
       </form>
     </div>
   );
