@@ -65,7 +65,7 @@ export default function Home() {
                   Oferty pracy
                 </Link>
                 <Link
-                  href="#"
+                  href="/employer"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
                   Dla firm

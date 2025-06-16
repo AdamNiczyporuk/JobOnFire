@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 
-export function GoogleAuthButton({ label = "Zaloguj się z Google" }: { label?: string }) {
+export function GoogleAuthButton({ label = "Zaloguj się z Google", role }: { label?: string; role: "CANDIDATE" | "EMPLOYER" }) {
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/google`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    // Poprawka: przekazujemy role jako query param 'role', nie 'state'
+    const url = `${apiUrl}/api/v1/auth/google?role=${role}`;
+    window.location.href = url;
   };
 
   return (

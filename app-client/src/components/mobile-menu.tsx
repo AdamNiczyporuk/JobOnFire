@@ -70,7 +70,7 @@ export function MobileMenu() {
             Oferty pracy
           </Link>
           <Link
-            href="#"
+            href="/employer"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >

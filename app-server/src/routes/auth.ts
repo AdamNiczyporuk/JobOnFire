@@ -130,7 +130,17 @@ router.post("/logout", (req, res) => {
 });
 
 // Google OAuth2
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+  const role = typeof req.query.role === 'string' ? req.query.role : undefined;
+  if (!role || (role !== 'CANDIDATE' && role !== 'EMPLOYER')) {
+    res.status(400).json({ message: 'Role is required and must be CANDIDATE or EMPLOYER' });
+    return;
+  }
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    state: role
+  })(req, res, next);
+});
 
 router.get('/google/callback', passport.authenticate('google', {
   failureRedirect: process.env.FRONTEND_BASE_URL + '/candidate/login',

@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy, Profile as GoogleProfile } from 'passport-g
 import { Strategy as LocalStrategy } from 'passport-local';
 import { env } from 'process';
 import { prisma } from '../db';
+import { UserRole } from '@prisma/client';
 
 
 passport.use(new LocalStrategy(
@@ -35,21 +36,24 @@ passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
   callbackURL: `${process.env.BASE_SERVER_URL}/api/v1/auth/google/callback`,
+  passReqToCallback: true, // dodane!
 },
-  async function (_accessToken, _refreshToken, profile: GoogleProfile, done) {
+  async function (req, _accessToken, _refreshToken, profile: GoogleProfile, done) {
     try {
-      // Szukaj użytkownika po Google ID
+      // Odczytaj rolę z req.query.state (przekazaną przez frontend)
+      const role = ((req.query.state as string) || 'CANDIDATE').toUpperCase();
+      const userRole: UserRole = role === 'EMPLOYER' ? UserRole.EMPLOYER : UserRole.CANDIDATE;
       let user = await prisma.user.findFirst({ where: { email: profile.emails?.[0]?.value } });
       if (!user) {
-        // Domyślnie rejestrujemy jako kandydata, możesz dodać logikę wyboru roli
         user = await prisma.user.create({
           data: {
             username: profile.displayName.replace(/\s/g, "").toLowerCase(),
             email: profile.emails?.[0]?.value || '',
-            role: 'CANDIDATE',
+            role: userRole,
             registerDate: new Date(),
             isDeleted: false,
-            candidateProfile: { create: {} },
+            candidateProfile: userRole === UserRole.CANDIDATE ? { create: {} } : undefined,
+            employerProfile: userRole === UserRole.EMPLOYER ? { create: { companyName: profile.displayName } } : undefined,
             passwordHash: null,
           },
         });
