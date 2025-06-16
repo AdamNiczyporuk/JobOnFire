@@ -13,6 +13,7 @@ export default function EmployerRegister() {
     email: "",
     password: "",
     confirmPassword: "",
+    companyName: "",
   });
   const [error, setError] = useState("");
 
@@ -33,6 +34,7 @@ export default function EmployerRegister() {
         email: form.email,
         password: form.password,
         role: "EMPLOYER",
+        companyName: form.companyName,
       });
       router.push("/employer/login");
     } catch (err: any) {
@@ -44,6 +46,14 @@ export default function EmployerRegister() {
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm space-y-4">
         <h2 className="text-2xl font-bold mb-4">Rejestracja pracodawcy</h2>
+        <Input
+          name="companyName"
+          type="text"
+          placeholder="Nazwa firmy"
+          value={form.companyName}
+          onChange={handleChange}
+          required
+        />
         <Input
           name="username"
           type="text"
@@ -76,9 +86,14 @@ export default function EmployerRegister() {
           onChange={handleChange}
           required
         />
+        
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" className="w-full">Zarejestruj się</Button>
         <GoogleAuthButton label="Zarejestruj się z Google" role="EMPLOYER" />
+        <div className="text-center text-sm mt-2">
+          <span>Jesteś kandydatem? </span>
+          <a href="/candidate/register" className="text-primary hover:underline">Zarejestruj się jako kandydat</a>
+        </div>
       </form>
     </div>
   );

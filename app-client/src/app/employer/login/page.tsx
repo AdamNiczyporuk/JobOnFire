@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { login } from "@/services/authService";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
+import { useAuth } from "@/context/authContext";
 
 export default function EmployerLogin() {
   const router = useRouter();
+  const { checkAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,6 +19,7 @@ export default function EmployerLogin() {
     setError("");
     try {
       await login(email, password, "EMPLOYER");
+      await checkAuth(); // pobierz aktualnego użytkownika
       router.push("/employer/dashboard");
     } catch (err: any) {
       setError(err?.response?.data?.message || "Błąd logowania");
@@ -44,6 +47,10 @@ export default function EmployerLogin() {
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" className="w-full">Zaloguj się</Button>
         <GoogleAuthButton label="Zaloguj się z Google" role="EMPLOYER" />
+        <div className="text-center text-sm mt-2">
+          <span>Jesteś kandydatem? </span>
+          <a href="/candidate/login" className="text-primary hover:underline">Zaloguj się jako kandydat</a>
+        </div>
       </form>
     </div>
   );

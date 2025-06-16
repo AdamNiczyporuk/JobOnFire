@@ -22,7 +22,7 @@ router.post(
             return;
         }
 
-        const { username, password, email, role } = req.body;
+        const { username, password, email, role, companyName } = req.body;
 
 
         console.log('Request Body:', req.body);
@@ -48,11 +48,8 @@ router.post(
                         role: UserRole.CANDIDATE,
                         registerDate: new Date(),
                         isDeleted: false,
-                        // Dodajemy profil kandydata
                         candidateProfile: {
-                            create: {
-
-                            },
+                            create: {}
                         },
                     },
                 });
@@ -65,10 +62,9 @@ router.post(
                         role: UserRole.EMPLOYER,
                         registerDate: new Date(),
                         isDeleted: false,
-                        // Dodajemy profil pracodawcy
                         employerProfile: {
                             create: {
-                                companyName: username, 
+                                companyName: companyName,
                             },
                         },
                     },

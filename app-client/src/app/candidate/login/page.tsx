@@ -47,6 +47,10 @@ export default function CandidateLogin() {
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" className="w-full">Zaloguj się</Button>
         <GoogleAuthButton label="Zaloguj się z Google" role="CANDIDATE" />
+        <div className="text-center text-sm mt-2">
+          <span>Jesteś pracodawcą? </span>
+          <a href="/employer/login" className="text-primary hover:underline">Zaloguj się jako pracodawca</a>
+        </div>
       </form>
     </div>
   );

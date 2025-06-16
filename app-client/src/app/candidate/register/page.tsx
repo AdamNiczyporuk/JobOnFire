@@ -77,6 +77,10 @@ export default function CandidateRegister() {
         />
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" className="w-full">Zarejestruj się</Button>
+        <div className="text-center text-sm mt-2">
+          <span>Jesteś pracodawcą? </span>
+          <a href="/employer/register" className="text-primary hover:underline">Zarejestruj się jako pracodawca</a>
+        </div>
       </form>
     </div>
   );

@@ -17,5 +17,14 @@ export const userRegisterValidation = Joi.object({
     'any.required': 'Role is required',
     'any.only': 'Role must be either CANDIDATE or EMPLOYER',
   }),
+  companyName: Joi.when('role', {
+    is: 'EMPLOYER',
+    then: Joi.string().min(2).required().messages({
+      'any.required': 'Company name is required for employer',
+      'string.empty': 'Company name cannot be empty',
+      'string.min': 'Company name must be at least 2 characters long',
+    }),
+    otherwise: Joi.forbidden(),
+  }),
 });
 

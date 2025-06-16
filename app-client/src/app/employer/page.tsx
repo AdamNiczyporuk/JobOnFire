@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 
-export default function EmployerRoot() {
+export default function EmployerLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const router = useRouter();
 
@@ -17,5 +17,5 @@ export default function EmployerRoot() {
     }
   }, [user, router]);
 
-  return null;
+  return <>{children}</>;
 }
