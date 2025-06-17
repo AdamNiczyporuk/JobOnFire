@@ -1,31 +1,26 @@
 import { Router, Request, Response } from 'express';
 import { ensureAuthenticated } from '../auth/auth_middleware';
+import { ensureEmployer } from '../auth/ensureEmployer';
 import { prisma } from '../db';
 import { employerProfileEditValidation } from '../validation/employerValidation';
 import { addressValidation } from '../validation/addressValidation';
 
 export const router = Router();
 // Edycja profilu pracodawcy
-router.put('/profile', ensureAuthenticated, async (req: Request, res: Response) => {
+router.put('/profile', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
   try {
-    const user = req.user as any;
-    if (!user || user.role !== 'EMPLOYER') {
-      res.status(403).json({ message: 'Access denied. Only employer can edit his employer profile.' });
-      return;
-    }
+    const user = req.user!;
     const { error, value } = employerProfileEditValidation.validate(req.body, { abortEarly: false });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       res.status(400).json({ message: 'Validation failed', errors });
       return;
     }
-    
     const updateData = { ...value };
     if (Array.isArray(value.industry)) updateData.industry = value.industry;
     if (Array.isArray(value.contractType)) updateData.contractType = value.contractType;
     if (Array.isArray(value.benefits)) updateData.benefits = value.benefits;
     if (updateData.address) delete updateData.address;
-
     const updated = await prisma.employerProfile.update({
       where: { userId: user.id },
       data: updateData,
@@ -37,13 +32,9 @@ router.put('/profile', ensureAuthenticated, async (req: Request, res: Response) 
   }
 });
 // Pobranie profilu pracodawcy
-router.get('/profile', ensureAuthenticated, async (req: Request, res: Response) => {
+router.get('/profile', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
   try {
-    const user = req.user as any;
-    if (!user || user.role !== 'EMPLOYER') {
-      res.status(403).json({ message: 'Access denied. Only employer can access this profile.' });
-      return;
-    }
+    const user = req.user!;
     const profile = await prisma.employerProfile.findUnique({
       where: { userId: user.id },
       include: {
@@ -56,7 +47,6 @@ router.get('/profile', ensureAuthenticated, async (req: Request, res: Response) 
       res.status(404).json({ message: 'Profile not found' });
       return;
     }
- 
     const sanitizedProfile = {
       ...profile,
       userId: undefined,
@@ -75,11 +65,11 @@ router.get('/profile', ensureAuthenticated, async (req: Request, res: Response) 
   }
 });
 // Dodaj lokalizację do profilu pracodawcy
-router.post('/profile/location', ensureAuthenticated, async (req: Request, res: Response) => {
+router.post('/profile/location', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
   try {
-    const user = req.user as any;
-    if (!user || user.role !== 'EMPLOYER') {
-      res.status(403).json({ message: 'Access denied. Only employer can add location to his profile.' });
+    const user = req.user!;
+    if (!user.employerProfile || !user.employerProfile.id) {
+      res.status(400).json({ message: 'Employer profile not found for this user.' });
       return;
     }
     // Walidacja adresu
@@ -107,13 +97,12 @@ router.post('/profile/location', ensureAuthenticated, async (req: Request, res: 
     res.status(500).json({ message: 'Error adding location', error: err });
   }
 });
-
 // Usuń lokalizację z profilu pracodawcy
-router.delete('/profile/location/:lokalizationId', ensureAuthenticated, async (req: Request, res: Response) => {
+router.delete('/profile/location/:lokalizationId', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
   try {
-    const user = req.user as any;
-    if (!user || user.role !== 'EMPLOYER') {
-      res.status(403).json({ message: 'Access denied. Only employer can remove his location.' });
+    const user = req.user!;
+    if (!user.employerProfile || !user.employerProfile.id) {
+      res.status(400).json({ message: 'Employer profile not found for this user.' });
       return;
     }
     const lokalizationId = parseInt(req.params.lokalizationId, 10);
