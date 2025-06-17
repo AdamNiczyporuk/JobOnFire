@@ -5,6 +5,7 @@ import { env } from 'process';
 import bcrypt from 'bcrypt';
 import { ensureAuthenticated } from '../auth/auth_middleware';
 import { userRegisterValidation } from '../validation/authValidation';
+import { employerProfileEditValidation } from '../validation/employerValidation';
 import { UserRole } from '@prisma/client';
 
 export const router = Router();
@@ -149,3 +150,4 @@ router.get('/google/callback', passport.authenticate('google', {
     res.redirect(process.env.FRONTEND_BASE_URL + '/candidate/dashboard');
   }
 });
+

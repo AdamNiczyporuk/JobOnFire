@@ -67,12 +67,12 @@ model employerProfile {
   id              Int      @id @default(autoincrement())
   companyName     String
   companyImageUrl String?
-  industry        String?
+  industry        Json?
   description     String?
-  contractType    String?
+  contractType    Json? 
   contactPhone    String?
   contactEmail    String?
-  benefits        String?
+  benefits        Json?
   userId          Int      @unique
 
   user           user                           @relation(fields: [userId], references: [id])
