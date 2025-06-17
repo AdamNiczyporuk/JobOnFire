@@ -18,11 +18,12 @@ router.put('/profile', ensureAuthenticated, async (req: Request, res: Response) 
       res.status(400).json({ message: 'Validation failed', errors });
       return;
     }
-    // Zamiana tablic na JSON dla pól industry, contractType, benefits
+    // Usuń address z updateData przed zapisem do bazy
     const updateData = { ...value };
     if (Array.isArray(value.industry)) updateData.industry = value.industry;
     if (Array.isArray(value.contractType)) updateData.contractType = value.contractType;
     if (Array.isArray(value.benefits)) updateData.benefits = value.benefits;
+    if (updateData.address) delete updateData.address;
     const updated = await prisma.employerProfile.update({
       where: { userId: user.id },
       data: updateData,
