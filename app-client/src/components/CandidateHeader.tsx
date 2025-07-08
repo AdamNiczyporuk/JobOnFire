@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/authContext";
 import { logout } from "@/services/authService";
+import { CandidateMobileMenu } from "./candidate-mobile-menu";
 
 export function CandidateHeader() {
   const { user, setUser } = useAuth();
@@ -79,11 +80,22 @@ export function CandidateHeader() {
               </Link>
             </div>
             <div className="flex items-center space-x-2">
-              {user ? (
+              {user && user.role === 'CANDIDATE' ? (
                 <>
                   <Link href="/candidate/profile">
                     <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
                       Profil: {user.username}
+                    </Button>
+                  </Link>
+                  <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                    Wyloguj się
+                  </Button>
+                </>
+              ) : user && user.role === 'EMPLOYER' ? (
+                <>
+                  <Link href="/employer/dashboard">
+                    <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
+                      Panel Pracodawcy: {user.username}
                     </Button>
                   </Link>
                   <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
@@ -108,13 +120,7 @@ export function CandidateHeader() {
           </nav>
 
           {/* Menu mobilne */}
-          <div className="sm:hidden">
-            <Button variant="ghost" size="sm">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </Button>
-          </div>
+          <CandidateMobileMenu />
         </div>
       </div>
     </header>

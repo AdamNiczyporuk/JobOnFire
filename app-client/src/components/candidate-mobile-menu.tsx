@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
 import { logout } from "@/services/authService"
 
-export function MobileMenu() {
+export function CandidateMobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, setUser } = useAuth()
 
@@ -79,18 +79,18 @@ export function MobileMenu() {
             Oferty pracy
           </Link>
           <Link
-            href="/employer"
+            href="/candidate/dashboard"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
-            Dla firm
+            Mój Dashboard
           </Link>
           <Link
-            href="/blog"
+            href="/employer/login"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
-            Blog
+            Portal Pracodawców
           </Link>
           <Link
             href="/about"
@@ -99,51 +99,47 @@ export function MobileMenu() {
           >
             O nas
           </Link>
+          <Link
+            href="/blog"
+            className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
+            onClick={() => setIsOpen(false)}
+          >
+            Blog
+          </Link>
           <div className="pt-2 flex flex-col space-y-2">
-            {user ? (
+            {user && user.role === 'CANDIDATE' ? (
               <>
-                {user.role === 'CANDIDATE' ? (
-                  <>
-                    <Link href="/candidate/dashboard" onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
-                      >
-                        Dashboard: {user.username}
-                      </Button>
-                    </Link>
-                    <Button 
-                      onClick={handleLogout} 
-                      className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
-                    >
-                      Wyloguj się
-                    </Button>
-                  </>
-                ) : user.role === 'EMPLOYER' ? (
-                  <>
-                    <Link href="/employer/dashboard" onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
-                      >
-                        Dashboard: {user.username}
-                      </Button>
-                    </Link>
-                    <Button 
-                      onClick={handleLogout} 
-                      className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
-                    >
-                      Wyloguj się
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    onClick={handleLogout} 
-                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                <Link href="/candidate/profile" onClick={() => setIsOpen(false)}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
                   >
-                    Wyloguj się
+                    Profil: {user.username}
                   </Button>
-                )}
+                </Link>
+                <Button 
+                  onClick={handleLogout} 
+                  className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                >
+                  Wyloguj się
+                </Button>
+              </>
+            ) : user && user.role === 'EMPLOYER' ? (
+              <>
+                <Link href="/employer/dashboard" onClick={() => setIsOpen(false)}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
+                  >
+                    Panel Pracodawcy: {user.username}
+                  </Button>
+                </Link>
+                <Button 
+                  onClick={handleLogout} 
+                  className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                >
+                  Wyloguj się
+                </Button>
               </>
             ) : (
               <>

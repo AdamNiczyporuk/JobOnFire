@@ -1,8 +1,17 @@
+"use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MobileMenu } from "./mobile-menu";
+import { useAuth } from "@/context/authContext";
+import { logout } from "@/services/authService";
 
 export function Header() {
+  const { user, setUser } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    setUser(null);
+  };
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
       <div className="w-full max-w-5xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
@@ -65,19 +74,53 @@ export function Header() {
               </Link>
             </div>
             <div className="flex items-center space-x-2">
-              <Link href="/candidate/login">
-                <Button
-                  variant="outline"
-                  className="transition-all duration-200 hover:scale-105 hover:border-primary"
-                >
-                  Zaloguj się
-                </Button>
-              </Link>
-              <Link href="/candidate/register">
-                <Button className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                  Zarejestruj się
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  {user.role === 'CANDIDATE' ? (
+                    <>
+                      <Link href="/candidate/dashboard">
+                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
+                          Dashboard: {user.username}
+                        </Button>
+                      </Link>
+                      <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                        Wyloguj się
+                      </Button>
+                    </>
+                  ) : user.role === 'EMPLOYER' ? (
+                    <>
+                      <Link href="/employer/dashboard">
+                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
+                          Dashboard: {user.username}
+                        </Button>
+                      </Link>
+                      <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                        Wyloguj się
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                      Wyloguj się
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Link href="/candidate/login">
+                    <Button
+                      variant="outline"
+                      className="transition-all duration-200 hover:scale-105 hover:border-primary"
+                    >
+                      Zaloguj się
+                    </Button>
+                  </Link>
+                  <Link href="/candidate/register">
+                    <Button className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                      Zarejestruj się
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>
