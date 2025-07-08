@@ -15,7 +15,7 @@ export function CandidateHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
-      <div className="w-full max-w-5xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
+      <div className="w-full max-w-6xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
         {/* Logo - zawsze prowadzi do strony głównej */}
         <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
           <svg
@@ -58,25 +58,20 @@ export function CandidateHeader() {
                 href="/candidate/dashboard"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Mój Dashboard
+                Dashboard
               </Link>
               <Link
                 href="/employer/login"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Portal Pracodawców
+                <span className="hidden lg:inline">Portal Pracodawców</span>
+                <span className="lg:hidden">Dla firm</span>
               </Link>
               <Link
                 href="/about"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
                 O nas
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-              >
-                Blog
               </Link>
             </div>
             <div className="flex items-center space-x-2">

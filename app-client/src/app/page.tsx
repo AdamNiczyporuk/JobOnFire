@@ -4,26 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Header } from "@/components/Header";
-import { CandidateHeader } from "@/components/CandidateHeader";
-import { EmployerHeader } from "@/components/EmployerHeader";
+import { SmartHeader } from "@/components/SmartHeader";
 
 export default function Home() {
   const { user } = useAuth();
 
-  // Wybór odpowiedniego headera w zależności od roli użytkownika
-  const renderHeader = () => {
-    if (user?.role === "CANDIDATE") {
-      return <CandidateHeader />;
-    } else if (user?.role === "EMPLOYER") {
-      return <EmployerHeader />;
-    }
-    return <Header />;
-  };
-
   return (
     <div className="flex min-h-screen flex-col items-center">
-      {renderHeader()}
+      <SmartHeader />
 
       <main className="flex-1 w-full">
         {/* Sekcja powitalna dla zalogowanych użytkowników */}

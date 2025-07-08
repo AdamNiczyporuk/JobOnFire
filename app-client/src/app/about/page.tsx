@@ -1,11 +1,15 @@
+"use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/Header";
+import { SmartHeader } from "@/components/SmartHeader";
+import { useAuth } from "@/context/authContext";
 
 export default function AboutPage() {
+  const { user } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col items-center">
-      <Header />
+      <SmartHeader />
       
       <main className="flex-1 w-full">
         <div className="w-full max-w-5xl mx-auto px-4 md:px-6 py-12 md:py-16">
@@ -88,21 +92,24 @@ export default function AboutPage() {
               </div>
             </section>
 
-            <section className="bg-primary text-primary-foreground rounded-lg p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4">Dołącz do nas już dziś!</h2>
-              <p className="mb-6 max-w-[600px] mx-auto">
-                Rozpocznij swoją przygodę z najlepszymi ofertami pracy w branży frontend.
-              </p>
-              <Link href="/candidate/register">
-                <Button 
-                  variant="secondary" 
-                  size="lg"
-                  className="transition-all duration-200 hover:scale-105"
-                >
-                  Stwórz konto
-                </Button>
-              </Link>
-            </section>
+            {/* Sekcja CTA - ukryta dla zalogowanych użytkowników */}
+            {!user && (
+              <section className="bg-primary text-primary-foreground rounded-lg p-8 text-center">
+                <h2 className="text-2xl font-bold mb-4">Dołącz do nas już dziś!</h2>
+                <p className="mb-6 max-w-[600px] mx-auto">
+                  Rozpocznij swoją przygodę z najlepszymi ofertami pracy w branży frontend.
+                </p>
+                <Link href="/candidate/register">
+                  <Button 
+                    variant="secondary" 
+                    size="lg"
+                    className="transition-all duration-200 hover:scale-105"
+                  >
+                    Stwórz konto
+                  </Button>
+                </Link>
+              </section>
+            )}
           </div>
         </div>
       </main>

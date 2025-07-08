@@ -15,7 +15,7 @@ export function EmployerHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
-      <div className="w-full max-w-5xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
+      <div className="w-full max-w-6xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
         {/* Logo - zawsze prowadzi do strony głównej */}
         <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
           <svg
@@ -40,7 +40,8 @@ export function EmployerHeader() {
             <path d="M2 14h20"></path>
           </svg>
           <span className="transition-colors duration-300 group-hover:text-primary">
-            JobOnFire - Portal Pracodawców
+            <span className="hidden sm:inline">JobOnFire - Portal Pracodawców</span>
+            <span className="sm:hidden">JobOnFire</span>
           </span>
         </Link>
 
@@ -52,13 +53,13 @@ export function EmployerHeader() {
                 href="/employer/dashboard"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Mój Dashboard
+                Dashboard
               </Link>
               <Link
                 href="#"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Moje Oferty
+                Oferty
               </Link>
               <Link
                 href="#"
@@ -70,7 +71,8 @@ export function EmployerHeader() {
                 href="/candidate/login"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Portal Kandydatów
+                <span className="hidden lg:inline">Portal Kandydatów</span>
+                <span className="lg:hidden">Kandydaci</span>
               </Link>
               <Link
                 href="/about"

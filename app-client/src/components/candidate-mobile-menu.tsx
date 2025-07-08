@@ -99,13 +99,6 @@ export function CandidateMobileMenu() {
           >
             O nas
           </Link>
-          <Link
-            href="/blog"
-            className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
-            onClick={() => setIsOpen(false)}
-          >
-            Blog
-          </Link>
           <div className="pt-2 flex flex-col space-y-2">
             {user && user.role === 'CANDIDATE' ? (
               <>

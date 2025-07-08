@@ -14,7 +14,7 @@ export function Header() {
   };
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
-      <div className="w-full max-w-5xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
+      <div className="w-full max-w-6xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
         <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -59,12 +59,6 @@ export function Header() {
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
                 Dla firm
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-              >
-                Blog
               </Link>
               <Link
                 href="/about"
