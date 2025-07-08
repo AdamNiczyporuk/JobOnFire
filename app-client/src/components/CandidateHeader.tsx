@@ -1,20 +1,22 @@
 "use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MobileMenu } from "./mobile-menu";
 import { useAuth } from "@/context/authContext";
 import { logout } from "@/services/authService";
+import { CandidateMobileMenu } from "./candidate-mobile-menu";
 
-export function Header() {
+export function CandidateHeader() {
   const { user, setUser } = useAuth();
 
   const handleLogout = async () => {
     await logout();
     setUser(null);
   };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
       <div className="w-full max-w-6xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
+        {/* Logo - zawsze prowadzi do strony głównej */}
         <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -41,10 +43,8 @@ export function Header() {
             JobOnFire
           </span>
         </Link>
-        <div className="flex items-center">
-          {/* Menu mobilne */}
-          <MobileMenu />
 
+        <div className="flex items-center">
           {/* Nawigacja desktopowa */}
           <nav className="hidden sm:flex items-center">
             <div className="flex items-center space-x-4 mr-4">
@@ -55,10 +55,17 @@ export function Header() {
                 Oferty pracy
               </Link>
               <Link
-                href="/employer"
+                href="/candidate/dashboard"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Dla firm
+                Dashboard
+              </Link>
+              <Link
+                href="/employer/login"
+                className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
+              >
+                <span className="hidden lg:inline">Portal Pracodawców</span>
+                <span className="lg:hidden">Dla firm</span>
               </Link>
               <Link
                 href="/about"
@@ -68,43 +75,32 @@ export function Header() {
               </Link>
             </div>
             <div className="flex items-center space-x-2">
-              {user ? (
+              {user && user.role === 'CANDIDATE' ? (
                 <>
-                  {user.role === 'CANDIDATE' ? (
-                    <>
-                      <Link href="/candidate/dashboard">
-                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
-                          Dashboard: {user.username}
-                        </Button>
-                      </Link>
-                      <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                        Wyloguj się
-                      </Button>
-                    </>
-                  ) : user.role === 'EMPLOYER' ? (
-                    <>
-                      <Link href="/employer/dashboard">
-                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
-                          Dashboard: {user.username}
-                        </Button>
-                      </Link>
-                      <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                        Wyloguj się
-                      </Button>
-                    </>
-                  ) : (
-                    <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                      Wyloguj się
+                  <Link href="/candidate/profile">
+                    <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
+                      Profil: {user.username}
                     </Button>
-                  )}
+                  </Link>
+                  <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                    Wyloguj się
+                  </Button>
+                </>
+              ) : user && user.role === 'EMPLOYER' ? (
+                <>
+                  <Link href="/employer/dashboard">
+                    <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
+                      Panel Pracodawcy: {user.username}
+                    </Button>
+                  </Link>
+                  <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                    Wyloguj się
+                  </Button>
                 </>
               ) : (
                 <>
                   <Link href="/candidate/login">
-                    <Button
-                      variant="outline"
-                      className="transition-all duration-200 hover:scale-105 hover:border-primary"
-                    >
+                    <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
                       Zaloguj się
                     </Button>
                   </Link>
@@ -117,6 +113,9 @@ export function Header() {
               )}
             </div>
           </nav>
+
+          {/* Menu mobilne */}
+          <CandidateMobileMenu />
         </div>
       </div>
     </header>

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/Header";
+import { SmartHeader } from "@/components/SmartHeader";
 
 export default function JobOffersPage() {
   return (
     <div className="flex min-h-screen flex-col items-center">
-      <Header />
+      <SmartHeader />
       
       <main className="flex-1 w-full">
         <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-16">

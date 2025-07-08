@@ -1,20 +1,22 @@
 "use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MobileMenu } from "./mobile-menu";
 import { useAuth } from "@/context/authContext";
 import { logout } from "@/services/authService";
+import { EmployerMobileMenu } from "./employer-mobile-menu";
 
-export function Header() {
+export function EmployerHeader() {
   const { user, setUser } = useAuth();
 
   const handleLogout = async () => {
     await logout();
     setUser(null);
   };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
       <div className="w-full max-w-6xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
+        {/* Logo - zawsze prowadzi do strony głównej */}
         <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -38,27 +40,39 @@ export function Header() {
             <path d="M2 14h20"></path>
           </svg>
           <span className="transition-colors duration-300 group-hover:text-primary">
-            JobOnFire
+            <span className="hidden sm:inline">JobOnFire - Portal Pracodawców</span>
+            <span className="sm:hidden">JobOnFire</span>
           </span>
         </Link>
-        <div className="flex items-center">
-          {/* Menu mobilne */}
-          <MobileMenu />
 
+        <div className="flex items-center">
           {/* Nawigacja desktopowa */}
           <nav className="hidden sm:flex items-center">
             <div className="flex items-center space-x-4 mr-4">
               <Link
-                href="/job-offers"
+                href="/employer/dashboard"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Oferty pracy
+                Dashboard
               </Link>
               <Link
-                href="/employer"
+                href="#"
                 className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
               >
-                Dla firm
+                Oferty
+              </Link>
+              <Link
+                href="#"
+                className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
+              >
+                Kandydaci
+              </Link>
+              <Link
+                href="/candidate/login"
+                className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
+              >
+                <span className="hidden lg:inline">Portal Kandydatów</span>
+                <span className="lg:hidden">Kandydaci</span>
               </Link>
               <Link
                 href="/about"
@@ -68,55 +82,47 @@ export function Header() {
               </Link>
             </div>
             <div className="flex items-center space-x-2">
-              {user ? (
+              {user && user.role === 'EMPLOYER' ? (
                 <>
-                  {user.role === 'CANDIDATE' ? (
-                    <>
-                      <Link href="/candidate/dashboard">
-                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
-                          Dashboard: {user.username}
-                        </Button>
-                      </Link>
-                      <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                        Wyloguj się
-                      </Button>
-                    </>
-                  ) : user.role === 'EMPLOYER' ? (
-                    <>
-                      <Link href="/employer/dashboard">
-                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
-                          Dashboard: {user.username}
-                        </Button>
-                      </Link>
-                      <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                        Wyloguj się
-                      </Button>
-                    </>
-                  ) : (
-                    <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                      Wyloguj się
+                  <Link href="/employer/profile">
+                    <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
+                      Firma: {user.username}
                     </Button>
-                  )}
+                  </Link>
+                  <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                    Wyloguj się
+                  </Button>
+                </>
+              ) : user && user.role === 'CANDIDATE' ? (
+                <>
+                  <Link href="/candidate/dashboard">
+                    <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
+                      Panel Kandydata: {user.username}
+                    </Button>
+                  </Link>
+                  <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                    Wyloguj się
+                  </Button>
                 </>
               ) : (
                 <>
-                  <Link href="/candidate/login">
-                    <Button
-                      variant="outline"
-                      className="transition-all duration-200 hover:scale-105 hover:border-primary"
-                    >
+                  <Link href="/employer/login">
+                    <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
                       Zaloguj się
                     </Button>
                   </Link>
-                  <Link href="/candidate/register">
+                  <Link href="/employer/register">
                     <Button className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                      Zarejestruj się
+                      Zarejestruj firmę
                     </Button>
                   </Link>
                 </>
               )}
             </div>
           </nav>
+
+          {/* Menu mobilne */}
+          <EmployerMobileMenu />
         </div>
       </div>
     </header>
