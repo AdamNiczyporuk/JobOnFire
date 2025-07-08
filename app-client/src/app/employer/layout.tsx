@@ -61,10 +61,10 @@ export default function EmployerLayout({ children }: { children: ReactNode }) {
                   Spotkania
                 </Link>
                 <Link
-                  href="/candidate/dashboard"
+                  href="/candidate/login"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
-                  Profil dla Kandydatów
+                  Portal Kandydatów
                 </Link>
                 </div>
               <div className="flex items-center space-x-2">

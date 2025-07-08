@@ -63,7 +63,7 @@ export function MobileMenu() {
       >
         <div className="flex flex-col p-4 space-y-4">
           <Link
-            href="#"
+            href="/job-offers"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
@@ -77,29 +77,33 @@ export function MobileMenu() {
             Dla firm
           </Link>
           <Link
-            href="#"
+            href="/blog"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
             Blog
           </Link>
           <Link
-            href="#"
+            href="/about"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
             O nas
           </Link>
           <div className="pt-2 flex flex-col space-y-2">
-            <Button
-              variant="outline"
-              className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
-            >
-              Zaloguj się
-            </Button>
-            <Button className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-              Zarejestruj się
-            </Button>
+            <Link href="/candidate/login" onClick={() => setIsOpen(false)}>
+              <Button
+                variant="outline"
+                className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
+              >
+                Zaloguj się
+              </Button>
+            </Link>
+            <Link href="/candidate/register" onClick={() => setIsOpen(false)}>
+              <Button className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90">
+                Zarejestruj się
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

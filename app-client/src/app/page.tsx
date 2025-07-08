@@ -25,7 +25,7 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
         <div className="w-full max-w-5xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
-          <div className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
+          <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -50,7 +50,7 @@ export default function Home() {
             <span className="transition-colors duration-300 group-hover:text-primary">
               JobOnFire
             </span>
-          </div>
+          </Link>
           <div className="flex items-center">
             {/* Menu mobilne */}
             <MobileMenu />
@@ -59,7 +59,7 @@ export default function Home() {
             <nav className="hidden sm:flex items-center">
               <div className="flex items-center space-x-4 mr-4">
                 <Link
-                  href="#"
+                  href="/job-offers"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
                   Oferty pracy
@@ -71,13 +71,13 @@ export default function Home() {
                   Dla firm
                 </Link>
                 <Link
-                  href="#"
+                  href="/blog"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
                   Blog
                 </Link>
                 <Link
-                  href="#"
+                  href="/about"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
                   O nas
@@ -302,20 +302,24 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="px-8 transition-all duration-200 hover:scale-105"
-                >
-                  Przeglądaj oferty
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="px-8 bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary transition-all duration-200 hover:scale-105"
-                >
-                  Utwórz konto
-                </Button>
+                <Link href="/job-offers">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="px-8 transition-all duration-200 hover:scale-105"
+                  >
+                    Przeglądaj oferty
+                  </Button>
+                </Link>
+                <Link href="/candidate/register">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="px-8 bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary transition-all duration-200 hover:scale-105"
+                  >
+                    Utwórz konto
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -326,7 +330,7 @@ export default function Home() {
       <footer className="w-full border-t bg-white">
         <div className="w-full max-w-5xl mx-auto flex flex-col gap-8 px-4 py-10 md:px-6 lg:flex-row lg:gap-12">
           <div className="flex flex-col gap-4 lg:w-1/3">
-            <div className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
+            <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -351,7 +355,7 @@ export default function Home() {
               <span className="transition-colors duration-300 group-hover:text-primary">
                 JobOnFire
               </span>
-            </div>
+            </Link>
             <p className="text-sm text-muted-foreground">
               Platforma łącząca frontend developerów z najlepszymi ofertami
               pracy w branży IT.
@@ -413,19 +417,19 @@ export default function Home() {
             <div className="flex flex-col gap-2">
               <p className="text-sm font-bold">Firma</p>
               <Link
-                href="#"
+                href="/about"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 O nas
               </Link>
               <Link
-                href="#"
+                href="/contact"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 Kontakt
               </Link>
               <Link
-                href="#"
+                href="/blog"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 Blog
@@ -434,19 +438,19 @@ export default function Home() {
             <div className="flex flex-col gap-2">
               <p className="text-sm font-bold">Zasoby</p>
               <Link
-                href="#"
+                href="/faq"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 FAQ
               </Link>
               <Link
-                href="#"
+                href="/terms"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 Regulamin
               </Link>
               <Link
-                href="#"
+                href="/privacy"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 Polityka prywatności
@@ -455,19 +459,19 @@ export default function Home() {
             <div className="flex flex-col gap-2">
               <p className="text-sm font-bold">Przydatne linki</p>
               <Link
-                href="#"
+                href="/job-offers"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 Oferty pracy
               </Link>
               <Link
-                href="#"
+                href="/employer"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 Dla firm
               </Link>
               <Link
-                href="#"
+                href="/categories"
                 className="text-sm text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1"
               >
                 Kategorie
