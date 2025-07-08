@@ -1,120 +1,102 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MobileMenu } from "../components/mobile-menu";
+import { Header } from "@/components/Header";
+import { CandidateHeader } from "@/components/CandidateHeader";
+import { EmployerHeader } from "@/components/EmployerHeader";
 
 export default function Home() {
   const { user } = useAuth();
-  const router = useRouter();
 
-  useEffect(() => {
+  // Wybór odpowiedniego headera w zależności od roli użytkownika
+  const renderHeader = () => {
     if (user?.role === "CANDIDATE") {
-      router.replace("/candidate/dashboard");
+      return <CandidateHeader />;
     } else if (user?.role === "EMPLOYER") {
-      router.replace("/employer/dashboard");
+      return <EmployerHeader />;
     }
-  }, [user, router]);
+    return <Header />;
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
-        <div className="w-full max-w-5xl mx-auto px-4 md:px-8 flex h-16 items-center justify-between">
-          <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6 text-primary transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110"
-            >
-              <path d="M20 7h-4a2 2 0 0 0-2 2v.5"></path>
-              <path d="M14 2h.01"></path>
-              <path d="M14 2h.01"></path>
-              <path d="M20 2h.01"></path>
-              <path d="M20 2h.01"></path>
-              <path d="M20 14v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"></path>
-              <path d="M14 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"></path>
-              <path d="M2 14h20"></path>
-            </svg>
-            <span className="transition-colors duration-300 group-hover:text-primary">
-              JobOnFire
-            </span>
-          </Link>
-          <div className="flex items-center">
-            {/* Menu mobilne */}
-            <MobileMenu />
-
-            {/* Nawigacja desktopowa */}
-            <nav className="hidden sm:flex items-center">
-              <div className="flex items-center space-x-4 mr-4">
-                <Link
-                  href="/job-offers"
-                  className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                >
-                  Oferty pracy
-                </Link>
-                <Link
-                  href="/employer"
-                  className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                >
-                  Dla firm
-                </Link>
-                <Link
-                  href="/blog"
-                  className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                >
-                  Blog
-                </Link>
-                <Link
-                  href="/about"
-                  className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                >
-                  O nas
-                </Link>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Link href="/candidate/login">
-                  <Button
-                    variant="outline"
-                    className="transition-all duration-200 hover:scale-105 hover:border-primary"
-                  >
-                    Zaloguj się
-                  </Button>
-                </Link>
-                <Link href="/candidate/register">
-                <Button className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                  Zarejestruj się
-                </Button>
-                </Link>
-              </div>
-            </nav>
-          </div>
-        </div>
-      </header>
+      {renderHeader()}
 
       <main className="flex-1 w-full">
-        {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-          <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
+        {/* Sekcja powitalna dla zalogowanych użytkowników */}
+        {user && (
+          <section className="w-full py-16 md:py-20 bg-gradient-to-br from-primary/10 via-primary/5 to-background">
+            <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
+              <div className="text-center space-y-6">
+                <div className="space-y-4">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                    Witaj z powrotem, {user.username}! 👋
+                  </h1>
+                  <p className="max-w-[700px] mx-auto text-muted-foreground md:text-xl">
+                    {user.role === "CANDIDATE" 
+                      ? "Znajdź najnowsze oferty pracy dopasowane do Twoich umiejętności i rozpocznij kolejny etap swojej kariery"
+                      : "Zarządzaj swoimi ofertami pracy i znajdź najlepszych kandydatów dla swojej firmy"}
+                  </p>
+                </div>
+                
+                {/* Wyszukiwarka ofert pracy dla zalogowanych */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-8 max-w-[600px] mx-auto">
+                  <div className="relative flex-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
+                    >
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <Input
+                      type="search"
+                      placeholder="Szukaj ofert pracy..."
+                      className="w-full pl-8 transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                    />
+                  </div>
+                  <Link href="/job-offers">
+                    <Button 
+                      size="lg" 
+                      className="px-8 whitespace-nowrap transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                    >
+                      Szukaj ofert
+                    </Button>
+                  </Link>
+                </div>
+                
+                <p className="text-sm text-muted-foreground">
+                  {user.role === "CANDIDATE" 
+                    ? "Sprawdź najnowsze oferty w swoich ulubionych technologiach"
+                    : "Dodaj nową ofertę lub sprawdź aplikacje kandydatów"}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Hero Section - tylko dla niezalogowanych */}
+        {!user && (
+          <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+            <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Znajdź swoją wymarzoną pracę jako Frontend Developer
+                  Znajdź swoją wymarzoną pracę w IT
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Przeglądaj tysiące ofert pracy z Next.js, React, Tailwind CSS
-                  i innych technologii frontendowych.
+                  Przeglądaj tysiące ofert pracy z różnych dziedzin IT - od developera po analityka, od juniora po seniora.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-[600px]">
                   <div className="relative flex-1">
@@ -147,8 +129,7 @@ export default function Home() {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Popularne: Next.js, React, Tailwind CSS, TypeScript,
-                  JavaScript
+                  Popularne: React, Java, Python, JavaScript, .NET, Angular
                 </p>
               </div>
               <div className="flex justify-center">
@@ -163,6 +144,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Stats Section */}
         <section className="w-full py-12 md:py-16 lg:py-20">
@@ -288,8 +270,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
+        {/* CTA Section - tylko dla niezalogowanych */}
+        {!user && (
+          <section className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
           <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -323,7 +306,8 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        )}
       </main>
 
       {/* Footer */}
