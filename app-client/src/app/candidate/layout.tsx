@@ -48,28 +48,28 @@ export default function CandidateLayout({ children }: { children: ReactNode }) {
             <nav className="hidden sm:flex items-center">
               <div className="flex items-center space-x-4 mr-4">
                 <Link
-                  href="#"
+                  href="/job-offers"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
                   Oferty pracy
                 </Link>
                 <Link
-                  href="#"
+                  href="/employer/login"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
-                  Dla firm
+                  Portal Pracodawców
                 </Link>
                 <Link
-                  href="#"
-                  className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                >
-                  Pracodawcy
-                </Link>
-                <Link
-                  href="#"
+                  href="/about"
                   className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
                 >
                   O nas
+                </Link>
+                <Link
+                  href="/blog"
+                  className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
+                >
+                  Blog
                 </Link>
               </div>
               <div className="flex items-center space-x-2">
