@@ -62,7 +62,7 @@ export default function EmployerRegister() {
                   value={form.companyName}
                   onChange={handleChange}
                   required
-                  className="transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                 />
               </div>
               
@@ -75,7 +75,7 @@ export default function EmployerRegister() {
                   value={form.username}
                   onChange={handleChange}
                   required
-                  className="transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                 />
               </div>
               
@@ -88,7 +88,7 @@ export default function EmployerRegister() {
                   value={form.email}
                   onChange={handleChange}
                   required
-                  className="transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                 />
               </div>
               
@@ -101,7 +101,7 @@ export default function EmployerRegister() {
                   value={form.password}
                   onChange={handleChange}
                   required
-                  className="transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                 />
               </div>
               
@@ -114,7 +114,7 @@ export default function EmployerRegister() {
                   value={form.confirmPassword}
                   onChange={handleChange}
                   required
-                  className="transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                 />
               </div>
               
@@ -162,3 +162,4 @@ export default function EmployerRegister() {
       </main>
   );
 }
+

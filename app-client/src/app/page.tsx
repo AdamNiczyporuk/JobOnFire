@@ -28,7 +28,7 @@ export default function Home() {
       <main className="flex-1 w-full">
         {/* Sekcja powitalna dla zalogowanych użytkowników */}
         {user && (
-          <section className="w-full py-16 md:py-20 bg-gradient-to-br from-primary/10 via-primary/5 to-background">
+          <section className="w-full py-12 md:py-16 bg-muted relative">
             <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
               <div className="text-center space-y-6">
                 <div className="space-y-4">
@@ -63,7 +63,7 @@ export default function Home() {
                     <Input
                       type="search"
                       placeholder="Szukaj ofert pracy..."
-                      className="w-full pl-8 transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                      className="w-full pl-8 transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400 bg-background"
                     />
                   </div>
                   <Link href="/job-offers">
@@ -88,7 +88,7 @@ export default function Home() {
 
         {/* Hero Section - tylko dla niezalogowanych */}
         {!user && (
-          <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+          <section className="w-full py-12 md:py-20 lg:py-24 bg-muted">
             <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
@@ -118,7 +118,7 @@ export default function Home() {
                     <Input
                       type="search"
                       placeholder="Szukaj technologii, stanowiska..."
-                      className="w-full pl-8 transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                      className="w-full pl-8 transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                     />
                   </div>
                   <Button
@@ -147,31 +147,37 @@ export default function Home() {
         )}
 
         {/* Stats Section */}
-        <section className="w-full py-12 md:py-16 lg:py-20">
-          <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div className="space-y-2">
-                <h3 className="text-3xl font-bold">5000+</h3>
-                <p className="text-muted-foreground">Ofert pracy</p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-bold">1200+</h3>
-                <p className="text-muted-foreground">Firm</p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-bold">15000+</h3>
-                <p className="text-muted-foreground">Użytkowników</p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-bold">98%</h3>
-                <p className="text-muted-foreground">Zadowolonych klientów</p>
+        <section className="w-full py-8 md:py-10 bg-background relative">
+          {/* Subtelny separator u góry dla zalogowanych */}
+          {user && (
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+          )}
+          <div className="w-full max-w-6xl mx-auto px-4 md:px-6">
+            <div className="bg-white rounded-xl shadow-lg border p-6 md:p-8 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+              <div className="grid grid-cols-4 gap-6 md:gap-8 text-center">
+                <div className="space-y-1 p-3 rounded-lg transition-all duration-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 hover:scale-105 cursor-pointer group">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-800 transition-all duration-300 group-hover:text-blue-600 group-hover:scale-110">💼 5000+</h3>
+                  <p className="text-sm text-muted-foreground font-medium transition-colors duration-300 group-hover:text-blue-700">Ofert pracy</p>
+                </div>
+                <div className="space-y-1 p-3 rounded-lg transition-all duration-300 hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 hover:scale-105 cursor-pointer group">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-800 transition-all duration-300 group-hover:text-green-600 group-hover:scale-110">🏢 1200+</h3>
+                  <p className="text-sm text-muted-foreground font-medium transition-colors duration-300 group-hover:text-green-700">Firm</p>
+                </div>
+                <div className="space-y-1 p-3 rounded-lg transition-all duration-300 hover:bg-gradient-to-br hover:from-purple-50 hover:to-violet-50 hover:scale-105 cursor-pointer group">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-800 transition-all duration-300 group-hover:text-purple-600 group-hover:scale-110">👥 15000+</h3>
+                  <p className="text-sm text-muted-foreground font-medium transition-colors duration-300 group-hover:text-purple-700">Użytkowników</p>
+                </div>
+                <div className="space-y-1 p-3 rounded-lg transition-all duration-300 hover:bg-gradient-to-br hover:from-amber-50 hover:to-yellow-50 hover:scale-105 cursor-pointer group">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-800 transition-all duration-300 group-hover:text-amber-600 group-hover:scale-110">⭐ 98%</h3>
+                  <p className="text-sm text-muted-foreground font-medium transition-colors duration-300 group-hover:text-amber-700">Zadowolonych klientów</p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+        <section className="w-full py-12 md:py-18 lg:py-20 bg-muted">
           <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -270,9 +276,111 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Latest Jobs Section */}
+        <section className="w-full py-12 md:py-16 bg-background">
+          <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-8">
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+                  🔥 Najnowsze oferty pracy
+                </h2>
+                <p className="text-muted-foreground md:text-lg">
+                  Sprawdź najświeższe oferty od najlepszych firm IT
+                </p>
+              </div>
+              
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
+                {/* Oferta 1 */}
+                <div className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          Senior React Developer
+                        </h3>
+                        <p className="text-sm text-muted-foreground">TechCorp Sp. z o.o.</p>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        Zdalna
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      Szukamy doświadczonego React developera do pracy nad nowatorskimi projektami e-commerce.
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-semibold text-primary">15 000 - 20 000 zł</span>
+                      <Link href="/job-offers" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                        Zobacz więcej →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Oferta 2 */}
+                <div className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          Java Backend Developer
+                        </h3>
+                        <p className="text-sm text-muted-foreground">FinTech Solutions</p>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                        Hybryda
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      Dołącz do zespołu tworzącego innowacyjne rozwiązania finansowe dla banków.
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-semibold text-primary">12 000 - 18 000 zł</span>
+                      <Link href="/job-offers" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                        Zobacz więcej →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Oferta 3 */}
+                <div className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          DevOps Engineer
+                        </h3>
+                        <p className="text-sm text-muted-foreground">CloudTech Innovations</p>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                        Warszawa
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      Administruj infrastrukturą chmurową i automatyzuj procesy CI/CD.
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-semibold text-primary">16 000 - 22 000 zł</span>
+                      <Link href="/job-offers" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                        Zobacz więcej →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <Link href="/job-offers">
+                <Button size="lg" variant="outline" className="mt-4">
+                  Zobacz wszystkie oferty
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section - tylko dla niezalogowanych */}
         {!user && (
-          <section className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
+          <section className="w-full py-12 md:py-16 lg:py-20 bg-primary text-primary-foreground">
           <div className="w-full max-w-5xl mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">

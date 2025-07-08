@@ -45,7 +45,7 @@ export default function EmployerLogin() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                 />
               </div>
               
@@ -57,7 +57,7 @@ export default function EmployerLogin() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  className="transition-all duration-200 focus:scale-[1.02] focus:border-primary"
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
                 />
               </div>
               
@@ -105,3 +105,4 @@ export default function EmployerLogin() {
       </main>
   );
 }
+
