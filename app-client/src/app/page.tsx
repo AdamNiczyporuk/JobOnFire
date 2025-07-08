@@ -358,7 +358,7 @@ export default function Home() {
               </div>
               
               <Link href="/job-offers">
-                <Button size="lg" variant="outline" className="mt-4">
+                <Button size="lg" className="mt-4 transition-all duration-200 hover:scale-105">
                   Zobacz wszystkie oferty
                 </Button>
               </Link>
