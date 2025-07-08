@@ -32,7 +32,7 @@ export default function Home() {
                 
                 {/* Wyszukiwarka ofert pracy dla zalogowanych */}
                 <div className="flex flex-col sm:flex-row gap-4 mt-8 max-w-[600px] mx-auto">
-                  <div className="relative flex-1">
+                  <div className="relative flex-1 group">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -43,7 +43,7 @@ export default function Home() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
+                      className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground transition-all duration-200 group-hover:text-red-500 group-focus-within:text-red-500 group-focus-within:scale-110"
                     >
                       <circle cx="11" cy="11" r="8"></circle>
                       <path d="m21 21-4.3-4.3"></path>
@@ -51,13 +51,13 @@ export default function Home() {
                     <Input
                       type="search"
                       placeholder="Szukaj ofert pracy..."
-                      className="w-full pl-8 transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400 bg-background"
+                      className="w-full pl-8 transition-all duration-300 focus:scale-[1.02] focus:border-red-500 hover:border-red-400 bg-background focus:shadow-lg hover:shadow-md placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-70"
                     />
                   </div>
                   <Link href="/job-offers">
                     <Button 
                       size="lg" 
-                      className="px-8 whitespace-nowrap transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                      className="px-8 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-lg transform active:scale-95"
                     >
                       Szukaj ofert
                     </Button>
@@ -87,7 +87,7 @@ export default function Home() {
                   Przeglądaj tysiące ofert pracy z różnych dziedzin IT - od developera po analityka, od juniora po seniora.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-[600px]">
-                  <div className="relative flex-1">
+                  <div className="relative flex-1 group">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -98,7 +98,7 @@ export default function Home() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
+                      className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground transition-all duration-200 group-hover:text-red-500 group-focus-within:text-red-500 group-focus-within:scale-110"
                     >
                       <circle cx="11" cy="11" r="8"></circle>
                       <path d="m21 21-4.3-4.3"></path>
@@ -106,12 +106,12 @@ export default function Home() {
                     <Input
                       type="search"
                       placeholder="Szukaj technologii, stanowiska..."
-                      className="w-full pl-8 transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
+                      className="w-full pl-8 transition-all duration-300 focus:scale-[1.02] focus:border-red-500 hover:border-red-400 focus:shadow-lg hover:shadow-md placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-70"
                     />
                   </div>
                   <Button
                     size="lg"
-                    className="px-8 whitespace-nowrap transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                    className="px-8 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-lg transform active:scale-95"
                   >
                     Szukaj
                   </Button>
