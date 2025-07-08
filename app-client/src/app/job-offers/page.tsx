@@ -16,40 +16,46 @@ export default function JobOffersPage() {
             </p>
           </div>          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Przykładowe oferty pracy */}
-            <div className="rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
-              <h3 className="text-xl font-bold mb-3">Frontend Developer - React/Next.js</h3>
-              <p className="text-muted-foreground mb-2 font-medium">TechCorp Sp. z o.o.</p>
-              <p className="text-sm text-muted-foreground mb-4">Warszawa • 12 000 - 18 000 PLN</p>
-              <div className="flex flex-wrap gap-2 mb-6">
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">React</span>
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Next.js</span>
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">TypeScript</span>
+            <div className="rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105 flex flex-col h-full">
+              <div className="flex-1">
+                <h3 className="text-xl font-bold mb-3 h-14 flex items-start">Frontend Developer - React/Next.js</h3>
+                <p className="text-muted-foreground mb-2 font-medium h-6">TechCorp Sp. z o.o.</p>
+                <p className="text-sm text-muted-foreground mb-4 h-5">Warszawa • 12 000 - 18 000 PLN</p>
+                <div className="flex flex-wrap gap-2 mb-6 h-16 items-start">
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">React</span>
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Next.js</span>
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">TypeScript</span>
+                </div>
               </div>
-              <Button className="w-full transition-all duration-200 hover:scale-105">Aplikuj</Button>
+              <Button className="w-full transition-all duration-200 hover:scale-105 mt-auto">Aplikuj</Button>
             </div>
 
-            <div className="rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
-              <h3 className="text-xl font-bold mb-3">Senior Frontend Developer</h3>
-              <p className="text-muted-foreground mb-2 font-medium">StartupXYZ</p>
-              <p className="text-sm text-muted-foreground mb-4">Kraków • 15 000 - 22 000 PLN</p>
-              <div className="flex flex-wrap gap-2 mb-6">
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Vue.js</span>
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Nuxt.js</span>
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">JavaScript</span>
+            <div className="rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105 flex flex-col h-full">
+              <div className="flex-1">
+                <h3 className="text-xl font-bold mb-3 h-14 flex items-start">Senior Frontend Developer</h3>
+                <p className="text-muted-foreground mb-2 font-medium h-6">StartupXYZ</p>
+                <p className="text-sm text-muted-foreground mb-4 h-5">Kraków • 15 000 - 22 000 PLN</p>
+                <div className="flex flex-wrap gap-2 mb-6 h-16 items-start">
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Vue.js</span>
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Nuxt.js</span>
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">JavaScript</span>
+                </div>
               </div>
-              <Button className="w-full transition-all duration-200 hover:scale-105">Aplikuj</Button>
+              <Button className="w-full transition-all duration-200 hover:scale-105 mt-auto">Aplikuj</Button>
             </div>
 
-            <div className="rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
-              <h3 className="text-xl font-bold mb-3">Full Stack Developer</h3>
-              <p className="text-muted-foreground mb-2 font-medium">InnovateLab</p>
-              <p className="text-sm text-muted-foreground mb-4">Gdańsk • 14 000 - 20 000 PLN</p>
-              <div className="flex flex-wrap gap-2 mb-6">
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">React</span>
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Node.js</span>
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">MongoDB</span>
+            <div className="rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105 flex flex-col h-full">
+              <div className="flex-1">
+                <h3 className="text-xl font-bold mb-3 h-14 flex items-start">Full Stack Developer</h3>
+                <p className="text-muted-foreground mb-2 font-medium h-6">InnovateLab</p>
+                <p className="text-sm text-muted-foreground mb-4 h-5">Gdańsk • 14 000 - 20 000 PLN</p>
+                <div className="flex flex-wrap gap-2 mb-6 h-16 items-start">
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">React</span>
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Node.js</span>
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">MongoDB</span>
+                </div>
               </div>
-              <Button className="w-full transition-all duration-200 hover:scale-105">Aplikuj</Button>
+              <Button className="w-full transition-all duration-200 hover:scale-105 mt-auto">Aplikuj</Button>
             </div>
           </div>
         </div>
