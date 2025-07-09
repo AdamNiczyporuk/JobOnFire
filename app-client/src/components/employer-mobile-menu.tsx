@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
 import { logout } from "@/services/authService"
 
-export function MobileMenu() {
+export function EmployerMobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, setUser } = useAuth()
 
@@ -72,18 +72,32 @@ export function MobileMenu() {
       >
         <div className="flex flex-col p-4 space-y-4">
           <Link
-            href="/job-offers"
+            href="/employer/dashboard"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
-            Oferty pracy
+            Mój Dashboard
           </Link>
           <Link
-            href="/employer"
+            href="#"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
-            Dla firm
+            Moje Oferty
+          </Link>
+          <Link
+            href="#"
+            className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
+            onClick={() => setIsOpen(false)}
+          >
+            Kandydaci
+          </Link>
+          <Link
+            href="/candidate/login"
+            className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
+            onClick={() => setIsOpen(false)}
+          >
+            Portal Kandydatów
           </Link>
           <Link
             href="/about"
@@ -93,54 +107,43 @@ export function MobileMenu() {
             O nas
           </Link>
           <div className="pt-2 flex flex-col space-y-2">
-            {user ? (
+            {user && user.role === 'EMPLOYER' ? (
               <>
-                {user.role === 'CANDIDATE' ? (
-                  <>
-                    <Link href="/candidate/dashboard" onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
-                      >
-                        Dashboard: {user.username}
-                      </Button>
-                    </Link>
-                    <Button 
-                      onClick={handleLogout} 
-                      className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
-                    >
-                      Wyloguj się
-                    </Button>
-                  </>
-                ) : user.role === 'EMPLOYER' ? (
-                  <>
-                    <Link href="/employer/dashboard" onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
-                      >
-                        Dashboard: {user.username}
-                      </Button>
-                    </Link>
-                    <Button 
-                      onClick={handleLogout} 
-                      className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
-                    >
-                      Wyloguj się
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    onClick={handleLogout} 
-                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                <Link href="/employer/profile" onClick={() => setIsOpen(false)}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
                   >
-                    Wyloguj się
+                    Firma: {user.username}
                   </Button>
-                )}
+                </Link>
+                <Button 
+                  onClick={handleLogout} 
+                  className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                >
+                  Wyloguj się
+                </Button>
+              </>
+            ) : user && user.role === 'CANDIDATE' ? (
+              <>
+                <Link href="/candidate/dashboard" onClick={() => setIsOpen(false)}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
+                  >
+                    Panel Kandydata: {user.username}
+                  </Button>
+                </Link>
+                <Button 
+                  onClick={handleLogout} 
+                  className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90"
+                >
+                  Wyloguj się
+                </Button>
               </>
             ) : (
               <>
-                <Link href="/candidate/login" onClick={() => setIsOpen(false)}>
+                <Link href="/employer/login" onClick={() => setIsOpen(false)}>
                   <Button
                     variant="outline"
                     className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
@@ -148,9 +151,9 @@ export function MobileMenu() {
                     Zaloguj się
                   </Button>
                 </Link>
-                <Link href="/candidate/register" onClick={() => setIsOpen(false)}>
+                <Link href="/employer/register" onClick={() => setIsOpen(false)}>
                   <Button className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                    Zarejestruj się
+                    Zarejestruj firmę
                   </Button>
                 </Link>
               </>

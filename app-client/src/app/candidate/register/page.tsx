@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { register } from "@/services/authService";
@@ -40,48 +41,104 @@ export default function CandidateRegister() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm space-y-4">
-        <h2 className="text-2xl font-bold mb-4">Rejestracja kandydata</h2>
-        <Input
-          name="username"
-          type="text"
-          placeholder="Nazwa użytkownika"
-          value={form.username}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          name="email"
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          name="password"
-          type="password"
-          placeholder="Hasło"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          name="confirmPassword"
-          type="password"
-          placeholder="Powtórz hasło"
-          value={form.confirmPassword}
-          onChange={handleChange}
-          required
-        />
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-        <Button type="submit" className="w-full">Zarejestruj się</Button>
-        <div className="text-center text-sm mt-2">
-          <span>Jesteś pracodawcą? </span>
-          <a href="/employer/register" className="text-primary hover:underline">Zarejestruj się jako pracodawca</a>
+    <main className="flex-1 w-full flex items-center justify-center py-12 md:py-16">
+      <div className="w-full max-w-md">
+        <div className="rounded-lg border bg-white p-8 shadow-sm">
+          <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold tracking-tighter mb-2">Dołącz do nas!</h1>
+              <p className="text-muted-foreground">Stwórz konto kandydata i znajdź wymarzoną pracę</p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nazwa użytkownika</label>
+                <Input
+                  name="username"
+                  type="text"
+                  placeholder="Twoja nazwa użytkownika"
+                  value={form.username}
+                  onChange={handleChange}
+                  required
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
+                <Input
+                  name="email"
+                  type="email"
+                  placeholder="twoj@email.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Hasło</label>
+                <Input
+                  name="password"
+                  type="password"
+                  placeholder="Wprowadź hasło"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Powtórz hasło</label>
+                <Input
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Powtórz hasło"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className="transition-all duration-200 focus:scale-[1.02] focus:border-red-500 hover:border-red-400"
+                />
+              </div>
+              
+              {error && (
+                <div className="rounded-md bg-red-50 p-3 border border-red-200">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
+              
+              <Button 
+                type="submit" 
+                className="w-full transition-all duration-200 hover:scale-105"
+              >
+                Zarejestruj się
+              </Button>
+            </form>
+            
+            <div className="mt-8 text-center space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <span>Masz już konto? </span>
+                <Link 
+                  href="/candidate/login" 
+                  className="text-primary hover:underline font-medium transition-colors"
+                >
+                  Zaloguj się
+                </Link>
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                <span>Jesteś pracodawcą? </span>
+                <Link 
+                  href="/employer/register" 
+                  className="text-primary hover:underline font-medium transition-colors"
+                >
+                  Zarejestruj się jako pracodawca
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
-    </div>
+      </main>
   );
 }
