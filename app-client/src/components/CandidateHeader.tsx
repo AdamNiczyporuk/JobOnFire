@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { CandidateMobileMenu } from "./candidate-mobile-menu";
 
 export function CandidateHeader() {
   const { user, setUser } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const pathname = usePathname();
 
   // Sprawdź czy jesteśmy na stronie logowania/rejestracji
@@ -17,6 +19,23 @@ export function CandidateHeader() {
     await logout();
     setUser(null);
   };
+
+  // Zamknij dropdown przy kliknięciu poza nim
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isDropdownOpen) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white shadow-sm">
@@ -113,19 +132,116 @@ export function CandidateHeader() {
                 {/* Sekcja użytkownika */}
                 <div className="flex items-center space-x-3">
                   {user && user.role === 'CANDIDATE' ? (
-                    <>
-                      <Link href="/candidate/profile">
-                        <span className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 cursor-pointer px-3 py-2 rounded-lg hover:bg-gray-50 border border-gray-200 hover:border-primary">
-                          Profil: {user.username}
-                        </span>
-                      </Link>
-                      <button 
-                        onClick={handleLogout} 
-                        className="text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors duration-200 px-3 py-2 rounded-lg shadow-sm"
+                    <div className="relative">
+                      <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors duration-200 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2"
                       >
-                        Wyloguj się
+                        {user.username}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                       </button>
-                    </>
+                    
+                      {isDropdownOpen && (
+                        <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-2xl border border-gray-200 py-4 z-50 transition-all duration-200 ease-out animate-in fade-in-0 zoom-in-95">
+                          <div className="px-4 pb-3 border-b border-gray-100">
+                            <p className="text-sm font-semibold text-gray-900">Panel Kandydata</p>
+                            <p className="text-xs text-gray-600">{user.username}</p>
+                          </div>
+                          
+                          <div className="py-2">
+                            <Link href="/candidate/dashboard">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                Dashboard
+                              </button>
+                            </Link>
+                            
+                            <Link href="/candidate/profile">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Mój Profil
+                              </button>
+                            </Link>
+                            
+                            <Link href="/candidate/applications">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Moje Aplikacje
+                              </button>
+                            </Link>
+                            
+                            <Link href="/candidate/cv-generator">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Wygeneruj CV
+                              </button>
+                            </Link>
+                            
+                            <Link href="/candidate/saved-jobs">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                Zapisane Oferty
+                              </button>
+                            </Link>
+                            
+                            <Link href="/candidate/settings">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Ustawienia
+                              </button>
+                            </Link>
+                          </div>
+                          
+                          <div className="border-t border-gray-100 pt-2">
+                            <button 
+                              onClick={() => {
+                                handleLogout();
+                                setIsDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200 flex items-center gap-3"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                              </svg>
+                              Wyloguj się
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ) : user && user.role === 'EMPLOYER' ? (
                     <>
                       <Link href="/employer/dashboard">
@@ -154,6 +270,24 @@ export function CandidateHeader() {
                       </Link>
                     </>
                   )}
+                </div>
+
+                {/* Sekcja "Dla firm" - zawsze widoczna */}
+                <div className="hidden sm:block ml-8 pl-8 border-l border-gray-200">
+                  <div>
+                    <Link
+                      href="/employer"
+                      className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-200 hover:after:w-full block"
+                    >
+                      Dla firm
+                    </Link>
+                    <Link
+                      href="/employer/dashboard"
+                      className="text-xs text-red-600 hover:text-red-700 transition-colors duration-200 block"
+                    >
+                      Dodaj ofertę
+                    </Link>
+                  </div>
                 </div>
               </nav>
 
