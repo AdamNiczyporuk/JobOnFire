@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
 import { logout } from "@/services/authService"
@@ -9,11 +10,13 @@ import { logout } from "@/services/authService"
 export function EmployerMobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, setUser } = useAuth()
+  const router = useRouter()
 
   const handleLogout = async () => {
     await logout();
     setUser(null);
     setIsOpen(false);
+    router.push('/'); // Przekieruj na stronę główną
   }
 
   const toggleMenu = () => {
@@ -141,23 +144,7 @@ export function EmployerMobileMenu() {
                   Wyloguj się
                 </Button>
               </>
-            ) : (
-              <>
-                <Link href="/employer/login" onClick={() => setIsOpen(false)}>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
-                  >
-                    Zaloguj się
-                  </Button>
-                </Link>
-                <Link href="/employer/register" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full justify-center transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                    Zarejestruj firmę
-                  </Button>
-                </Link>
-              </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

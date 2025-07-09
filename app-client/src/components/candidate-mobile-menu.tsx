@@ -2,18 +2,23 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
 import { logout } from "@/services/authService"
 
 export function CandidateMobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { user, setUser } = useAuth()
+  const router = useRouter()
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await logout();
     setUser(null);
     setIsOpen(false);
+    router.push('/'); // Przekieruj na stronę główną
   }
 
   const toggleMenu = () => {
@@ -105,9 +110,12 @@ export function CandidateMobileMenu() {
                 <Link href="/candidate/profile" onClick={() => setIsOpen(false)}>
                   <Button
                     variant="outline"
-                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary"
+                    className="w-full justify-center transition-all duration-200 hover:scale-105 hover:border-primary flex items-center gap-2"
                   >
-                    Profil: {user.username}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Moje Konto
                   </Button>
                 </Link>
                 <Button 
@@ -134,7 +142,7 @@ export function CandidateMobileMenu() {
                   Wyloguj się
                 </Button>
               </>
-            ) : (
+            ) : !isLoggingOut ? (
               <>
                 <Link href="/candidate/login" onClick={() => setIsOpen(false)}>
                   <Button
@@ -150,7 +158,7 @@ export function CandidateMobileMenu() {
                   </Button>
                 </Link>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

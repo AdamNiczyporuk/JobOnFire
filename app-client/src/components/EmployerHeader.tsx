@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import { logout } from "@/services/authService";
 import { EmployerMobileMenu } from "./employer-mobile-menu";
@@ -10,14 +9,18 @@ import { EmployerMobileMenu } from "./employer-mobile-menu";
 export function EmployerHeader() {
   const { user, setUser } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Sprawdź czy jesteśmy na stronie logowania/rejestracji
   const isAuthPage = !pathname || pathname.includes('/login') || pathname.includes('/register');
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await logout();
     setUser(null);
+    router.push('/'); // Przekieruj na stronę główną
   };
 
   // Zamknij dropdown przy kliknięciu poza nim
@@ -138,7 +141,7 @@ export function EmployerHeader() {
                 
                 {/* Sekcja użytkownika */}
                 <div className="flex items-center space-x-2">
-                  {user && user.role === 'EMPLOYER' ? (
+                  {user && user.role === 'EMPLOYER' && !isLoggingOut ? (
                     <div className="relative">
                       <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -261,31 +264,7 @@ export function EmployerHeader() {
                         </div>
                       )}
                     </div>
-                  ) : user && user.role === 'CANDIDATE' ? (
-                    <>
-                      <Link href="/candidate/dashboard">
-                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
-                          Panel Kandydata: {user.username}
-                        </Button>
-                      </Link>
-                      <Button onClick={handleLogout} className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                        Wyloguj się
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Link href="/employer/login">
-                        <Button variant="outline" className="transition-all duration-200 hover:scale-105 hover:border-primary">
-                          Zaloguj się
-                        </Button>
-                      </Link>
-                      <Link href="/employer/register">
-                        <Button className="transition-all duration-200 hover:scale-105 hover:bg-primary/90">
-                          Zarejestruj firmę
-                        </Button>
-                      </Link>
-                    </>
-                  )}
+                  ) : null}
                 </div>
               </nav>
 
