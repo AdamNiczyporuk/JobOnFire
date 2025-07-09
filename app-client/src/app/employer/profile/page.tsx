@@ -187,7 +187,7 @@ export default function EmployerProfilePage() {
             <h2 className="text-2xl font-bold">Dane firmy</h2>
             <button
               onClick={() => setEditing(!editing)}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
             >
               {editing ? "Anuluj" : "Edytuj profil"}
             </button>
@@ -254,7 +254,7 @@ export default function EmployerProfilePage() {
                   <button
                     type="button"
                     onClick={handleAddIndustry}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
                   >
                     Dodaj
                   </button>
@@ -395,7 +395,7 @@ export default function EmployerProfilePage() {
                   <button
                     type="button"
                     onClick={handleAddBenefit}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
                   >
                     Dodaj
                   </button>
@@ -447,28 +447,136 @@ export default function EmployerProfilePage() {
                 )}
               </div>
 
-              <button
-                type="submit"
-                className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
-              >
-                Zapisz zmiany
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
+                >
+                  Zapisz zmiany
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
+                >
+                  Anuluj
+                </button>
+              </div>
             </form>
           ) : (
-            <div className="space-y-3">
-              <div><strong>Nazwa firmy:</strong> {profile.companyName}</div>
-              {profile.companyImageUrl && (
+            <div className="space-y-6">
+              {/* Sekcja podstawowych informacji */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <strong>Logo:</strong>
-                  <img src={profile.companyImageUrl} alt="Logo firmy" className="h-16 mt-2" />
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Informacje podstawowe</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-24">Nazwa:</span>
+                      <span className="text-gray-900 font-medium">{profile.companyName}</span>
+                    </div>
+                    {profile.contactPhone && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-600 w-24">Telefon:</span>
+                        <span className="text-gray-900">{profile.contactPhone}</span>
+                      </div>
+                    )}
+                    {profile.contactEmail && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-600 w-24">Email:</span>
+                        <span className="text-gray-900">{profile.contactEmail}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Logo firmy */}
+                {profile.companyImageUrl && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Logo firmy</h3>
+                    <div className="flex justify-center md:justify-start">
+                      <img 
+                        src={profile.companyImageUrl} 
+                        alt="Logo firmy" 
+                        className="h-20 w-20 object-contain border border-gray-200 rounded-lg p-2"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Opis firmy */}
+              {profile.description && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Opis firmy</h3>
+                  <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
+                    {profile.description}
+                  </p>
                 </div>
               )}
-              <div><strong>Branże:</strong> {profile.industry?.join(", ") || "Brak"}</div>
-              <div><strong>Opis:</strong> {profile.description || "Brak"}</div>
-              <div><strong>Typy umów:</strong> {profile.contractType?.join(", ") || "Brak"}</div>
-              <div><strong>Telefon:</strong> {profile.contactPhone || "Brak"}</div>
-              <div><strong>Email:</strong> {profile.contactEmail || "Brak"}</div>
-              <div><strong>Benefity:</strong> {profile.benefits?.join(", ") || "Brak"}</div>
+
+              {/* Branże */}
+              {profile.industry && profile.industry.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Branże</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.industry.map((industry, index) => (
+                      <span
+                        key={index}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                      >
+                        {industry}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Typy umów */}
+              {profile.contractType && profile.contractType.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Typy umów</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.contractType.map((type, index) => (
+                      <span
+                        key={index}
+                        className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
+                      >
+                        {type}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Benefity */}
+              {profile.benefits && profile.benefits.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Benefity</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {profile.benefits.map((benefit, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 text-sm text-gray-700"
+                      >
+                        <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                        {benefit}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Komunikaty o braku danych */}
+              {(!profile.industry || profile.industry.length === 0) &&
+               (!profile.contractType || profile.contractType.length === 0) &&
+               (!profile.benefits || profile.benefits.length === 0) &&
+               !profile.description && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 italic">
+                    Profil wymaga uzupełnienia. Kliknij "Edytuj profil" aby dodać informacje o firmie.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -480,7 +588,7 @@ export default function EmployerProfilePage() {
           <h3 className="text-xl font-bold">Lokalizacje firmy</h3>
           <button
             onClick={() => setAddingLocation(!addingLocation)}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
           >
             {addingLocation ? "Anuluj" : "Dodaj lokalizację"}
           </button>
