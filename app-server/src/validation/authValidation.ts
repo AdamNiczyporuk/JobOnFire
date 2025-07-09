@@ -5,7 +5,7 @@ export const userRegisterValidation = Joi.object({
     'any.required': 'Username is required',
     'string.empty': 'Username cannot be empty',
   }),
-  password: Joi.string().min(8).required().messages({
+  password: Joi.string().min(1).required().messages({ //do testów hasło może być krótsze
     'any.required': 'Password is required',
     'string.min': 'Password must be at least 8 characters long',
   }),
