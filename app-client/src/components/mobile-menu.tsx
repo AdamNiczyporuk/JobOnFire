@@ -2,18 +2,23 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/authContext"
 import { logout } from "@/services/authService"
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { user, setUser } = useAuth()
+  const router = useRouter()
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await logout();
     setUser(null);
     setIsOpen(false);
+    router.push('/'); // Przekieruj na stronę główną
   }
 
   const toggleMenu = () => {
@@ -138,7 +143,7 @@ export function MobileMenu() {
                   </Button>
                 )}
               </>
-            ) : (
+            ) : !isLoggingOut ? (
               <>
                 <Link href="/candidate/login" onClick={() => setIsOpen(false)}>
                   <Button
@@ -154,7 +159,7 @@ export function MobileMenu() {
                   </Button>
                 </Link>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

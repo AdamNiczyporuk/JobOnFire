@@ -1,35 +1,46 @@
 "use client";
 import { useAuth } from "@/context/authContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function CandidateDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      // Przekieruj na stronę logowania kandydata po krótkim opóźnieniu
+      const timer = setTimeout(() => {
+        router.push('/candidate/login');
+      }, 1500);
+      return () => clearTimeout(timer);
+    } else if (user.role !== "CANDIDATE") {
+      // Przekieruj na stronę główną jeśli nie jest kandydatem
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [user, router]);
 
   if (!user) {
     return (
-      <main className="flex-1 w-full flex items-center justify-center py-12">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Wymagane logowanie</h2>
-          <p className="text-muted-foreground mb-6">Musisz być zalogowany, aby zobaczyć panel kandydata.</p>
-          <Link href="/candidate/login">
-            <Button>Zaloguj się</Button>
-          </Link>
-        </div>
+      <main className="flex-1 w-full flex flex-col items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+        <p className="text-gray-600">Sprawdzanie uprawnień...</p>
+        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronę logowania</p>
       </main>
     );
   }
 
   if (user.role !== "CANDIDATE") {
     return (
-      <main className="flex-1 w-full flex items-center justify-center py-12">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4 text-red-600">Brak dostępu</h2>
-          <p className="text-muted-foreground mb-6">Nie masz dostępu do panelu kandydata.</p>
-          <Link href="/">
-            <Button variant="outline">Wróć do strony głównej</Button>
-          </Link>
-        </div>
+      <main className="flex-1 w-full flex flex-col items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
+        <p className="text-red-600">Brak dostępu do panelu kandydata</p>
+        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronę główną</p>
       </main>
     );
   }

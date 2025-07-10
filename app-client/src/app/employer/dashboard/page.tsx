@@ -1,15 +1,46 @@
 "use client";
 import { useAuth } from "@/context/authContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default function CandidateDashboard() {
+export default function EmployerDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      // Przekieruj na stronę logowania pracodawcy po krótkim opóźnieniu
+      const timer = setTimeout(() => {
+        router.push('/employer/login');
+      }, 1500);
+      return () => clearTimeout(timer);
+    } else if (user.role !== "EMPLOYER") {
+      // Przekieruj na stronę główną jeśli nie jest pracodawcą
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [user, router]);
 
   if (!user) {
-    return <div className="p-8 text-center">Musisz być zalogowany, aby zobaczyć ten panel.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+        <p className="text-gray-600">Sprawdzanie uprawnień...</p>
+        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronę logowania</p>
+      </div>
+    );
   }
 
   if (user.role !== "EMPLOYER") {
-    return <div className="p-8 text-center text-red-500">Brak dostępu do panelu kandydata.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
+        <p className="text-red-600">Brak dostępu do panelu pracodawcy</p>
+        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronę główną</p>
+      </div>
+    );
   }
 
   return (
