@@ -10,9 +10,13 @@ import {
   ALL_POPULAR_TAGS,
   CONTRACT_TYPES,
   RESPONSIBILITY_TEMPLATES,
-  REQUIREMENT_TEMPLATES
+  REQUIREMENT_TEMPLATES,
+  POPULAR_BENEFITS,
+  POPULAR_TECH_TAGS,
+  POPULAR_SOFT_TAGS
 } from '@/constants/employer';
 import { JobOffer, JobOfferCreateRequest, JobOfferUpdateRequest } from '@/types/jobOffer';
+import { getAvailableLocalizations } from '@/services/jobOfferService';
 
 interface JobOfferFormProps {
   initialData?: JobOffer;
@@ -47,6 +51,7 @@ export default function JobOfferForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [availableLocalizations, setAvailableLocalizations] = useState<any[]>([]);
 
   // Inicjalizacja danych w trybie edycji
   useEffect(() => {
@@ -69,6 +74,21 @@ export default function JobOfferForm({
       });
     }
   }, [initialData, isEditing]);
+
+  // Ładowanie dostępnych lokalizacji
+  useEffect(() => {
+    const loadLocalizations = async () => {
+      try {
+        const localizations = await getAvailableLocalizations();
+        setAvailableLocalizations(localizations || []);
+      } catch (error) {
+        console.error('Error loading localizations:', error);
+        setAvailableLocalizations([]);
+      }
+    };
+    
+    loadLocalizations();
+  }, []);
 
   // Walidacja formularza
   const validateForm = () => {
@@ -258,6 +278,161 @@ export default function JobOfferForm({
           </div>
         </div>
 
+        {/* Poziomy stanowisk */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Poziomy stanowisk
+          </label>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-300 rounded-md bg-gray-50">
+              {formData.jobLevel.map((level, index) => (
+                <span 
+                  key={index}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+                >
+                  {level}
+                  <button
+                    type="button"
+                    onClick={() => removeFromList('jobLevel', index)}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {JOB_LEVELS.filter(level => !formData.jobLevel.includes(level)).map(level => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => addToList('jobLevel', level)}
+                  className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  + {level}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tryby pracy */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Tryby pracy
+          </label>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-300 rounded-md bg-gray-50">
+              {formData.workingMode.map((mode, index) => (
+                <span 
+                  key={index}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-sm"
+                >
+                  {mode}
+                  <button
+                    type="button"
+                    onClick={() => removeFromList('workingMode', index)}
+                    className="text-purple-500 hover:text-purple-700"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {WORKING_MODES.filter(mode => !formData.workingMode.includes(mode)).map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => addToList('workingMode', mode)}
+                  className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  + {mode}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Obowiązki */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Obowiązki
+          </label>
+          <ResponsibilityInput
+            items={formData.responsibilities}
+            onAdd={(item) => addToList('responsibilities', item)}
+            onRemove={(index) => removeFromList('responsibilities', index)}
+            placeholder="Dodaj obowiązek..."
+          />
+        </div>
+
+        {/* Wymagania */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Wymagania
+          </label>
+          <RequirementInput
+            items={formData.requirements}
+            onAdd={(item) => addToList('requirements', item)}
+            onRemove={(index) => removeFromList('requirements', index)}
+            placeholder="Dodaj wymaganie..."
+          />
+        </div>
+
+        {/* Co oferujemy */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Co oferujemy
+          </label>
+          <OfferInput
+            items={formData.whatWeOffer}
+            onAdd={(item) => addToList('whatWeOffer', item)}
+            onRemove={(index) => removeFromList('whatWeOffer', index)}
+            placeholder="Dodaj benefit..."
+          />
+        </div>
+
+        {/* Tagi */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Tagi / Umiejętności
+          </label>
+          <TagInput
+            items={formData.tags}
+            onAdd={(item) => addToList('tags', item)}
+            onRemove={(index) => removeFromList('tags', index)}
+            suggestions={ALL_POPULAR_TAGS}
+            placeholder="Dodaj tag..."
+          />
+        </div>
+
+        {/* Lokalizacja */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Lokalizacja
+          </label>
+          <select
+            value={formData.lokalizationId || ''}
+            onChange={(e) => setFormData(prev => ({ 
+              ...prev, 
+              lokalizationId: e.target.value ? parseInt(e.target.value) : undefined 
+            }))}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="">Wybierz lokalizację (opcjonalnie)</option>
+            {availableLocalizations.map(location => (
+              <option key={location.id} value={location.id}>
+                {[location.city, location.state].filter(Boolean).join(', ')}
+                {location.street && ` - ${location.street}`}
+              </option>
+            ))}
+          </select>
+          <p className="text-sm text-gray-500 mt-1">
+            Lokalizacje można zarządzać w profilu pracodawcy
+          </p>
+        </div>
+
         {/* URL aplikacji */}
         <div>
           <label className="block text-sm font-medium mb-2">
@@ -295,3 +470,365 @@ export default function JobOfferForm({
     </div>
   );
 }
+
+// Komponenty pomocnicze dla wprowadzania list
+
+interface ListInputProps {
+  items: string[];
+  onAdd: (item: string) => void;
+  onRemove: (index: number) => void;
+  placeholder: string;
+  suggestions?: string[];
+}
+
+const ResponsibilityInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, placeholder }) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAdd(inputValue.trim());
+      setInputValue('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="min-h-[60px] p-2 border border-gray-300 rounded-md bg-gray-50">
+        {items.map((item, index) => (
+          <div 
+            key={index}
+            className="flex items-start gap-2 mb-2 p-2 bg-white rounded border"
+          >
+            <span className="flex-1 text-sm">{item}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="text-red-500 hover:text-red-700 text-lg leading-none"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          onClick={handleAdd}
+          variant="outline"
+          size="sm"
+        >
+          Dodaj
+        </Button>
+      </div>
+      {/* Szablony obowiązków */}
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(RESPONSIBILITY_TEMPLATES).map(([role, responsibilities]) => (
+          <details key={role} className="text-sm">
+            <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+              Szablon: {role}
+            </summary>
+            <div className="mt-1 space-y-1">
+              {responsibilities.map((resp, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => onAdd(resp)}
+                  className="block w-full text-left px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                >
+                  + {resp}
+                </button>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const RequirementInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, placeholder }) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAdd(inputValue.trim());
+      setInputValue('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="min-h-[60px] p-2 border border-gray-300 rounded-md bg-gray-50">
+        {items.map((item, index) => (
+          <div 
+            key={index}
+            className="flex items-start gap-2 mb-2 p-2 bg-white rounded border"
+          >
+            <span className="flex-1 text-sm">{item}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="text-red-500 hover:text-red-700 text-lg leading-none"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          onClick={handleAdd}
+          variant="outline"
+          size="sm"
+        >
+          Dodaj
+        </Button>
+      </div>
+      {/* Szablony wymagań */}
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(REQUIREMENT_TEMPLATES).map(([role, requirements]) => (
+          <details key={role} className="text-sm">
+            <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+              Szablon: {role}
+            </summary>
+            <div className="mt-1 space-y-1">
+              {requirements.map((req, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => onAdd(req)}
+                  className="block w-full text-left px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                >
+                  + {req}
+                </button>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const OfferInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, placeholder }) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAdd(inputValue.trim());
+      setInputValue('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="min-h-[60px] p-2 border border-gray-300 rounded-md bg-gray-50">
+        {items.map((item, index) => (
+          <div 
+            key={index}
+            className="flex items-start gap-2 mb-2 p-2 bg-white rounded border"
+          >
+            <span className="flex-1 text-sm">{item}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="text-red-500 hover:text-red-700 text-lg leading-none"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          onClick={handleAdd}
+          variant="outline"
+          size="sm"
+        >
+          Dodaj
+        </Button>
+      </div>
+      {/* Popularne benefity */}
+      <div className="flex flex-wrap gap-2">
+        {POPULAR_BENEFITS.filter(benefit => !items.includes(benefit)).slice(0, 8).map(benefit => (
+          <button
+            key={benefit}
+            type="button"
+            onClick={() => onAdd(benefit)}
+            className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+          >
+            + {benefit}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const TagInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, placeholder, suggestions = [] }) => {
+  const [inputValue, setInputValue] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const filteredSuggestions = suggestions.filter(
+    suggestion => 
+      suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
+      !items.includes(suggestion)
+  ).slice(0, 10);
+
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAdd(inputValue.trim());
+      setInputValue('');
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-gray-300 rounded-md bg-gray-50">
+        {items.map((item, index) => (
+          <span 
+            key={index}
+            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+          >
+            {item}
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="text-blue-500 hover:text-blue-700"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      
+      <div className="relative">
+        <div className="flex gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              setShowSuggestions(e.target.value.length > 0);
+            }}
+            onKeyPress={handleKeyPress}
+            onFocus={() => setShowSuggestions(inputValue.length > 0)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            placeholder={placeholder}
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            onClick={handleAdd}
+            variant="outline"
+            size="sm"
+          >
+            Dodaj
+          </Button>
+        </div>
+        
+        {/* Podpowiedzi */}
+        {showSuggestions && filteredSuggestions.length > 0 && (
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+            {filteredSuggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => {
+                  onAdd(suggestion);
+                  setInputValue('');
+                  setShowSuggestions(false);
+                }}
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* Popularne tagi */}
+      <div className="space-y-2">
+        <div className="text-sm font-medium text-gray-700">Popularne tagi techniczne:</div>
+        <div className="flex flex-wrap gap-1">
+          {POPULAR_TECH_TAGS.filter(tag => !items.includes(tag)).slice(0, 12).map(tag => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => onAdd(tag)}
+              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+            >
+              + {tag}
+            </button>
+          ))}
+        </div>
+        
+        <div className="text-sm font-medium text-gray-700">Umiejętności miękkie:</div>
+        <div className="flex flex-wrap gap-1">
+          {POPULAR_SOFT_TAGS.filter(tag => !items.includes(tag)).slice(0, 8).map(tag => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => onAdd(tag)}
+              className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+            >
+              + {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
