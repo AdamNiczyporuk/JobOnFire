@@ -1,55 +1,36 @@
 "use client";
 import { useAuth } from "@/context/authContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function EmployerDashboard() {
   const { user } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!user) {
-      // Przekieruj na stronę logowania pracodawcy po krótkim opóźnieniu
-      const timer = setTimeout(() => {
-        router.push('/employer/login');
-      }, 1500);
-      return () => clearTimeout(timer);
-    } else if (user.role !== "EMPLOYER") {
-      // Przekieruj na stronę główną jeśli nie jest pracodawcą
-      const timer = setTimeout(() => {
-        router.push('/');
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [user, router]);
-
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-        <p className="text-gray-600">Sprawdzanie uprawnień...</p>
-        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronę logowania</p>
-      </div>
-    );
-  }
-
-  if (user.role !== "EMPLOYER") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
-        <p className="text-red-600">Brak dostępu do panelu pracodawcy</p>
-        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronę główną</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
+    <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-6">Panel Pracodawcy</h1>
-      <p className="mb-4">Witaj, <span className="font-semibold">{user.username}</span>!</p>
-      {/* Tu możesz dodać np. listę aplikacji, CV, powiadomienia itp. */}
-      <div className="bg-white rounded shadow p-4">
-        <p>To jest Twój dashboard. Wkrótce pojawią się tu Twoje aplikacje i powiadomienia.</p>
+      <p className="mb-4">Witaj, <span className="font-semibold">{user?.username}</span>!</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Twoje oferty pracy</h2>
+          <p className="text-gray-600 mb-4">Zarządzaj swoimi ofertami pracy</p>
+          <a href="/employer/job-offers" className="text-red-600 hover:text-red-700 font-medium">
+            Zobacz oferty →
+          </a>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Profil firmy</h2>
+          <p className="text-gray-600 mb-4">Edytuj informacje o swojej firmie</p>
+          <a href="/employer/profile" className="text-red-600 hover:text-red-700 font-medium">
+            Edytuj profil →
+          </a>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Aplikacje</h2>
+          <p className="text-gray-600 mb-4">Przeglądaj aplikacje kandydatów</p>
+          <span className="text-gray-400">Wkrótce dostępne</span>
+        </div>
       </div>
     </div>
   );

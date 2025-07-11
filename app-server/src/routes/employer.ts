@@ -118,3 +118,34 @@ router.delete('/profile/location/:lokalizationId', ensureAuthenticated, ensureEm
     res.status(500).json({ message: 'Error removing location', error: err });
   }
 });
+// Pobierz dostępne lokalizacje dla pracodawcy
+router.get('/profile/locations', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    if (!user.employerProfile || !user.employerProfile.id) {
+      res.status(400).json({ message: 'Employer profile not found for this user.' });
+      return;
+    }
+
+    // Pobierz lokalizacje przypisane do pracodawcy
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { id: user.employerProfile.id },
+      include: {
+        lokalizations: {
+          include: { lokalization: true }
+        }
+      }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Employer profile not found' });
+      return;
+    }
+
+    const localizations = employerProfile.lokalizations.map(l => l.lokalization);
+    res.status(200).json({ localizations });
+  } catch (err) {
+    console.error('Error fetching employer locations:', err);
+    res.status(500).json({ message: 'Error fetching locations', error: err });
+  }
+});
