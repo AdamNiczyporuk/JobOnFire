@@ -60,3 +60,176 @@ export const POPULAR_BENEFITS: string[] = [
   'Program kafeteryjny',
   'Ubezpieczenie na życie'
 ];
+
+// Stałe dla ofert pracy
+
+// Poziomy stanowisk
+export const JOB_LEVELS: string[] = [
+  'Praktykant',
+  'Junior',
+  'Mid',
+  'Senior',
+  'Lead',
+  'Manager',
+  'Director',
+  'VP',
+  'Expert',
+  'Principal',
+  'Staff'
+];
+
+// Tryby pracy
+export const WORKING_MODES: string[] = [
+  'Biuro',
+  'Zdalnie',
+  'Hybrydowo',
+  'Częściowo zdalnie',
+  'Mobilnie',
+  'W terenie'
+];
+
+// Wymiary pracy
+export const WORKLOAD_OPTIONS: string[] = [
+  'Pełny etat',
+  'Część etatu (1/2)',
+  'Część etatu (3/4)',
+  'Elastyczny wymiar',
+  'Weekend',
+  'Wieczory',
+  'Dodatkowa praca'
+];
+
+// Popularne tagi/umiejętności techniczne
+export const POPULAR_TECH_TAGS: string[] = [
+  // Frontend
+  'JavaScript',
+  'TypeScript',
+  'React',
+  'Vue.js',
+  'Angular',
+  'HTML',
+  'CSS',
+  'SASS',
+  'Next.js',
+  'Nuxt.js',
+  
+  // Backend  
+  'Node.js',
+  'Python',
+  'Java',
+  'C#',
+  'PHP',
+  'Go',
+  'Ruby',
+  'Express.js',
+  'Django',
+  'Spring',
+  
+  // Bazy danych
+  'PostgreSQL',
+  'MySQL',
+  'MongoDB',
+  'Redis',
+  'Elasticsearch',
+  
+  // Cloud & DevOps
+  'AWS',
+  'Azure',
+  'Docker',
+  'Kubernetes',
+  'CI/CD',
+  'Jenkins',
+  'Git',
+  
+  // Mobilne
+  'React Native',
+  'Flutter',
+  'iOS',
+  'Android',
+  'Swift',
+  'Kotlin',
+  
+  // Inne
+  'GraphQL',
+  'REST API',
+  'Microservices',
+  'Agile',
+  'Scrum',
+  'Testing'
+];
+
+// Popularne tagi nieTechniczne
+export const POPULAR_SOFT_TAGS: string[] = [
+  'Komunikatywność',
+  'Praca w zespole',
+  'Zarządzanie projektem',
+  'Analityczne myślenie',
+  'Kreatywność',
+  'Odpowiedzialność',
+  'Samodzielność',
+  'Elastyczność',
+  'Umiejętności prezentacyjne',
+  'Język angielski',
+  'Język niemiecki',
+  'Obsługa klienta',
+  'Sprzedaż',
+  'Marketing',
+  'Księgowość',
+  'HR'
+];
+
+// Łączone tagi (wszystkie)
+export const ALL_POPULAR_TAGS: string[] = [
+  ...POPULAR_TECH_TAGS,
+  ...POPULAR_SOFT_TAGS
+];
+
+// Szablon odpowiedzialności dla różnych stanowisk
+export const RESPONSIBILITY_TEMPLATES = {
+  'Developer': [
+    'Tworzenie i utrzymanie aplikacji',
+    'Pisanie czystego i testowalnego kodu',
+    'Uczestnictwo w code review',
+    'Współpraca z zespołem projektowym',
+    'Optymalizacja wydajności aplikacji'
+  ],
+  'Manager': [
+    'Zarządzanie zespołem',
+    'Planowanie i koordynacja projektów',
+    'Monitoring postępów prac',
+    'Komunikacja z klientami',
+    'Rozwój członków zespołu'
+  ],
+  'Designer': [
+    'Projektowanie interfejsów użytkownika',
+    'Tworzenie prototypów',
+    'Współpraca z zespołem deweloperskim',
+    'Badanie potrzeb użytkowników',
+    'Utrzymanie spójności wizualnej'
+  ]
+};
+
+// Szablon wymagań dla różnych stanowisk
+export const REQUIREMENT_TEMPLATES = {
+  'Junior Developer': [
+    'Znajomość podstaw programowania',
+    'Chęć do nauki nowych technologii',
+    'Podstawowa znajomość narzędzi deweloperskich',
+    'Umiejętność pracy w zespole',
+    'Znajomość języka angielskiego na poziomie podstawowym'
+  ],
+  'Senior Developer': [
+    'Minimum 5 lat doświadczenia w programowaniu',
+    'Dogłębna znajomość wybranych technologii',
+    'Doświadczenie w prowadzeniu projektów',
+    'Umiejętność mentoringu junior developerów',
+    'Znajomość języka angielskiego na poziomie komunikatywnym'
+  ],
+  'Manager': [
+    'Doświadczenie w zarządzaniu zespołem',
+    'Znajomość metodyk zarządzania projektami',
+    'Umiejętności komunikacyjne i przywódcze',
+    'Doświadczenie w budżetowaniu',
+    'Wykształcenie wyższe kierunkowe'
+  ]
+};
