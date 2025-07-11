@@ -140,18 +140,18 @@ model jobOffer {
   id                Int      @id @default(autoincrement())
   name              String
   description       String?
-  jobLevel          String?
+  jobLevel          Json?
   contractType      String?
   salary            String?
   createDate        DateTime
   expireDate        DateTime
-  workingMode       String?
+  workingMode       Json?
   workload          String?
-  responsibilities  String?
-  requirements      String?
-  whatWeOffer       String?
+  responsibilities  Json?
+  requirements      Json?
+  whatWeOffer       Json?
   applicationUrl    String?
-  tags              String?
+  tags              Json?
   isActive         Boolean
   lokalizationId    Int?
   employerProfileId Int
