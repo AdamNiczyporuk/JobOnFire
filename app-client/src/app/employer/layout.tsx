@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import { EmployerHeader } from "@/components/EmployerHeader";
+import { SharedHeader } from "@/components/SharedHeader";
 
 export default function EmployerLayout({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -65,8 +66,10 @@ export default function EmployerLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col items-center">
-      {/* Pokazuj header tylko jeśli użytkownik jest zalogowany i nie jest na stronach autoryzacji */}
+      {/* Pokazuj EmployerHeader jeśli użytkownik jest zalogowany i nie jest na stronach autoryzacji */}
       {user && !isOnAuthRoute && <EmployerHeader />}
+      {/* Pokazuj SharedHeader na stronach autoryzacji */}
+      {isOnAuthRoute && <SharedHeader />}
       {children}
     </div>
   );
