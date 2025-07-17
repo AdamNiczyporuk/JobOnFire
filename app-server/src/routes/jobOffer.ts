@@ -479,7 +479,7 @@ router.delete('/:id', ensureAuthenticated, ensureEmployer, async (req: Request, 
 });
 
 // Przełączenie statusu aktywności oferty
-router.patch('/:id/toggle-active', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
+router.patch('/:id/toggle-active', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
   try {
     const jobOfferId = parseInt(req.params.id);
 
@@ -504,5 +504,276 @@ router.patch('/:id/toggle-active', ensureAuthenticated, ensureEmployer, async (r
   } catch (err) {
     console.error('Error toggling job offer status:', err);
     res.status(500).json({ message: 'Error toggling job offer status', error: err });
+  }
+});
+
+// GET /:id/applications - Pobranie aplikacji do konkretnej oferty pracy (dla pracodawców)
+router.get('/:id/applications', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const jobOfferId = parseInt(req.params.id);
+    
+    // Sprawdź profil pracodawcy
+    const employerProfile = await validateEmployerProfile(req, res);
+    if (!employerProfile) return;
+
+    // Sprawdź czy oferta należy do pracodawcy
+    const jobOffer = await validateJobOfferOwnership(jobOfferId, employerProfile.id, res);
+    if (!jobOffer) return;
+
+    // Parametry paginacji i filtrowania
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+    const offset = (page - 1) * limit;
+    const status = req.query.status as string;
+
+    // Budowanie warunków where
+    const whereConditions: any = {
+      jobOfferId: jobOfferId
+    };
+
+    if (status && ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED'].includes(status)) {
+      whereConditions.status = status;
+    }
+
+    const [applications, total] = await Promise.all([
+      prisma.applicationForJobOffer.findMany({
+        where: whereConditions,
+        include: {
+          candidateProfile: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true
+                }
+              }
+            }
+          },
+          candidateCV: {
+            select: {
+              id: true,
+              name: true,
+              cvUrl: true
+            }
+          },
+          answers: {
+            include: {
+              question: {
+                select: {
+                  id: true,
+                  question: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          id: 'desc'
+        },
+        skip: offset,
+        take: limit
+      }),
+      prisma.applicationForJobOffer.count({
+        where: whereConditions
+      })
+    ]);
+
+    res.json({
+      jobOffer: {
+        id: jobOffer.id,
+        name: jobOffer.name
+      },
+      applications,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas pobierania aplikacji:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// PUT /:jobId/applications/:applicationId - Aktualizacja statusu aplikacji (dla pracodawców)
+router.put('/:jobId/applications/:applicationId', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const jobOfferId = parseInt(req.params.jobId);
+    const applicationId = parseInt(req.params.applicationId);
+
+    if (isNaN(jobOfferId) || isNaN(applicationId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID' });
+      return;
+    }
+
+    // Sprawdź profil pracodawcy
+    const employerProfile = await validateEmployerProfile(req, res);
+    if (!employerProfile) return;
+
+    // Sprawdź czy oferta należy do pracodawcy
+    const jobOffer = await validateJobOfferOwnership(jobOfferId, employerProfile.id, res);
+    if (!jobOffer) return;
+
+    // Walidacja danych wejściowych
+    const { status, response } = req.body;
+
+    if (!status || !['PENDING', 'ACCEPTED', 'REJECTED'].includes(status)) {
+      res.status(400).json({ message: 'Nieprawidłowy status aplikacji' });
+      return;
+    }
+
+    // Sprawdź czy aplikacja istnieje i należy do tej oferty
+    const application = await prisma.applicationForJobOffer.findFirst({
+      where: {
+        id: applicationId,
+        jobOfferId: jobOfferId
+      }
+    });
+
+    if (!application) {
+      res.status(404).json({ message: 'Aplikacja nie została znaleziona' });
+      return;
+    }
+
+    // Aktualizacja w transakcji
+    const updatedApplication = await prisma.$transaction(async (tx) => {
+      // Aktualizacja statusu aplikacji
+      const updated = await tx.applicationForJobOffer.update({
+        where: { id: applicationId },
+        data: { status: status }
+      });
+
+      // Jeśli podano odpowiedź, dodaj/zaktualizuj ją
+      if (response && response.trim()) {
+        await tx.applicationResponse.upsert({
+          where: { applicationForJobOfferId: applicationId },
+          update: { response: response },
+          create: {
+            applicationForJobOfferId: applicationId,
+            response: response
+          }
+        });
+      }
+
+      return updated;
+    });
+
+    // Pobranie pełnych danych aplikacji
+    const fullApplication = await prisma.applicationForJobOffer.findUnique({
+      where: { id: applicationId },
+      include: {
+        candidateProfile: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true
+              }
+            }
+          }
+        },
+        candidateCV: {
+          select: {
+            id: true,
+            name: true,
+            cvUrl: true
+          }
+        },
+        response: true,
+        answers: {
+          include: {
+            question: {
+              select: {
+                id: true,
+                question: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    res.json({
+      message: 'Status aplikacji został zaktualizowany',
+      application: fullApplication
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas aktualizacji aplikacji:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// GET /:jobId/applications/stats - Statystyki aplikacji dla konkretnej oferty (dla pracodawców)
+router.get('/:id/applications/stats', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const jobOfferId = parseInt(req.params.id);
+
+    // Sprawdź profil pracodawcy
+    const employerProfile = await validateEmployerProfile(req, res);
+    if (!employerProfile) return;
+
+    // Sprawdź czy oferta należy do pracodawcy
+    const jobOffer = await validateJobOfferOwnership(jobOfferId, employerProfile.id, res);
+    if (!jobOffer) return;
+
+    const stats = await prisma.applicationForJobOffer.groupBy({
+      by: ['status'],
+      where: {
+        jobOfferId: jobOfferId
+      },
+      _count: {
+        status: true
+      }
+    });
+
+    const totalApplications = await prisma.applicationForJobOffer.count({
+      where: {
+        jobOfferId: jobOfferId
+      }
+    });
+
+    // Formatowanie statystyk
+    const formattedStats = {
+      total: totalApplications,
+      pending: 0,
+      accepted: 0,
+      rejected: 0,
+      canceled: 0
+    };
+
+    stats.forEach(stat => {
+      switch (stat.status) {
+        case 'PENDING':
+          formattedStats.pending = stat._count.status;
+          break;
+        case 'ACCEPTED':
+          formattedStats.accepted = stat._count.status;
+          break;
+        case 'REJECTED':
+          formattedStats.rejected = stat._count.status;
+          break;
+        case 'CANCELED':
+          formattedStats.canceled = stat._count.status;
+          break;
+      }
+    });
+
+    res.json({
+      jobOffer: {
+        id: jobOffer.id,
+        name: jobOffer.name
+      },
+      stats: formattedStats
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas pobierania statystyk:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
   }
 });
