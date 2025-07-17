@@ -49,11 +49,11 @@ model candidateProfile {
   lastName       String?
   description    String?
   birthday       DateTime?
-  experience     String?
+  experience     Json?
   phoneNumber    Int?
-  skills         String?
+  skills         Json?
   place          String?
-  education      String?
+  education      Json?
   userId         Int      @unique
 
   user                user                  @relation(fields: [userId], references: [id])
