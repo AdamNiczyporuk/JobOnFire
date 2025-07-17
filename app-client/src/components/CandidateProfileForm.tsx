@@ -7,8 +7,7 @@ import {
   Experience, 
   Skill, 
   Education,
-  SKILL_LEVELS,
-  SKILL_CATEGORIES
+  SKILL_LEVELS
 } from "@/types/candidate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +33,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
       { company: "", position: "", startDate: "", endDate: "", isCurrent: false, description: "", location: "" }
     ],
     skills: profile.skills.length > 0 ? profile.skills : [
-      { name: "", level: "BEGINNER", category: "" }
+      { name: "", level: "BEGINNER" }
     ],
     education: profile.education.length > 0 ? profile.education : [
       { institution: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", isCurrent: false, description: "", location: "" }
@@ -84,7 +83,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
   const addSkill = () => {
     setFormData(prev => ({
       ...prev,
-      skills: [...prev.skills, { name: "", level: "BEGINNER", category: "" }]
+      skills: [...prev.skills, { name: "", level: "BEGINNER" }]
     }));
   };
 
@@ -339,7 +338,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Nazwa umiejętności *</label>
                 <Input
@@ -358,21 +357,6 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
                   {SKILL_LEVELS.map(level => (
                     <option key={level.value} value={level.value}>
                       {level.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Kategoria</label>
-                <select
-                  value={skill.category || ""}
-                  onChange={(e) => updateSkill(index, 'category', e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Wybierz kategorię</option>
-                  {SKILL_CATEGORIES.map(category => (
-                    <option key={category} value={category}>
-                      {category}
                     </option>
                   ))}
                 </select>

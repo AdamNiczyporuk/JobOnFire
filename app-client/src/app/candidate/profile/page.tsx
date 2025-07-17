@@ -38,9 +38,9 @@ export default function CandidateProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Ładowanie profilu...</p>
         </div>
       </div>
@@ -49,12 +49,14 @@ export default function CandidateProfilePage() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={loadProfile} variant="outline">
-            Spróbuj ponownie
-          </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full mx-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button onClick={loadProfile} variant="outline">
+              Spróbuj ponownie
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -62,35 +64,39 @@ export default function CandidateProfilePage() {
 
   if (!profile) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <p className="text-yellow-600 mb-4">Profil nie został znaleziony</p>
-          <Button onClick={loadProfile} variant="outline">
-            Odśwież
-          </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md w-full mx-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <p className="text-yellow-600 mb-4">Profil nie został znaleziony</p>
+            <Button onClick={loadProfile} variant="outline">
+              Odśwież
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Mój Profil</h1>
-            <p className="text-gray-600">
-              Zarządzaj swoimi danymi osobowymi i zawodowymi
-            </p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 text-gray-900">Mój Profil</h1>
+              <p className="text-gray-600">
+                Zarządzaj swoimi danymi osobowymi i zawodowymi
+              </p>
+            </div>
+            <Button 
+              onClick={() => setIsEditing(!isEditing)}
+              variant={isEditing ? "outline" : "default"}
+              size="lg"
+            >
+              {isEditing ? "Anuluj" : "Edytuj profil"}
+            </Button>
           </div>
-          <Button 
-            onClick={() => setIsEditing(!isEditing)}
-            variant={isEditing ? "outline" : "default"}
-          >
-            {isEditing ? "Anuluj" : "Edytuj profil"}
-          </Button>
         </div>
-      </div>
 
       {isEditing ? (
         <CandidateProfileForm
@@ -99,121 +105,146 @@ export default function CandidateProfilePage() {
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div className="space-y-8">
-          {/* Podstawowe informacje */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Podstawowe informacje</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Imię</label>
-                <p className="text-gray-900">{profile.name || "Nie podano"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Nazwisko</label>
-                <p className="text-gray-900">{profile.lastName || "Nie podano"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Email</label>
-                <p className="text-gray-900">{profile.user.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Telefon</label>
-                <p className="text-gray-900">{profile.phoneNumber || "Nie podano"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Lokalizacja</label>
-                <p className="text-gray-900">{profile.place || "Nie podano"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Data urodzenia</label>
-                <p className="text-gray-900">
-                  {profile.birthday ? new Date(profile.birthday).toLocaleDateString('pl-PL') : "Nie podano"}
-                </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Lewa kolumna - Podstawowe informacje i Umiejętności */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Podstawowe informacje */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900">Podstawowe informacje</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Imię i nazwisko</label>
+                  <p className="text-gray-900 text-lg">
+                    {profile.name && profile.lastName 
+                      ? `${profile.name} ${profile.lastName}` 
+                      : profile.name || profile.lastName || "Nie podano"
+                    }
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  <p className="text-gray-900">{profile.user.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Telefon</label>
+                  <p className="text-gray-900">{profile.phoneNumber || "Nie podano"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Lokalizacja</label>
+                  <p className="text-gray-900">{profile.place || "Nie podano"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Data urodzenia</label>
+                  <p className="text-gray-900">
+                    {profile.birthday ? new Date(profile.birthday).toLocaleDateString('pl-PL') : "Nie podano"}
+                  </p>
+                </div>
+                {profile.description && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Opis</label>
+                    <p className="text-gray-900 mt-1 leading-relaxed">{profile.description}</p>
+                  </div>
+                )}
               </div>
             </div>
-            {profile.description && (
-              <div className="mt-4">
-                <label className="text-sm font-medium text-gray-500">Opis</label>
-                <p className="text-gray-900 mt-1">{profile.description}</p>
-              </div>
-            )}
+
+            {/* Umiejętności */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900">Umiejętności</h2>
+              {profile.skills.length > 0 ? (
+                <div className="space-y-3">
+                  {profile.skills.map((skill, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="font-medium text-gray-900">{skill.name}</span>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {skill.level === 'BEGINNER' && 'Początkujący'}
+                        {skill.level === 'INTERMEDIATE' && 'Średniozaawansowany'}
+                        {skill.level === 'ADVANCED' && 'Zaawansowany'}
+                        {skill.level === 'EXPERT' && 'Ekspert'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">Brak dodanych umiejętności</p>
+              )}
+            </div>
           </div>
 
-          {/* Doświadczenie zawodowe */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Doświadczenie zawodowe</h2>
-            {profile.experience.length > 0 ? (
-              <div className="space-y-4">
-                {profile.experience.map((exp, index) => (
-                  <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-                    <h3 className="font-semibold text-gray-900">{exp.position}</h3>
-                    <p className="text-blue-600">{exp.company}</p>
-                    <p className="text-sm text-gray-500">
-                      {exp.startDate} - {exp.isCurrent ? "obecnie" : exp.endDate || "nie podano"}
-                    </p>
-                    {exp.location && (
-                      <p className="text-sm text-gray-500">{exp.location}</p>
-                    )}
-                    {exp.description && (
-                      <p className="text-gray-700 mt-2">{exp.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">Brak dodanego doświadczenia zawodowego</p>
-            )}
-          </div>
+          {/* Prawa kolumna - Doświadczenie i Wykształcenie */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Doświadczenie zawodowe */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900">Doświadczenie zawodowe</h2>
+              {profile.experience.length > 0 ? (
+                <div className="space-y-6">
+                  {profile.experience.map((exp, index) => (
+                    <div key={index} className="relative pl-6 pb-6 border-l-2 border-blue-200 last:pb-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 bg-blue-500 rounded-full"></div>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="font-semibold text-lg text-gray-900 mb-1">{exp.position}</h3>
+                        <p className="text-blue-600 font-medium mb-2">{exp.company}</p>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
+                          <span className="flex items-center">
+                            📅 {exp.startDate} - {exp.isCurrent ? "obecnie" : exp.endDate || "nie podano"}
+                          </span>
+                          {exp.location && (
+                            <span className="flex items-center">
+                              📍 {exp.location}
+                            </span>
+                          )}
+                        </div>
+                        {exp.description && (
+                          <p className="text-gray-700 leading-relaxed">{exp.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">Brak dodanego doświadczenia zawodowego</p>
+              )}
+            </div>
 
-          {/* Umiejętności */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Umiejętności</h2>
-            {profile.skills.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {profile.skills.map((skill, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                  >
-                    {skill.name} ({skill.level})
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">Brak dodanych umiejętności</p>
-            )}
-          </div>
-
-          {/* Wykształcenie */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Wykształcenie</h2>
-            {profile.education.length > 0 ? (
-              <div className="space-y-4">
-                {profile.education.map((edu, index) => (
-                  <div key={index} className="border-l-4 border-green-500 pl-4 py-2">
-                    <h3 className="font-semibold text-gray-900">{edu.degree}</h3>
-                    <p className="text-green-600">{edu.institution}</p>
-                    {edu.fieldOfStudy && (
-                      <p className="text-gray-700">{edu.fieldOfStudy}</p>
-                    )}
-                    <p className="text-sm text-gray-500">
-                      {edu.startDate} - {edu.isCurrent ? "obecnie" : edu.endDate || "nie podano"}
-                    </p>
-                    {edu.location && (
-                      <p className="text-sm text-gray-500">{edu.location}</p>
-                    )}
-                    {edu.description && (
-                      <p className="text-gray-700 mt-2">{edu.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">Brak dodanego wykształcenia</p>
-            )}
+            {/* Wykształcenie */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900">Wykształcenie</h2>
+              {profile.education.length > 0 ? (
+                <div className="space-y-6">
+                  {profile.education.map((edu, index) => (
+                    <div key={index} className="relative pl-6 pb-6 border-l-2 border-green-200 last:pb-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 bg-green-500 rounded-full"></div>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="font-semibold text-lg text-gray-900 mb-1">{edu.degree}</h3>
+                        <p className="text-green-600 font-medium mb-2">{edu.institution}</p>
+                        {edu.fieldOfStudy && (
+                          <p className="text-gray-700 font-medium mb-2">{edu.fieldOfStudy}</p>
+                        )}
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
+                          <span className="flex items-center">
+                            📅 {edu.startDate} - {edu.isCurrent ? "obecnie" : edu.endDate || "nie podano"}
+                          </span>
+                          {edu.location && (
+                            <span className="flex items-center">
+                              📍 {edu.location}
+                            </span>
+                          )}
+                        </div>
+                        {edu.description && (
+                          <p className="text-gray-700 leading-relaxed">{edu.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">Brak dodanego wykształcenia</p>
+              )}
+            </div>
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

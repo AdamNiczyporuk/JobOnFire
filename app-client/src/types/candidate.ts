@@ -15,7 +15,6 @@ export type SkillLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
 export interface Skill {
   name: string;
   level: SkillLevel;
-  category?: string | null;
 }
 
 // Typy dla wykształcenia
@@ -122,21 +121,3 @@ export const SKILL_LEVELS: { value: SkillLevel; label: string }[] = [
   { value: 'ADVANCED', label: 'Zaawansowany' },
   { value: 'EXPERT', label: 'Ekspert' }
 ];
-
-// Stałe dla kategorii umiejętności
-export const SKILL_CATEGORIES = [
-  'Frontend',
-  'Backend', 
-  'Fullstack',
-  'Mobile',
-  'DevOps',
-  'Data Science',
-  'Design',
-  'Marketing',
-  'Zarządzanie',
-  'Języki obce',
-  'Umiejętności miękkie',
-  'Inne'
-] as const;
-
-export type SkillCategory = typeof SKILL_CATEGORIES[number];

@@ -167,8 +167,7 @@ export const validateSkillsData = (skills: any[]) => {
 
     return {
       name: skill.name,
-      level: skill.level,
-      category: skill.category || null
+      level: skill.level
     };
   });
 };

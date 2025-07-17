@@ -35,9 +35,6 @@ const skillSchema = Joi.object({
   level: Joi.string().valid('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT').required().messages({
     'any.only': 'Poziom musi być jednym z: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT',
     'any.required': 'Poziom umiejętności jest wymagany'
-  }),
-  category: Joi.string().allow('', null).messages({
-    'string.base': 'Kategoria musi być tekstem'
   })
 });
 
