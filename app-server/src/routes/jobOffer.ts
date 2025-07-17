@@ -11,6 +11,244 @@ import {
 
 export const router = Router();
 
+// PUBLICZNY endpoint - Pobranie wszystkich aktywnych ofert pracy z paginacją i filtrowaniem
+router.get('/public', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Parametry paginacji
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50); // max 50 na stronę
+    const offset = (page - 1) * limit;
+
+    // Parametry filtrowania
+    const search = req.query.search as string; // wyszukiwanie w nazwie i opisie
+    const contractType = req.query.contractType as string;
+    const workingMode = req.query.workingMode as string;
+    const workload = req.query.workload as string;
+    const city = req.query.city as string;
+    const state = req.query.state as string;
+    const salaryMin = req.query.salaryMin ? parseInt(req.query.salaryMin as string) : undefined;
+    const salaryMax = req.query.salaryMax ? parseInt(req.query.salaryMax as string) : undefined;
+    const tags = req.query.tags as string; // comma-separated tags
+    const companyName = req.query.companyName as string;
+
+    // Sortowanie
+    const sortBy = req.query.sortBy as string || 'createDate';
+    const sortOrder = req.query.sortOrder as string || 'desc';
+
+    // Budowanie warunków where
+    const whereConditions: any = {
+      isActive: true,
+      expireDate: {
+        gte: new Date() // tylko aktywne oferty (nie wygasłe)
+      }
+    };
+
+    // Filtrowanie po tekście (nazwa, opis)
+    if (search) {
+      whereConditions.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    // Filtrowanie po typie kontraktu
+    if (contractType) {
+      whereConditions.contractType = { contains: contractType, mode: 'insensitive' };
+    }
+
+    // Filtrowanie po trybie pracy
+    if (workingMode) {
+      whereConditions.workingMode = {
+        path: '$',
+        array_contains: workingMode
+      };
+    }
+
+    // Filtrowanie po etacie
+    if (workload) {
+      whereConditions.workload = { contains: workload, mode: 'insensitive' };
+    }
+
+    // Filtrowanie po nazwie firmy
+    if (companyName) {
+      whereConditions.employerProfile = {
+        companyName: { contains: companyName, mode: 'insensitive' }
+      };
+    }
+
+    // Filtrowanie po lokalizacji
+    if (city || state) {
+      whereConditions.lokalization = {};
+      if (city) {
+        whereConditions.lokalization.city = { contains: city, mode: 'insensitive' };
+      }
+      if (state) {
+        whereConditions.lokalization.state = { contains: state, mode: 'insensitive' };
+      }
+    }
+
+    // Filtrowanie po tagach
+    if (tags) {
+      const tagArray = tags.split(',').map(tag => tag.trim());
+      whereConditions.tags = {
+        path: '$',
+        array_contains: tagArray
+      };
+    }
+
+    // Filtrowanie po wynagrodzeniu (zakładając że salary jest stringiem typu "5000-8000")
+    if (salaryMin || salaryMax) {
+      // To będzie wymagało dodatkowej logiki parsowania salary string
+      // Na razie pomijamy, można dodać później
+    }
+
+    // Określenie sortowania
+    const orderBy: any = {};
+    if (sortBy === 'createDate') {
+      orderBy.createDate = sortOrder;
+    } else if (sortBy === 'name') {
+      orderBy.name = sortOrder;
+    } else if (sortBy === 'expireDate') {
+      orderBy.expireDate = sortOrder;
+    } else {
+      orderBy.createDate = 'desc'; // domyślne sortowanie
+    }
+
+    const [jobOffers, total] = await Promise.all([
+      prisma.jobOffer.findMany({
+        where: whereConditions,
+        include: {
+          employerProfile: {
+            select: {
+              id: true,
+              companyName: true,
+              companyImageUrl: true,
+              industry: true
+            }
+          },
+          lokalization: {
+            select: {
+              id: true,
+              city: true,
+              state: true,
+              street: true,
+              postalCode: true
+            }
+          },
+          _count: {
+            select: { applications: true }
+          }
+        },
+        orderBy,
+        skip: offset,
+        take: limit
+      }),
+      prisma.jobOffer.count({
+        where: whereConditions
+      })
+    ]);
+
+    // Dodatkowe statystyki
+    const stats = await prisma.jobOffer.aggregate({
+      where: whereConditions,
+      _count: {
+        id: true
+      }
+    });
+
+    res.status(200).json({
+      jobOffers,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      },
+      filters: {
+        search: search || null,
+        contractType: contractType || null,
+        workingMode: workingMode || null,
+        workload: workload || null,
+        city: city || null,
+        state: state || null,
+        tags: tags || null,
+        companyName: companyName || null,
+        sortBy,
+        sortOrder
+      },
+      stats: {
+        totalActiveOffers: stats._count.id
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching public job offers:', err);
+    res.status(500).json({ message: 'Error fetching job offers', error: err });
+  }
+});
+
+// PUBLICZNY endpoint - Pobranie pojedynczej oferty pracy
+router.get('/public/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const jobOfferId = parseInt(req.params.id);
+
+    if (!jobOfferId || isNaN(jobOfferId)) {
+      res.status(400).json({ message: 'Invalid job offer ID' });
+      return;
+    }
+
+    const jobOffer = await prisma.jobOffer.findFirst({
+      where: {
+        id: jobOfferId,
+        isActive: true,
+        expireDate: {
+          gte: new Date()
+        }
+      },
+      include: {
+        employerProfile: {
+          select: {
+            id: true,
+            companyName: true,
+            companyImageUrl: true,
+            industry: true,
+            description: true
+          }
+        },
+        lokalization: {
+          select: {
+            id: true,
+            city: true,
+            state: true,
+            street: true,
+            postalCode: true
+          }
+        },
+        questions: {
+          select: {
+            id: true,
+            question: true
+          }
+        },
+        _count: {
+          select: { applications: true }
+        }
+      }
+    });
+
+    if (!jobOffer) {
+      res.status(404).json({ message: 'Job offer not found or expired' });
+      return;
+    }
+
+    res.status(200).json({
+      jobOffer
+    });
+  } catch (err) {
+    console.error('Error fetching public job offer:', err);
+    res.status(500).json({ message: 'Error fetching job offer', error: err });
+  }
+});
+
 // Pobranie wszystkich ofert pracy pracodawcy
 router.get('/', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
   try {
