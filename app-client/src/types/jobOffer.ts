@@ -17,12 +17,21 @@ export interface JobOffer {
   isActive: boolean;
   lokalizationId?: number;
   employerProfileId: number;
+  employerProfile?: JobOfferEmployerProfile;
   lokalization?: JobOfferLokalization;
   applications?: JobOfferApplication[];
   questions?: RecruitmentQuestion[];
   _count?: {
     applications: number;
   };
+}
+
+export interface JobOfferEmployerProfile {
+  id: number;
+  companyName: string;
+  companyImageUrl?: string;
+  industry?: string[];
+  description?: string;
 }
 
 export interface JobOfferLokalization {

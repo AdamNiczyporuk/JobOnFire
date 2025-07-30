@@ -27,11 +27,54 @@ export const getJobOffers = async (params?: JobOfferListParams): Promise<JobOffe
 };
 
 /**
+ * Pobiera publiczną listę ofert pracy (bez uwierzytelniania)
+ */
+export const getPublicJobOffers = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  contractType?: string;
+  workingMode?: string;
+  city?: string;
+  state?: string;
+  companyName?: string;
+  tags?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}): Promise<JobOfferListResponse> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.search) queryParams.append('search', params.search);
+  if (params?.contractType) queryParams.append('contractType', params.contractType);
+  if (params?.workingMode) queryParams.append('workingMode', params.workingMode);
+  if (params?.city) queryParams.append('city', params.city);
+  if (params?.state) queryParams.append('state', params.state);
+  if (params?.companyName) queryParams.append('companyName', params.companyName);
+  if (params?.tags) queryParams.append('tags', params.tags);
+  if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+
+  const url = `/job-offers/public${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const response = await api.get(url);
+  return response.data;
+};
+
+/**
  * Pobiera szczegóły konkretnej oferty pracy
  */
 export const getJobOffer = async (id: number): Promise<JobOffer> => {
   const response = await api.get(`/job-offers/${id}`);
   return response.data.jobOffer;
+};
+
+/**
+ * Pobiera publiczne szczegóły konkretnej oferty pracy (bez uwierzytelniania)
+ */
+export const getPublicJobOffer = async (id: number): Promise<JobOffer> => {
+  const response = await api.get(`/job-offers/public/${id}`);
+  return response.data.jobOffer; // Backend zwraca { jobOffer: {...} }
 };
 
 /**
