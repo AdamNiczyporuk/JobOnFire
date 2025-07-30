@@ -109,8 +109,11 @@ export default function JobOfferForm({
       }
     }
 
-    if (formData.applicationUrl && !isValidUrl(formData.applicationUrl)) {
-      newErrors.applicationUrl = 'Nieprawidłowy format URL';
+    // Walidacja URL aplikacji
+    if (formData.applicationUrl) {
+      if (!isValidUrl(formData.applicationUrl)) {
+        newErrors.applicationUrl = 'Nieprawidłowy format URL';
+      }
     }
 
     setErrors(newErrors);
@@ -433,19 +436,60 @@ export default function JobOfferForm({
           </p>
         </div>
 
-        {/* URL aplikacji */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Link do aplikacji
+        {/* Metoda aplikacji */}
+        <div className="space-y-4">
+          <label className="block text-sm font-medium mb-3">
+            Metoda aplikacji
           </label>
-          <Input
-            value={formData.applicationUrl}
-            onChange={(e) => setFormData(prev => ({ ...prev, applicationUrl: e.target.value }))}
-            placeholder="https://example.com/apply"
-            className={errors.applicationUrl ? 'border-red-500' : ''}
-          />
-          {errors.applicationUrl && <p className="text-red-500 text-sm mt-1">{errors.applicationUrl}</p>}
+          
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <input
+                type="radio"
+                id="internal-app"
+                name="applicationMethod"
+                checked={!formData.applicationUrl}
+                onChange={() => setFormData(prev => ({ ...prev, applicationUrl: '' }))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <label htmlFor="internal-app" className="text-sm">
+                <span className="font-medium">System wewnętrzny</span>
+                <p className="text-gray-500">Kandydaci będą aplikować przez naszą platformę. Otrzymasz powiadomienia i możesz zarządzać aplikacjami w panelu.</p>
+              </label>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <input
+                type="radio"
+                id="external-app"
+                name="applicationMethod"
+                checked={!!formData.applicationUrl}
+                onChange={() => setFormData(prev => ({ ...prev, applicationUrl: 'https://' }))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <label htmlFor="external-app" className="text-sm">
+                <span className="font-medium">Link zewnętrzny</span>
+                <p className="text-gray-500">Kandydaci zostaną przekierowani na zewnętrzną stronę do aplikacji.</p>
+              </label>
+            </div>
+          </div>
         </div>
+
+        {/* URL aplikacji - pokazywane tylko przy wyborze zewnętrznego linka */}
+        {formData.applicationUrl && (
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Link do aplikacji
+            </label>
+            <Input
+              value={formData.applicationUrl}
+              onChange={(e) => setFormData(prev => ({ ...prev, applicationUrl: e.target.value }))}
+              placeholder="https://example.com/apply"
+              className={errors.applicationUrl ? 'border-red-500' : ''}
+            />
+            {errors.applicationUrl && <p className="text-red-500 text-sm mt-1">{errors.applicationUrl}</p>}
+          </div>
+        )}
 
         {/* Przyciski */}
         <div className="flex gap-4 pt-6">

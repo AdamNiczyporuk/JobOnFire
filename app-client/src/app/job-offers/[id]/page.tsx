@@ -298,7 +298,9 @@ export default function JobOfferDetailsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Ważne do:</span>
-                    <span className="text-sm">{formatDate(jobOffer.expireDate)}</span>
+                    <span className="text-sm">
+                      {formatDate(jobOffer.expireDate)}
+                    </span>
                   </div>
                   {jobOffer.jobLevel && jobOffer.jobLevel.length > 0 && (
                     <div>

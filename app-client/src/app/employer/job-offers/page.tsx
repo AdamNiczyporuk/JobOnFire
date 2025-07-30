@@ -129,6 +129,11 @@ export default function JobOffersPage() {
     setViewMode('view');
   };
 
+  // Sprawdzenie czy oferta wygasła
+  const isExpired = (dateString: string) => {
+    return new Date(dateString) < new Date();
+  };
+
   // Renderowanie widoku szczegółów oferty
   const renderJobOfferDetails = () => {
     if (!selectedJobOffer) return null;
@@ -155,13 +160,28 @@ export default function JobOffersPage() {
 
         <div className="space-y-6">
           {/* Status i podstawowe info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
             <div>
               <span className="font-medium">Status:</span>
               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                selectedJobOffer.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                !selectedJobOffer.isActive 
+                  ? 'bg-gray-100 text-gray-700'
+                  : isExpired(selectedJobOffer.expireDate)
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-green-100 text-green-700'
               }`}>
-                {selectedJobOffer.isActive ? 'Aktywna' : 'Nieaktywna'}
+                {!selectedJobOffer.isActive 
+                  ? 'Nieaktywna'
+                  : isExpired(selectedJobOffer.expireDate)
+                  ? 'Wygasła'
+                  : 'Aktywna'
+                }
+              </span>
+            </div>
+            <div>
+              <span className="font-medium">Wygasa:</span>
+              <span className={`ml-2 ${isExpired(selectedJobOffer.expireDate) ? 'text-red-600 font-medium' : ''}`}>
+                {new Date(selectedJobOffer.expireDate).toLocaleDateString('pl-PL')}
               </span>
             </div>
             <div>
@@ -171,6 +191,30 @@ export default function JobOffersPage() {
               <span className="font-medium">Wynagrodzenie:</span> {selectedJobOffer.salary || 'Nie określono'}
             </div>
           </div>
+
+          {/* Komunikat o wygaśnięciu */}
+          {isExpired(selectedJobOffer.expireDate) && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Oferta wygasła
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>
+                      Ta oferta pracy wygasła {new Date(selectedJobOffer.expireDate).toLocaleDateString('pl-PL')}. 
+                      Kandydaci nie mogą już aplikować na tę pozycję. Możesz zaktualizować datę wygaśnięcia lub utworzyć nową ofertę.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Opis */}
           {selectedJobOffer.description && (
