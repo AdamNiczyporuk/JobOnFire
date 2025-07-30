@@ -2,6 +2,12 @@ import { ApplicationCreateRequest, ApplicationUpdateRequest } from '@/types/appl
 import { Application } from '@/types/candidate';
 import api from '@/api';
 
+// Sprawdzenie czy kandydat już aplikował na daną ofertę
+export const checkApplicationStatus = async (jobOfferId: number): Promise<{ hasApplied: boolean; applicationId: number | null }> => {
+  const response = await api.get(`/applications/check/${jobOfferId}`);
+  return response.data;
+};
+
 // Aplikowanie na ofertę pracy
 export const createApplication = async (data: ApplicationCreateRequest): Promise<{ message: string; application: Application }> => {
   const response = await api.post('/applications', data);

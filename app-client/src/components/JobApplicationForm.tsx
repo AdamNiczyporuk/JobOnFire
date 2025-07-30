@@ -8,7 +8,7 @@ import { JobOffer } from '@/types/jobOffer';
 import { CandidateCV } from '@/types/candidate';
 import { ApplicationFormData, RecruitmentQuestion, QuestionAnswer } from '@/types/application';
 import { candidateService } from '@/services/candidateService';
-import { createApplication } from '@/services/applicationService';
+import { createApplication, checkApplicationStatus } from '@/services/applicationService';
 import { getJobOfferQuestions } from '@/services/jobOfferService';
 import { useAuth } from '@/context/authContext';
 
@@ -32,6 +32,8 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasApplied, setHasApplied] = useState(false);
+  const [applicationId, setApplicationId] = useState<number | null>(null);
 
   // Ładowanie CV i pytań rekrutacyjnych
   useEffect(() => {
@@ -45,16 +47,19 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
     setError(null);
     
     try {
-      // Ładujemy pytania zawsze, CV tylko dla zalogowanych kandydatów
+      // Ładujemy pytania zawsze
       const promises: Promise<any>[] = [getJobOfferQuestions(jobOffer.id)];
       
+      // Dla zalogowanych kandydatów ładujemy CV i sprawdzamy status aplikacji
       if (user && user.role === 'CANDIDATE') {
         promises.push(candidateService.getCVs());
+        promises.push(checkApplicationStatus(jobOffer.id));
       }
       
-      const [questionsResult, ...otherResults] = await Promise.allSettled(promises);
+      const results = await Promise.allSettled(promises);
       
       // Obsługa rezultatu pytań rekrutacyjnych
+      const questionsResult = results[0];
       if (questionsResult.status === 'fulfilled') {
         const questionsData = questionsResult.value || [];
         setQuestions(questionsData);
@@ -74,9 +79,10 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
         setQuestions([]);
       }
       
-      // Obsługa rezultatu CV (jeśli użytkownik jest kandydatem)
-      if (user && user.role === 'CANDIDATE' && otherResults.length > 0) {
-        const cvsResult = otherResults[0];
+      // Obsługa rezultatu CV i statusu aplikacji (jeśli użytkownik jest kandydatem)
+      if (user && user.role === 'CANDIDATE' && results.length > 1) {
+        // CV
+        const cvsResult = results[1];
         if (cvsResult.status === 'fulfilled') {
           setCvs(cvsResult.value);
         } else {
@@ -84,8 +90,21 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
           setCvs([]);
           setError('Nie udało się załadować listy CV. Sprawdź czy masz utworzony profil kandydata.');
         }
+        
+        // Status aplikacji
+        if (results.length > 2) {
+          const statusResult = results[2];
+          if (statusResult.status === 'fulfilled') {
+            setHasApplied(statusResult.value.hasApplied);
+            setApplicationId(statusResult.value.applicationId);
+          } else {
+            console.error('Błąd podczas sprawdzania statusu aplikacji:', statusResult.reason);
+          }
+        }
       } else {
         setCvs([]);
+        setHasApplied(false);
+        setApplicationId(null);
       }
       
     } catch (err) {
@@ -207,6 +226,48 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">Ładowanie formularza aplikacji...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Sprawdzenie czy użytkownik już aplikował na tę ofertę
+  if (hasApplied) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Aplikacja wysłana</CardTitle>
+          <CardDescription>{jobOffer.name}</CardDescription>
+          <CardDescription className="text-sm text-muted-foreground mt-1">
+            {jobOffer.employerProfile?.companyName}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center py-6">
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Już aplikowałeś na tę pozycję</h3>
+              <p className="text-muted-foreground mb-4">
+                Twoja aplikacja została już wysłana na tę ofertę pracy. Nie możesz aplikować ponownie.
+              </p>
+              {applicationId && (
+                <p className="text-sm text-muted-foreground">
+                  Numer aplikacji: #{applicationId}
+                </p>
+              )}
+            </div>
+            <div className="flex gap-3 justify-center">
+              <Button variant="outline" onClick={onCancel}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Wróć do oferty
+              </Button>
+              <Button onClick={() => window.location.href = '/candidate/applications'}>
+                Zobacz moje aplikacje
+              </Button>
             </div>
           </div>
         </CardContent>

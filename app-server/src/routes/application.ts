@@ -138,6 +138,47 @@ router.post('/', ensureAuthenticated, ensureCandidate, async (req: Request, res:
   }
 });
 
+// GET /applications/check/:jobOfferId - Sprawdzenie czy kandydat już aplikował na daną ofertę
+router.get('/check/:jobOfferId', ensureAuthenticated, ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const candidateProfile = await validateCandidateProfile(req, res);
+    if (!candidateProfile) return;
+
+    const jobOfferId = parseInt(req.params.jobOfferId);
+    if (isNaN(jobOfferId)) {
+      res.status(400).json({ message: 'Nieprawidłowy identyfikator oferty pracy' });
+      return;
+    }
+
+    // Sprawdź czy oferta pracy istnieje
+    const jobOffer = await prisma.jobOffer.findUnique({
+      where: { id: jobOfferId }
+    });
+
+    if (!jobOffer) {
+      res.status(404).json({ message: 'Oferta pracy nie została znaleziona' });
+      return;
+    }
+
+    // Sprawdź czy kandydat już aplikował
+    const existingApplication = await prisma.applicationForJobOffer.findFirst({
+      where: {
+        candidateProfileId: candidateProfile.id,
+        jobOfferId: jobOfferId
+      }
+    });
+
+    res.json({
+      hasApplied: !!existingApplication,
+      applicationId: existingApplication?.id || null
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas sprawdzania statusu aplikacji:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
 // GET /applications - Pobranie wszystkich aplikacji kandydata
 router.get('/', ensureAuthenticated, ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
