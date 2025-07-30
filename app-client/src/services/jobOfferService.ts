@@ -160,3 +160,26 @@ export const prepareJobOfferData = (formData: any): JobOfferCreateRequest => {
     lokalizationId: formData.lokalizationId || undefined,
   };
 };
+
+/**
+ * Pobiera pytania rekrutacyjne dla oferty pracy (publiczne)
+ */
+export const getJobOfferQuestions = async (jobOfferId: number): Promise<{
+  id: number;
+  question?: string;
+}[]> => {
+  try {
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') + 
+                   (process.env.NEXT_PUBLIC_API_PREFIX || '');
+    const response = await fetch(`${baseUrl}/job-offers/public/${jobOfferId}`);
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać pytań rekrutacyjnych');
+    }
+    const data = await response.json();
+    return data.jobOffer?.questions || [];
+  } catch (error) {
+    console.error('Error fetching recruitment questions:', error);
+    // Zwracamy pustą tablicę w przypadku błędu, żeby nie blokować formularza
+    return [];
+  }
+};

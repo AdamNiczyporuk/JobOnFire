@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SmartHeader } from "@/components/SmartHeader";
+import JobApplicationForm from "@/components/JobApplicationForm";
 import { getPublicJobOffer } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
 import { MapPin, Building, Calendar, DollarSign, Clock, Users, ArrowLeft } from "lucide-react";
@@ -17,6 +18,7 @@ export default function JobOfferDetailsPage() {
   const [jobOffer, setJobOffer] = useState<JobOffer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
   const jobOfferId = parseInt(params.id as string);
 
@@ -49,6 +51,20 @@ export default function JobOfferDetailsPage() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const handleApplyClick = () => {
+    setShowApplicationForm(true);
+  };
+
+  const handleApplicationSuccess = () => {
+    setShowApplicationForm(false);
+    // Można dodać toast notification sukcesu
+    alert('Aplikacja została wysłana pomyślnie!');
+  };
+
+  const handleApplicationCancel = () => {
+    setShowApplicationForm(false);
   };
 
   const formatLocation = () => {
@@ -119,8 +135,17 @@ export default function JobOfferDetailsPage() {
             </Link>
           </div>
 
-          {/* Header oferty */}
-          <Card className="mb-8">
+          {/* Formularz aplikacji lub szczegóły oferty */}
+          {showApplicationForm ? (
+            <JobApplicationForm
+              jobOffer={jobOffer}
+              onSuccess={handleApplicationSuccess}
+              onCancel={handleApplicationCancel}
+            />
+          ) : (
+            <>
+              {/* Header oferty */}
+              <Card className="mb-8">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -277,11 +302,9 @@ export default function JobOfferDetailsPage() {
                       </Button>
                     </Link>
                   ) : (
-                    <Link href="/candidate/login">
-                      <Button size="lg" className="w-full">
-                        Aplikuj teraz
-                      </Button>
-                    </Link>
+                    <Button size="lg" className="w-full" onClick={handleApplyClick}>
+                      Aplikuj teraz
+                    </Button>
                   )}
                 </CardContent>
               </Card>
@@ -365,6 +388,8 @@ export default function JobOfferDetailsPage() {
               )}
             </div>
           </div>
+            </>
+          )}
         </div>
       </main>
     </div>

@@ -1,5 +1,5 @@
 import api from "@/api";
-import { CandidateProfile, CandidateStats, CandidateProfileFormData } from "@/types/candidate";
+import { CandidateProfile, CandidateStats, CandidateProfileFormData, CandidateCV } from "@/types/candidate";
 
 export const candidateService = {
   /**
@@ -24,5 +24,21 @@ export const candidateService = {
   async getStats(): Promise<CandidateStats> {
     const response = await api.get("/candidate/profile/stats");
     return response.data.stats;
+  },
+
+  /**
+   * Pobiera wszystkie CV kandydata
+   */
+  async getCVs(): Promise<CandidateCV[]> {
+    const response = await api.get("/candidate/cvs");
+    return response.data.cvs || [];
+  },
+
+  /**
+   * Pobiera szczegóły konkretnego CV
+   */
+  async getCV(id: number): Promise<CandidateCV> {
+    const response = await api.get(`/candidate/cvs/${id}`);
+    return response.data.cv;
   }
 };

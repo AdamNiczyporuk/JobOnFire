@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { prisma } from '../db';
 import { ensureAuthenticated } from '../auth/auth_middleware';
 import { ensureCandidate } from '../auth/ensureCandidate';
 import { candidateProfileUpdateValidation } from '../validation/candidateValidation';
@@ -131,3 +132,82 @@ router.get('/profile/stats', async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ message: 'Błąd serwera podczas pobierania statystyk' });
   }
 });
+
+// Endpoint - Pobranie wszystkich CV kandydata
+router.get('/cvs', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      include: {
+        candidateCVs: {
+          select: {
+            id: true,
+            name: true,
+            cvUrl: true,
+            cvJson: true
+          },
+          orderBy: {
+            id: 'desc'
+          }
+        }
+      }
+    });
+
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    res.json({ cvs: candidateProfile.candidateCVs });
+  } catch (error) {
+    console.error('Błąd podczas pobierania CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas pobierania CV' });
+  }
+});
+
+// Endpoint - Pobranie szczegółów konkretnego CV
+router.get('/cvs/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const cvId = parseInt(req.params.id);
+    
+    if (!cvId || isNaN(cvId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID CV' });
+      return;
+    }
+
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      select: { id: true }
+    });
+
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    const cv = await prisma.candidateCV.findFirst({
+      where: {
+        id: cvId,
+        candidateProfileId: candidateProfile.id
+      },
+      select: {
+        id: true,
+        name: true,
+        cvUrl: true,
+        cvJson: true
+      }
+    });
+
+    if (!cv) {
+      res.status(404).json({ message: 'CV nie zostało znalezione' });
+      return;
+    }
+
+    res.json({ cv });
+  } catch (error) {
+    console.error('Błąd podczas pobierania CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas pobierania CV' });
+  }
+});
+
+export default router;
