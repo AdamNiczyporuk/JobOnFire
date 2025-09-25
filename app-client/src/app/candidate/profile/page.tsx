@@ -1,5 +1,4 @@
 "use client";
-export const metadata = { title: 'Profil kandydata' };
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/authContext";
 import { candidateService } from "@/services/candidateService";

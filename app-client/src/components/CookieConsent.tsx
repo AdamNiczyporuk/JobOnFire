@@ -5,17 +5,32 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem("cookie_consent");
-    if (!consent) {
-      setVisible(true);
-      document.body.style.overflow = "hidden";
+    // Ochrona przed uruchomieniem w środowisku SSR / build step
+    if (typeof window === 'undefined') return;
+    try {
+      const consent = window.localStorage.getItem("cookie_consent");
+      if (!consent) {
+        setVisible(true);
+        document.body.style.overflow = "hidden";
+      }
+    } catch (e) {
+      // Jeżeli storage jest niedostępny (tryb prywatny / blokada) – ignorujemy.
+      console.warn("CookieConsent: localStorage not available", e);
     }
   }, []);
 
   const acceptCookies = () => {
-    localStorage.setItem("cookie_consent", "accepted");
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem("cookie_consent", "accepted");
+      }
+    } catch (e) {
+      console.warn("CookieConsent: cannot persist consent", e);
+    }
     setVisible(false);
-    document.body.style.overflow = "";
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = "";
+    }
   };
 
   if (!visible) return null;

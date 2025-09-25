@@ -1,5 +1,4 @@
 'use client';
-export const metadata = { title: 'Oferty pracodawcy' };
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';

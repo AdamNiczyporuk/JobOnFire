@@ -5,6 +5,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SmartHeader } from "@/components/SmartHeader";
+// Statyczny import pozwala Next.js zoptymalizować obraz (plik w public/homepage_Image.png).
+import homepage_Image from "../../public/homepage_Image.png";
 
 export default function Home() {
   const { user } = useAuth();
@@ -121,13 +123,25 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex justify-center">
-                <Image
-                  src="https://placehold.co/400x"
-                  alt="Job Search"
-                  width={400}
-                  height={400}
-                  className="rounded-lg object-cover transition-all duration-300 hover:shadow-xl hover:scale-105"
-                />
+                <div className="relative w-[400px] h-[400px] rounded-xl overflow-hidden shadow-lg ring-1 ring-black/10 hover:shadow-2xl transition-all duration-500 group">
+                  <Image
+                    src={homepage_Image}
+                    alt="Energia kariery IT w płomieniach sukcesu"
+                    fill
+                    priority
+                    sizes="(max-width: 768px) 300px, 400px"
+                    placeholder="blur"
+                    // Minimalny blurDataURL – można podmienić na lepszy wygenerowany np. lqip
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFgwJ/lmLZJwAAAABJRU5ErkJggg=="
+                    className="object-cover object-center group-hover:scale-105 group-hover:brightness-110 ease-out duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20 pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 right-3 text-white drop-shadow-md">
+                    <p className="text-sm font-medium tracking-wide">
+                      Rozpal swoją karierę z JobOnFire
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

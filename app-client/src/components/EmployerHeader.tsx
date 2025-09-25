@@ -113,30 +113,24 @@ export function EmployerHeader() {
               <nav className="hidden sm:flex items-center">
                 {/* Podstawowa nawigacja */}
                 <div className="flex items-center space-x-4 mr-4">
-                  <Link
-                    href="/employer/dashboard"
-                    className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="#"
-                    className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                  >
-                    Oferty
-                  </Link>
-                  <Link
-                    href="#"
-                    className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                  >
-                    Kandydaci
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:scale-105"
-                  >
-                    O nas
-                  </Link>
+                  {[
+                    { href: '/employer/dashboard', label: 'Dashboard' },
+                    { href: '/employer/job-offers', label: 'Oferty' },
+                    { href: '/employer/candidates', label: 'Kandydaci' },
+                    { href: '/employer/applications', label: 'Aplikacje' },
+                    { href: '/about', label: 'O nas' }
+                  ].map(link => {
+                    const active = pathname === link.href;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={`text-sm font-medium transition-all duration-200 hover:text-primary hover:scale-105 ${active ? 'text-primary' : 'text-muted-foreground'}`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
                 </div>
                 
                 {/* Sekcja użytkownika */}
