@@ -1,4 +1,5 @@
 "use client";
+export const metadata = { title: 'Profil pracodawcy' };
 import { useAuth } from "@/context/authContext";
 import { useEffect, useState } from "react";
 import { getEmployerProfile, updateEmployerProfile, addEmployerProfileLocation, removeEmployerProfileLocation } from "@/services/employerService";
