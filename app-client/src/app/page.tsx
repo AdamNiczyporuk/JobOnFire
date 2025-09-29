@@ -1,15 +1,64 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/authContext";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SmartHeader } from "@/components/SmartHeader";
+import { getPublicJobOffers } from "@/services/jobOfferService";
+import type { JobOffer } from "@/types/jobOffer";
 // Statyczny import pozwala Next.js zoptymalizować obraz (plik w public/homepage_Image.png).
 import homepage_Image from "../../public/homepage_Image.png";
 
 export default function Home() {
   const { user } = useAuth();
+  const [latestOffers, setLatestOffers] = useState<JobOffer[]>([]);
+  const [latestLoading, setLatestLoading] = useState(true);
+  const [latestError, setLatestError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLatestLoading(true);
+        setLatestError(null);
+  const res = await getPublicJobOffers({ page: 1, limit: 3, sortBy: "createDate", sortOrder: "desc" });
+        if (!mounted) return;
+        setLatestOffers(res.jobOffers);
+      } catch {
+        if (!mounted) return;
+        setLatestError("Nie udało się pobrać najnowszych ofert.");
+        setLatestOffers([]);
+      } finally {
+        if (mounted) setLatestLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const truncate = (text?: string, max = 120) => {
+    if (!text) return "";
+    return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+  };
+
+  const formatWorkingMode = (offer: JobOffer): string => {
+    if (offer.workingMode && offer.workingMode.length > 0) {
+      // Pokaż pierwszy tryb pracy (krótko w odznace)
+      return offer.workingMode[0];
+    }
+    return "";
+  };
+
+  const workingModeBadgeClasses = (mode: string): string => {
+    const m = mode.toLowerCase();
+    if (m.includes("zdal")) return "bg-primary/10 text-primary"; // Zdalna -> czerwony (brand)
+    if (m.includes("hybryd")) return "bg-green-100 text-green-800"; // Hybrydowa -> zielony
+    if (m.includes("stacj") || m.includes("biur") || m.includes("on-site")) return "bg-blue-100 text-blue-800"; // Stacjonarna -> niebieski
+    return "bg-primary/10 text-primary"; // domyślne
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center">
@@ -292,83 +341,49 @@ export default function Home() {
               </div>
               
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full">
-                {/* Oferta 1 */}
-                <div className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                          Senior React Developer
-                        </h3>
-                        <p className="text-sm text-muted-foreground">TechCorp Sp. z o.o.</p>
+                {latestLoading ? (
+                  <div className="col-span-full text-center text-muted-foreground">Ładowanie ofert…</div>
+                ) : latestError ? (
+                  <div className="col-span-full text-center text-red-500">{latestError}</div>
+                ) : latestOffers.length === 0 ? (
+                  <div className="col-span-full text-center text-muted-foreground">Brak ofert do wyświetlenia.</div>
+                ) : (
+                  latestOffers.map((offer) => (
+                    <div key={offer.id} className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                              {offer.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">{offer.employerProfile?.companyName ?? ""}</p>
+                          </div>
+                          {(() => {
+                            const mode = formatWorkingMode(offer);
+                            return (
+                              <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${workingModeBadgeClasses(mode)}`}
+                              >
+                                {mode}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        {offer.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {truncate(offer.description)}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-semibold text-primary">{offer.salary ?? ""}</span>
+                          <Link href={`/job-offers/${offer.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                            Zobacz więcej →
+                          </Link>
+                        </div>
                       </div>
-                      <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                        Zdalna
-                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      Szukamy doświadczonego React developera do pracy nad nowatorskimi projektami e-commerce.
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-semibold text-primary">15 000 - 20 000 zł</span>
-                      <Link href="/job-offers" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                        Zobacz więcej →
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Oferta 2 */}
-                <div className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                          Java Backend Developer
-                        </h3>
-                        <p className="text-sm text-muted-foreground">FinTech Solutions</p>
-                      </div>
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                        Hybryda
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      Dołącz do zespołu tworzącego innowacyjne rozwiązania finansowe dla banków.
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-semibold text-primary">12 000 - 18 000 zł</span>
-                      <Link href="/job-offers" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                        Zobacz więcej →
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Oferta 3 */}
-                <div className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                          DevOps Engineer
-                        </h3>
-                        <p className="text-sm text-muted-foreground">CloudTech Innovations</p>
-                      </div>
-                      <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                        Warszawa
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      Administruj infrastrukturą chmurową i automatyzuj procesy CI/CD.
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-semibold text-primary">16 000 - 22 000 zł</span>
-                      <Link href="/job-offers" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                        Zobacz więcej →
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                  ))
+                )}
               </div>
               
               <Link href="/job-offers">
