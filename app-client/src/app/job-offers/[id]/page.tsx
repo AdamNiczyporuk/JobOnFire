@@ -150,16 +150,24 @@ export default function JobOfferDetailsPage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-3xl font-bold mb-2">{jobOffer.name}</CardTitle>
-                  <CardDescription className="text-lg">
-                    {jobOffer.employerProfile?.companyName || 'Nieokreślona firma'}
-                  </CardDescription>
+                  {jobOffer.employerProfile?.companyName && (
+                    <CardDescription className="text-lg">
+                      <Link href={`/companies/${jobOffer.employerProfile.id}`} className="hover:text-primary underline-offset-2 hover:underline">
+                        {jobOffer.employerProfile.companyName}
+                      </Link>
+                    </CardDescription>
+                  )}
                 </div>
-                {jobOffer.employerProfile?.companyImageUrl && (
+                {jobOffer.employerProfile?.companyImageUrl ? (
                   <img
                     src={jobOffer.employerProfile.companyImageUrl}
                     alt={jobOffer.employerProfile.companyName}
                     className="w-16 h-16 rounded-lg object-cover"
                   />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
+                    <Building className="w-8 h-8 text-muted-foreground" />
+                  </div>
                 )}
               </div>
               

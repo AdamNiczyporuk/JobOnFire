@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getEmployerProfile, updateEmployerProfile, addEmployerProfileLocation, removeEmployerProfileLocation } from "@/services/employerService";
 import { EmployerProfile, EmployerProfileUpdateRequest, EmployerProfileAddress } from "@/types/employer";
 import { COMPANY_LOGOS, CONTRACT_TYPES, POPULAR_INDUSTRIES, POPULAR_BENEFITS } from "@/constants/employer";
+import { Building } from "lucide-react";
 
 export default function EmployerProfilePage() {
   const { user } = useAuth();
@@ -490,18 +491,22 @@ export default function EmployerProfilePage() {
                 </div>
 
                 {/* Logo firmy */}
-                {profile.companyImageUrl && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Logo firmy</h3>
-                    <div className="flex justify-center md:justify-start">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Logo firmy</h3>
+                  <div className="flex justify-center md:justify-start">
+                    {profile.companyImageUrl ? (
                       <img 
                         src={profile.companyImageUrl} 
                         alt="Logo firmy" 
                         className="h-20 w-20 object-contain border border-gray-200 rounded-lg p-2"
                       />
-                    </div>
+                    ) : (
+                      <div className="h-20 w-20 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center">
+                        <Building className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Opis firmy */}

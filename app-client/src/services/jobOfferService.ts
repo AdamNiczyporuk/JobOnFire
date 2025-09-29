@@ -38,6 +38,7 @@ export const getPublicJobOffers = async (params?: {
   city?: string;
   state?: string;
   companyName?: string;
+  employerId?: number;
   tags?: string;
   sortBy?: string;
   sortOrder?: string;
@@ -52,6 +53,7 @@ export const getPublicJobOffers = async (params?: {
   if (params?.city) queryParams.append('city', params.city);
   if (params?.state) queryParams.append('state', params.state);
   if (params?.companyName) queryParams.append('companyName', params.companyName);
+  if (params?.employerId) queryParams.append('employerId', params.employerId.toString());
   if (params?.tags) queryParams.append('tags', params.tags);
   if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
   if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);

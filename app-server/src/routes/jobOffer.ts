@@ -29,7 +29,8 @@ router.get('/public', async (req: Request, res: Response): Promise<void> => {
     const salaryMin = req.query.salaryMin ? parseInt(req.query.salaryMin as string) : undefined;
     const salaryMax = req.query.salaryMax ? parseInt(req.query.salaryMax as string) : undefined;
     const tags = req.query.tags as string; // comma-separated tags
-    const companyName = req.query.companyName as string;
+  const companyName = req.query.companyName as string;
+  const employerIdParam = req.query.employerId as string;
 
     // Sortowanie
     const sortBy = req.query.sortBy as string || 'createDate';
@@ -74,6 +75,14 @@ router.get('/public', async (req: Request, res: Response): Promise<void> => {
       whereConditions.employerProfile = {
         companyName: { contains: companyName, mode: 'insensitive' }
       };
+    }
+
+    // Filtrowanie po identyfikatorze pracodawcy
+    if (employerIdParam) {
+      const employerIdNum = parseInt(employerIdParam);
+      if (!isNaN(employerIdNum)) {
+        whereConditions.employerProfileId = employerIdNum;
+      }
     }
 
     // Filtrowanie po lokalizacji
@@ -173,6 +182,7 @@ router.get('/public', async (req: Request, res: Response): Promise<void> => {
         state: state || null,
         tags: tags || null,
         companyName: companyName || null,
+        employerId: employerIdParam ? parseInt(employerIdParam) || null : null,
         sortBy,
         sortOrder
       },

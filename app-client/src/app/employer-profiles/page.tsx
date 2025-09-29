@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { SmartHeader } from "@/components/SmartHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPublicJobOffers } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
-import { MapPin, Building2, Sparkles, Search } from "lucide-react";
+import { Building2, Sparkles, Search } from "lucide-react";
 
 const OFFERS_PAGE_LIMIT = 24;
 
@@ -19,10 +20,8 @@ type EmployerCardData = {
 	companyImageUrl?: string;
 	description?: string;
 	industry: string[];
-	contractTypes: string[];
 	workingModes: string[];
 	benefits: string[];
-	locations: string[];
 	jobCount: number;
 };
 
@@ -33,10 +32,8 @@ type EmployerAggregation = {
 	description?: string;
 	industrySet: Set<string>;
 	jobCount: number;
-	contractTypesSet: Set<string>;
 	workingModesSet: Set<string>;
 	benefitsSet: Set<string>;
-	locationsSet: Set<string>;
 };
 
 const truncate = (text?: string, maxLength = 220) => {
@@ -45,17 +42,18 @@ const truncate = (text?: string, maxLength = 220) => {
 	return `${text.slice(0, maxLength - 1).trimEnd()}…`;
 };
 
-const formatOfferLocation = (offer: JobOffer): string | null => {
-	const localization = offer.lokalization;
-	if (localization) {
-		const parts = [localization.street, localization.city, localization.state].filter(Boolean);
-		const label = parts.join(", ");
-		return label || null;
-	}
+// Removed location formatting as locations are no longer displayed on this page
 
-	const remoteMode = offer.workingMode?.find((mode) => mode.toLowerCase().includes("zdal"));
-	return remoteMode ? "Zdalnie" : null;
+// Color helpers for badges
+const workingModeBadgeClasses = (mode: string): string => {
+	const m = mode.toLowerCase();
+	if (m.includes("zdal")) return "bg-primary/10 text-primary"; // Zdalna -> brand red theme
+	if (m.includes("hybryd")) return "bg-green-100 text-green-800"; // Hybrydowa -> green
+	if (m.includes("stacj") || m.includes("biur") || m.includes("on-site")) return "bg-blue-100 text-blue-800"; // Stacjonarna -> blue
+	return "bg-primary/10 text-primary";
 };
+
+// Removed contract type badge classes as contract types are no longer displayed
 
 export default function EmployerProfilesPage() {
 	const [employers, setEmployers] = useState<EmployerCardData[]>([]);
@@ -89,10 +87,8 @@ export default function EmployerProfilesPage() {
 						description: profile.description || truncate(offer.description),
 						industrySet: new Set(profile.industry ?? []),
 						jobCount: 0,
-						contractTypesSet: new Set<string>(),
 						workingModesSet: new Set<string>(),
 						benefitsSet: new Set<string>(),
-						locationsSet: new Set<string>(),
 					};
 
 					entry.jobCount += 1;
@@ -107,17 +103,8 @@ export default function EmployerProfilesPage() {
 						entry.description = profile.description || truncate(offer.description);
 					}
 
-					if (offer.contractType) {
-						entry.contractTypesSet.add(offer.contractType);
-					}
-
 					offer.workingMode?.forEach((mode) => entry.workingModesSet.add(mode));
 					offer.whatWeOffer?.forEach((benefit) => entry.benefitsSet.add(benefit));
-
-					const locationLabel = formatOfferLocation(offer);
-					if (locationLabel) {
-						entry.locationsSet.add(locationLabel);
-					}
 
 					employerMap.set(profile.id, entry);
 				});
@@ -136,10 +123,8 @@ export default function EmployerProfilesPage() {
 					companyImageUrl: entry.companyImageUrl,
 					description: entry.description,
 					industry: Array.from(entry.industrySet).sort((a, b) => a.localeCompare(b)),
-					contractTypes: Array.from(entry.contractTypesSet).sort((a, b) => a.localeCompare(b)),
 					workingModes: Array.from(entry.workingModesSet).sort((a, b) => a.localeCompare(b)),
 					benefits: Array.from(entry.benefitsSet).sort((a, b) => a.localeCompare(b)),
-					locations: Array.from(entry.locationsSet).sort((a, b) => a.localeCompare(b)),
 					jobCount: entry.jobCount,
 				}))
 				.sort((a, b) => b.jobCount - a.jobCount || a.companyName.localeCompare(b.companyName));
@@ -167,7 +152,6 @@ export default function EmployerProfilesPage() {
 						employer.companyName,
 						employer.description ?? "",
 						...employer.industry,
-						...employer.contractTypes,
 						...employer.workingModes,
 						...employer.benefits,
 					]
@@ -190,30 +174,7 @@ export default function EmployerProfilesPage() {
 		return truncate(description, 260) ?? "Opis firmy wkrótce dostępny.";
 	};
 
-	const renderLocations = (locations: string[]) => {
-		if (locations.length === 0) {
-			return <span className="text-sm text-muted-foreground">Lokalizacja ustalana indywidualnie</span>;
-		}
-
-		const preview = locations.slice(0, 3);
-		const rest = locations.length - preview.length;
-
-		return (
-			<div className="flex flex-wrap gap-2">
-				{preview.map((location) => (
-					<Badge key={location} variant="secondary" className="text-xs font-medium">
-						<MapPin className="mr-1 h-3 w-3" />
-						{location}
-					</Badge>
-				))}
-				{rest > 0 && (
-					<Badge variant="outline" className="text-xs text-muted-foreground">
-						+{rest} więcej
-					</Badge>
-				)}
-			</div>
-		);
-	};
+// Removed locations renderer as locations are no longer displayed
 
 	return (
 		<div className="flex min-h-screen flex-col">
@@ -283,25 +244,12 @@ export default function EmployerProfilesPage() {
 						</div>
 					) : (
 						<div className="space-y-6">
-							{filteredEmployers.map((employer) => (
-								<Card key={employer.id} className="flex h-full flex-col shadow-sm">
+														{filteredEmployers.map((employer) => (
+								<Link key={employer.id} href={`/companies/${employer.id}`} className="block">
+								<Card className="relative flex h-full flex-col shadow-sm hover:bg-accent/30 transition-colors">
 									<CardHeader className="pb-3">
 										<div className="flex items-start gap-4">
-											<div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
-												{employer.companyImageUrl ? (
-													<Image
-														src={employer.companyImageUrl}
-														alt={employer.companyName}
-														fill
-														sizes="64px"
-														className="object-cover"
-													/>
-												) : (
-													<span className="flex h-full w-full items-center justify-center text-lg font-semibold text-muted-foreground">
-														{employer.companyName.charAt(0)}
-													</span>
-												)}
-											</div>
+																						<CompanyLogo src={employer.companyImageUrl} alt={employer.companyName} />
 											<div className="flex-1">
 												<CardTitle className="text-2xl font-semibold leading-tight">
 													{employer.companyName}
@@ -312,8 +260,12 @@ export default function EmployerProfilesPage() {
 
 												{employer.industry.length > 0 && (
 													<div className="mt-3 flex flex-wrap gap-2">
-														{employer.industry.map((industry) => (
-															<Badge key={industry} variant="secondary" className="text-xs font-medium">
+														{employer.industry.map((industry, idx) => (
+															<Badge
+																key={`${industry}-${idx}`}
+																variant="secondary"
+																className="text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100"
+															>
 																<Building2 className="mr-1 h-3 w-3" />
 																{industry}
 															</Badge>
@@ -326,27 +278,18 @@ export default function EmployerProfilesPage() {
 
 									<CardContent className="flex flex-1 flex-col gap-4 pt-0">
 										<div className="space-y-4">
-											{renderLocations(employer.locations)}
-
-											{employer.contractTypes.length > 0 && (
-												<div>
-													<p className="text-sm font-semibold text-foreground">Formy współpracy</p>
-													<div className="mt-2 flex flex-wrap gap-2">
-														{employer.contractTypes.map((contract) => (
-															<Badge key={contract} variant="secondary" className="text-xs">
-																{contract}
-															</Badge>
-														))}
-													</div>
-												</div>
-											)}
+											{/* Removed locations and contract types sections */}
 
 											{employer.workingModes.length > 0 && (
 												<div>
 													<p className="text-sm font-semibold text-foreground">Model pracy</p>
 													<div className="mt-2 flex flex-wrap gap-2">
-														{employer.workingModes.map((mode) => (
-															<Badge key={mode} variant="outline" className="text-xs">
+														{employer.workingModes.map((mode, idx) => (
+															<Badge
+																key={`${mode}-${idx}`}
+																variant="secondary"
+																className={`text-xs ${workingModeBadgeClasses(mode)} border-0`}
+															>
 																{mode}
 															</Badge>
 														))}
@@ -359,8 +302,12 @@ export default function EmployerProfilesPage() {
 											<div className="border-t pt-4">
 												<p className="text-sm font-semibold text-foreground">Benefity dla pracowników</p>
 												<div className="mt-2 flex flex-wrap gap-2">
-													{employer.benefits.slice(0, 6).map((benefit) => (
-														<Badge key={benefit} variant="secondary" className="text-xs font-medium">
+													{employer.benefits.slice(0, 6).map((benefit, idx) => (
+														<Badge
+															key={`${benefit}-${idx}`}
+															variant="secondary"
+															className="text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100"
+														>
 															<Sparkles className="mr-1 h-3 w-3" />
 															{benefit}
 														</Badge>
@@ -375,11 +322,34 @@ export default function EmployerProfilesPage() {
 										)}
 									</CardContent>
 								</Card>
+								</Link>
 							))}
 						</div>
 					)}
 				</div>
 			</main>
+		</div>
+	);
+}
+
+function CompanyLogo({ src, alt }: { src?: string; alt: string }) {
+	const [failed, setFailed] = useState(false);
+	return (
+		<div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+			{src && !failed ? (
+				<img
+					src={src}
+					alt={alt}
+					className="h-full w-full object-cover"
+					loading="lazy"
+					referrerPolicy="no-referrer"
+					onError={() => setFailed(true)}
+				/>
+			) : (
+				<div className="flex h-full w-full items-center justify-center">
+					<Building2 className="h-8 w-8 text-muted-foreground" />
+				</div>
+			)}
 		</div>
 	);
 }

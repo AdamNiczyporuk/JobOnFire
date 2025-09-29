@@ -86,7 +86,7 @@ export default function JobOffersPage() {
 
   const formatTags = (tags?: string[]) => {
     if (!tags || tags.length === 0) return [];
-    return tags.slice(0, 3); // Show max 3 tags
+    return tags.slice(0, 2); // Show max 2 tags for thin rows
   };
 
   // Client-side filters (for multiple working modes/contract types, job levels, workloads)
@@ -302,42 +302,49 @@ export default function JobOffersPage() {
               {/* List content */}
               <div className="space-y-4">
                 {filteredJobOffers.map((jobOffer) => (
-                  <div 
-                    key={jobOffer.id} 
-                    className="rounded-lg border bg-white p-3 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.01] flex flex-col"
+                  <Link
+                    key={jobOffer.id}
+                    href={`/job-offers/${jobOffer.id}`}
+                    className="block rounded-lg border bg-white p-3 shadow-sm transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                   >
-                    <div className="flex-1">
-                      <h3 className="text-base font-semibold mb-1 flex items-start">
-                        {jobOffer.name}
-                      </h3>
-                      <p className="text-muted-foreground mb-0.5 font-medium text-sm">
-                        {jobOffer.employerProfile?.companyName || 'Nieokreślona firma'}
-                      </p>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        {formatLocation(jobOffer)} • {formatSalary(jobOffer.salary)}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 mb-2 items-start">
-                        {formatTags(jobOffer.tags).map((tag, index) => (
-                          <span 
-                            key={index}
-                            className="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {jobOffer.tags && jobOffer.tags.length > 3 && (
-                          <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                            +{jobOffer.tags.length - 3} więcej
-                          </span>
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-semibold mb-1 line-clamp-2">
+                          {jobOffer.name}
+                        </h3>
+                        {jobOffer.employerProfile?.companyName && jobOffer.employerProfile?.id && (
+                          <p className="text-muted-foreground mb-0.5 font-medium text-sm truncate">
+                            <Link href={`/companies/${jobOffer.employerProfile.id}`} className="hover:text-primary underline-offset-2 hover:underline">
+                              {jobOffer.employerProfile.companyName}
+                            </Link>
+                          </p>
                         )}
+                        <p className="text-xs text-muted-foreground mb-2 truncate">
+                          {formatLocation(jobOffer)} • {formatSalary(jobOffer.salary)}
+                        </p>
+                        {jobOffer.description && (
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                            {jobOffer.description}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-1.5 items-start">
+                          {formatTags(jobOffer.tags).map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {jobOffer.tags && jobOffer.tags.length > 2 && (
+                            <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                              +{jobOffer.tags.length - 2} więcej
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <Link href={`/job-offers/${jobOffer.id}`}>
-                      <Button className="w-full transition-all duration-200 hover:scale-105 mt-1 h-9 text-sm">
-                        Zobacz szczegóły
-                      </Button>
-                    </Link>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
