@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SmartHeader } from "@/components/SmartHeader";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getPublicJobOffers } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
 import { Search } from "lucide-react";
@@ -16,10 +16,24 @@ export default function JobOffersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [selectedWorkingModes, setSelectedWorkingModes] = useState<string[]>([]);
+  const [selectedContractTypes, setSelectedContractTypes] = useState<string[]>([]);
+  const [selectedJobLevels, setSelectedJobLevels] = useState<string[]>([]);
+  const [selectedWorkloads, setSelectedWorkloads] = useState<string[]>([]);
+  const [techInput, setTechInput] = useState(''); // comma-separated technologies
+
+  // Compute backend filter params (first selected for workingMode/contractType; tags as CSV)
+  const backendWorkingMode = selectedWorkingModes[0];
+  const backendContractType = selectedContractTypes[0];
+  const backendTags = techInput
+    .split(',')
+    .map(t => t.trim())
+    .filter(Boolean)
+    .join(',') || undefined;
 
   useEffect(() => {
     fetchJobOffers();
-  }, [page, searchQuery]);
+  }, [page, searchQuery, backendWorkingMode, backendContractType, backendTags]);
 
   const fetchJobOffers = async () => {
     try {
@@ -29,7 +43,10 @@ export default function JobOffersPage() {
         limit: 12,
         search: searchQuery || undefined,
         sortBy: 'createDate',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
+        workingMode: backendWorkingMode,
+        contractType: backendContractType,
+        tags: backendTags,
       });
       
       setJobOffers(response.jobOffers);
@@ -46,6 +63,11 @@ export default function JobOffersPage() {
     e.preventDefault();
     setSearchQuery(searchInput);
     setPage(1); // Reset to first page when searching
+  };
+
+  const toggleSelection = (arr: string[], value: string, setter: (v: string[]) => void) => {
+    setter(arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]);
+    setPage(1);
   };
 
   const formatSalary = (salary?: string) => {
@@ -66,6 +88,49 @@ export default function JobOffersPage() {
     if (!tags || tags.length === 0) return [];
     return tags.slice(0, 3); // Show max 3 tags
   };
+
+  // Client-side filters (for multiple working modes/contract types, job levels, workloads)
+  const filteredJobOffers = useMemo(() => {
+    return jobOffers.filter((offer) => {
+      // working mode (support multiple)
+      if (selectedWorkingModes.length > 0) {
+        const modes = (offer.workingMode || []).map(m => m.toLowerCase());
+        const matchMode = selectedWorkingModes.some(sel => modes.some(m => m.includes(sel.toLowerCase())));
+        if (!matchMode) return false;
+      }
+
+      // contract type (support multiple)
+      if (selectedContractTypes.length > 0) {
+        const ct = (offer.contractType || '').toLowerCase();
+        const matchCt = selectedContractTypes.some(sel => ct.includes(sel.toLowerCase()));
+        if (!matchCt) return false;
+      }
+
+      // job level
+      if (selectedJobLevels.length > 0) {
+        const levels = (offer.jobLevel || []).map(l => l.toLowerCase());
+        const matchLevel = selectedJobLevels.some(sel => levels.some(l => l.includes(sel.toLowerCase())));
+        if (!matchLevel) return false;
+      }
+
+      // workload
+      if (selectedWorkloads.length > 0) {
+        const wl = (offer.workload || '').toLowerCase();
+        const matchWl = selectedWorkloads.some(sel => wl.includes(sel.toLowerCase()));
+        if (!matchWl) return false;
+      }
+
+      // technologies (tags) client-side as well for robustness
+      const techs = techInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+      if (techs.length > 0) {
+        const tags = (offer.tags || []).map(t => t.toLowerCase());
+        const matchTechs = techs.every(t => tags.some(tag => tag.includes(t)));
+        if (!matchTechs) return false;
+      }
+
+      return true;
+    });
+  }, [jobOffers, selectedWorkingModes, selectedContractTypes, selectedJobLevels, selectedWorkloads, techInput]);
 
   if (loading) {
     return (
@@ -149,96 +214,175 @@ export default function JobOffersPage() {
             </form>
           </div>
 
-          {jobOffers.length === 0 ? (
+          {filteredJobOffers.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg mb-4">Brak dostępnych ofert pracy</p>
               <p className="text-sm text-muted-foreground">Sprawdź ponownie później lub zmień kryteria wyszukiwania</p>
             </div>
           ) : (
-            <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {jobOffers.map((jobOffer) => (
+            <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+              {/* Sidebar filters */}
+              <aside className="rounded-lg border bg-white p-4 h-fit"> 
+                <h3 className="text-sm font-semibold mb-3">Filtry</h3>
+
+                {/* Tryb pracy */}
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Tryb pracy</p>
+                  {['Zdalna', 'Hybrydowa', 'Stacjonarna'].map((mode) => (
+                    <label key={mode} className="flex items-center gap-2 text-sm mb-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedWorkingModes.includes(mode)}
+                        onChange={() => toggleSelection(selectedWorkingModes, mode, setSelectedWorkingModes)}
+                      />
+                      <span>{mode}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Rodzaj umowy */}
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Rodzaj umowy</p>
+                  {['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'].map((ct) => (
+                    <label key={ct} className="flex items-center gap-2 text-sm mb-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedContractTypes.includes(ct)}
+                        onChange={() => toggleSelection(selectedContractTypes, ct, setSelectedContractTypes)}
+                      />
+                      <span>{ct}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Poziom stanowiska */}
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Poziom stanowiska</p>
+                  {['Junior', 'Mid', 'Senior'].map((lvl) => (
+                    <label key={lvl} className="flex items-center gap-2 text-sm mb-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedJobLevels.includes(lvl)}
+                        onChange={() => toggleSelection(selectedJobLevels, lvl, setSelectedJobLevels)}
+                      />
+                      <span>{lvl}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Wymiar pracy */}
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Wymiar pracy</p>
+                  {['Pełny etat', 'Część etatu'].map((wl) => (
+                    <label key={wl} className="flex items-center gap-2 text-sm mb-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedWorkloads.includes(wl)}
+                        onChange={() => toggleSelection(selectedWorkloads, wl, setSelectedWorkloads)}
+                      />
+                      <span>{wl}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Technologie / Specjalizacje */}
+                <div className="mb-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Technologie / Specjalizacje</p>
+                  <input
+                    type="text"
+                    value={techInput}
+                    onChange={(e) => { setTechInput(e.target.value); setPage(1); }}
+                    placeholder="np. React, Node, AWS"
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">Oddziel przecinkami</p>
+                </div>
+              </aside>
+
+              {/* List content */}
+              <div className="space-y-4">
+                {filteredJobOffers.map((jobOffer) => (
                   <div 
                     key={jobOffer.id} 
-                    className="rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105 flex flex-col h-full"
+                    className="rounded-lg border bg-white p-3 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.01] flex flex-col"
                   >
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-3 h-14 flex items-start">
+                      <h3 className="text-base font-semibold mb-1 flex items-start">
                         {jobOffer.name}
                       </h3>
-                      <p className="text-muted-foreground mb-2 font-medium h-6">
+                      <p className="text-muted-foreground mb-0.5 font-medium text-sm">
                         {jobOffer.employerProfile?.companyName || 'Nieokreślona firma'}
                       </p>
-                      <p className="text-sm text-muted-foreground mb-4 h-5">
+                      <p className="text-xs text-muted-foreground mb-2">
                         {formatLocation(jobOffer)} • {formatSalary(jobOffer.salary)}
                       </p>
-                      <div className="flex flex-wrap gap-2 mb-6 h-16 items-start">
+                      <div className="flex flex-wrap gap-1.5 mb-2 items-start">
                         {formatTags(jobOffer.tags).map((tag, index) => (
                           <span 
                             key={index}
-                            className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                            className="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium"
                           >
                             {tag}
                           </span>
                         ))}
                         {jobOffer.tags && jobOffer.tags.length > 3 && (
-                          <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                          <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
                             +{jobOffer.tags.length - 3} więcej
                           </span>
                         )}
                       </div>
                     </div>
                     <Link href={`/job-offers/${jobOffer.id}`}>
-                      <Button className="w-full transition-all duration-200 hover:scale-105 mt-auto">
+                      <Button className="w-full transition-all duration-200 hover:scale-105 mt-1 h-9 text-sm">
                         Zobacz szczegóły
                       </Button>
                     </Link>
                   </div>
                 ))}
               </div>
+            </div>
+          )}
 
-              {/* Paginacja */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    Poprzednia
-                  </Button>
+          {/* Paginacja */}
+          {totalPages > 1 && filteredJobOffers.length > 0 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Poprzednia
+              </Button>
+              
+              <div className="flex gap-2">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const pageNum = page <= 3 ? i + 1 : 
+                                 page > totalPages - 2 ? totalPages - 4 + i :
+                                 page - 2 + i;
                   
-                  <div className="flex gap-2">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      const pageNum = page <= 3 ? i + 1 : 
-                                     page > totalPages - 2 ? totalPages - 4 + i :
-                                     page - 2 + i;
-                      
-                      if (pageNum < 1 || pageNum > totalPages) return null;
-                      
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={page === pageNum ? "default" : "outline"}
-                          onClick={() => setPage(pageNum)}
-                          className="w-10"
-                        >
-                          {pageNum}
-                        </Button>
-                      );
-                    })}
-                  </div>
+                  if (pageNum < 1 || pageNum > totalPages) return null;
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={page === pageNum ? "default" : "outline"}
+                      onClick={() => setPage(pageNum)}
+                      className="w-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
 
-                  <Button
-                    variant="outline"
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                  >
-                    Następna
-                  </Button>
-                </div>
-              )}
-            </>
+              <Button
+                variant="outline"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Następna
+              </Button>
+            </div>
           )}
         </div>
       </main>

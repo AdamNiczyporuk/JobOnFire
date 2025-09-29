@@ -282,10 +282,10 @@ export default function EmployerProfilesPage() {
 							<p className="text-muted-foreground">Spróbuj zmienić kryteria wyszukiwania lub wróć później.</p>
 						</div>
 					) : (
-						<div className="grid gap-6 md:grid-cols-2">
+						<div className="space-y-6">
 							{filteredEmployers.map((employer) => (
 								<Card key={employer.id} className="flex h-full flex-col shadow-sm">
-									<CardHeader className="pb-4">
+									<CardHeader className="pb-3">
 										<div className="flex items-start gap-4">
 											<div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
 												{employer.companyImageUrl ? (
@@ -324,7 +324,7 @@ export default function EmployerProfilesPage() {
 										</div>
 									</CardHeader>
 
-									<CardContent className="flex flex-1 flex-col gap-6 pt-0">
+									<CardContent className="flex flex-1 flex-col gap-4 pt-0">
 										<div className="space-y-4">
 											{renderLocations(employer.locations)}
 
