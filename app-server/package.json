@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsc-watch --onSuccess \"node ./dist/app.js\"",
     "build": "tsc",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "seed": "prisma db seed"
   },
   "keywords": [],
   "author": "",
@@ -36,9 +37,13 @@
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-local": "^1.0.38",
     "prisma": "^6.6.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsc-watch": "^6.2.1",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "_moduleAliases": {
     "@": "dist/"
