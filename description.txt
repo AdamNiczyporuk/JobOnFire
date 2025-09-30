@@ -1,0 +1,121 @@
+JobOnFire — opis projektu
+
+1. Cel i zakres
+JobOnFire to platforma ogłoszeń pracy ukierunkowana na branżę IT, łącząca kandydatów i pracodawców. System umożliwia:
+- publikowanie i zarządzanie ofertami pracy przez pracodawców,
+- przeglądanie, filtrowanie i czytanie szczegółów ofert przez kandydatów,
+- aplikowanie na oferty (z pytaniami rekrutacyjnymi),
+- prezentację profili firm wraz z listą ich aktywnych ogłoszeń.
+
+2. Architektura (monorepo)
+Repozytorium jest monorepo zarządzanym pnpm i składa się z dwóch głównych aplikacji:
+- app-client — frontend (Next.js 15, App Router, React 19, TypeScript, Tailwind CSS 4),
+- app-server — backend (Express 5 + TypeScript, Prisma 6, Postgres).
+Dodatkowo znajduje się docker-compose.yml (serwer Postgres) i dokumentacja bazy (databaseDocs/).
+
+3. Backend (app-server)
+3.1. Stos technologiczny
+- Express 5, TypeScript,
+- Prisma ORM (v6) z Postgres,
+- Sesje (serializacja użytkownika), Passport (LocalStrategy + Google OAuth 2.0),
+- Walidacja: Joi.
+
+3.2. Modele danych (Prisma — skrót)
+- user: użytkownicy systemu z rolą CANDIDATE lub EMPLOYER; powiązani 1:1 z candidateProfile/employerProfile,
+  opcjonalnie additionalCredentials (np. do OAuth).
+- employerProfile: dane firmy (nazwa, logo, branże, opis, typy umów, kontakt, benefity), powiązany z user.
+- candidateProfile: dane kandydata (bio, doświadczenie, umiejętności, edukacja, linki, CV).
+- jobOffer: oferta pracy (nazwa, opis, poziom, tryb pracy, wynagrodzenie, tagi, daty, lokalizacja, aktywność) powiązana z employerProfile.
+- lokalization: słownik lokalizacji i relacja lokalizationToEmployerProfile (wiele lokalizacji firmy).
+- applicationForJobOffer: aplikacje z referencją do candidateCV, odpowiedziami na pytania oraz spotkaniami rekrutacyjnymi.
+- recruitmentQuestion: pytania przypięte do ofert (Q&A w procesie aplikacji).
+
+3.3. Autoryzacja i uwierzytelnianie
+- Local (login po username/email + hasło + rola),
+- Google OAuth (rola przekazywana w parametrze state),
+- Sesje HTTP z serializacją/deserializacją użytkownika,
+- Middleware: ensureAuthenticated oraz ensureEmployer (ochrona ścieżek pracodawcy).
+
+3.4. Najważniejsze API (wybór)
+- /api/v1/auth/register — rejestracja kandydata lub pracodawcy,
+- /api/v1/auth/login — logowanie (Local), /api/v1/auth/google — logowanie przez Google,
+- /api/v1/auth/me, /api/v1/auth/logout — sesja użytkownika,
+- /api/v1/job-offers/public — publiczna lista ogłoszeń z filtrowaniem i paginacją:
+  parametry m.in. page, limit, search, contractType, workingMode, city, state, tags, companyName, employerId,
+  sortBy (np. createDate), sortOrder (asc/desc),
+- /api/v1/job-offers/public/:id — publiczne szczegóły oferty,
+- /api/v1/job-offers — (wymaga roli EMPLOYER) lista/CRUD ofert pracodawcy,
+- /api/v1/employer/profile — odczyt/edycja profilu, zarządzanie lokalizacjami.
+
+3.5. Seed danych (prisma/seed.ts)
+Skrypt wypełnia bazę przykładowymi użytkownikami, firmami (np. FireTech, DataForge, CloudOps),
+ofertami, pytaniami rekrutacyjnymi, kandydatem i przykładowymi aplikacjami.
+
+3.6. Wymagane zmienne środowiskowe (przykładowe)
+- DATABASE_URL — połączenie do Postgresa,
+- BASE_SERVER_URL, FRONTEND_BASE_URL — adresy serwera i frontu (np. do callbacków OAuth),
+- GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET — integracja Google.
+
+4. Frontend (app-client)
+4.1. Stos technologiczny i konfiguracja
+- Next.js 15 (App Router), React 19, TypeScript 5,
+- Tailwind CSS 4, lucide-react, komponenty UI (shadcn-style),
+- next-themes (motywy),
+- next.config.ts — ESLint/TS ignore podczas build; obrazy w trybie unoptimized (= brak loadera Next Image).
+
+4.2. Struktura i główne widoki
+- Strony publiczne (src/app/...):
+  • /job-offers — lista ofert (z filtrami, kolorowymi badge trybów pracy, wiersze klikalne),
+  • /job-offers/[id] — szczegóły oferty (firma, opis, wymagania, benefity, pytania rekrutacyjne),
+  • /employer-profiles — lista pracodawców (ikona/miniatura, branże, benefity, model pracy),
+  • /companies/[id] — publiczny profil firmy z listą jej ofert,
+  • /about, /contact, /faq, /privacy, /terms itd.
+- Widoki pracodawcy (np. /employer/...): dashboard i zarządzanie ofertami/profitem (po zalogowaniu).
+- Nagłówek: SmartHeader przełącza SharedHeader/EmployerHeader zależnie od roli zalogowanego użytkownika.
+
+4.3. Serwisy HTTP (src/services)
+- jobOfferService — dostęp do /job-offers (publiczne i prywatne),
+  wspiera paginację, sortowanie i filtrowanie, w tym employerId,
+- employerService, candidateService, authService — operacje domenowe pozostałych obszarów,
+- api.ts — klient HTTP (axios) z baseURL z konfiguracji środowiskowej (NEXT_PUBLIC_API_URL + prefix).
+
+4.4. UX/UI i wzorce
+- Tailwind + lekkie komponenty UI, spójne badge (tryby pracy: zdalna/hybrydowa/stacjonarna z kolorami),
+- domyślna ikona pracodawcy (Building), gdy logo jest niedostępne lub brak adresu URL,
+- elementy na listach są w pełni klikalne (m.in. kafelki firm i wiersze ofert),
+- ciemny/jasny motyw (provider motywu).
+
+5. Przepływ danych (happy path)
+- Kandydat wchodzi na /job-offers, filtruje i wybiera ofertę → przechodzi na /job-offers/[id], czyta szczegóły,
+  ogląda informacje o firmie i jej profil (/companies/[id]). Jeśli aplikuje, uzupełnia wymagane dane/odpowiedzi.
+- Pracodawca loguje się (Local/Google), uzupełnia profil /employer/profile i publikuje oferty
+  (endpointy chronione ensureEmployer).
+
+6. Uruchomienie lokalne (skrót)
+- Baza danych: uruchom Postgresa z docker-compose.yml.
+- Instalacja: pnpm i (w katalogu głównym lub osobno w app-client/app-server).
+- Migracje i seed:
+  • pnpm -C app-server prisma db push
+  • pnpm -C app-server seed
+- Start backendu: pnpm -C app-server dev
+- Start frontendu: pnpm -C app-client dev
+Aplikacja domyślnie działa na: frontend http://localhost:3000, backend wg BASE_SERVER_URL.
+
+7. Bezpieczeństwo i ograniczenia (stan obecny)
+- Sesje oparte na Express Session; brak pokazanej konfiguracji CSRF/rate limiting — warto dodać przed produkcją,
+- Walidacja wejścia w kluczowych miejscach (Joi) — rozszerzalna,
+- Obrazy: unoptimized (next.config) i <img> — prostsze w dev, w produkcji można rozważyć hosta CDN/optimizera.
+
+8. Dalszy rozwój (propozycje)
+- Testy jednostkowe i e2e (np. Vitest/Playwright),
+- Bardziej rozbudowane filtry (widełki wynagrodzeń parsowane z tekstu, sortowanie po popularności),
+- Panel kandydata (zarządzanie CV/profilami, historia aplikacji),
+- Panel pracodawcy (statystyki, duże listy, eksporty),
+- Observability: logowanie strukturalne, metryki, trace’y,
+- Produkcyjna konfiguracja bezpieczeństwa (CORS, rate-limit, CSP, CSRF),
+- Optymalizacja obrazów (Next Image + lista dozwolonych domen) i cache HTTP.
+
+9. Podsumowanie
+JobOnFire łączy nowoczesny frontend (Next.js 15/React 19) z lekkim backendem (Express + Prisma) i bazą Postgres.
+Udostępnia kluczowe funkcje rynku pracy IT: publikację, filtrowanie i przeglądanie ofert, podstawową aplikację na
+ogłoszenia oraz prezentację firm. Struktura kodu i warstwy usług ułatwiają dalszą rozbudowę o kolejne moduły produkcyjne.
