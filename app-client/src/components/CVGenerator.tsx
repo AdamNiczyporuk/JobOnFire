@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { candidateService } from "@/services/candidateService";
-import type { CandidateProfile, Education, Experience, Skill } from "@/types/candidate";
+import type { CandidateProfile } from "@/types/candidate";
 
 type CVForm = {
 	fullName: string;
@@ -34,38 +34,65 @@ export default function CVGenerator() {
 		return parts.join(" ");
 	};
 
-	const formatSkills = (skills: Skill[] | undefined) => {
-		if (!skills || skills.length === 0) return "";
-		return skills.map((s) => s.name).join(", ");
+	const formatSkills = (skills: unknown) => {
+		if (!Array.isArray(skills) || skills.length === 0) return "";
+		const names = skills.map((item) => {
+			if (typeof item === "string") return item;
+			if (item && typeof item === "object" && "name" in item) {
+				return (item as any).name as string;
+			}
+			return String(item ?? "");
+		});
+		return names.filter(Boolean).join(", ");
 	};
 
-	const formatExperience = (items: Experience[] | undefined) => {
-		if (!items || items.length === 0) return "";
-		const lines = items.map((it) => {
-			const periodStart = it.startDate?.slice(0, 7) ?? ""; // YYYY-MM
-			const periodEnd = it.isCurrent ? "obecnie" : (it.endDate?.slice(0, 7) ?? "");
-			const header = [it.position, it.company].filter(Boolean).join(" @ ");
+	const formatExperience = (items: unknown) => {
+		if (!Array.isArray(items) || items.length === 0) return "";
+		const lines = items.map((raw) => {
+			const it: any = raw ?? {};
+			const position = it.position ?? it.title ?? "";
+			const company = it.company ?? "";
+			const header = [position, company].filter(Boolean).join(" @ ");
+			const start = (it.startDate ?? it.from ?? "").toString();
+			const endRaw = it.isCurrent ? "obecnie" : (it.endDate ?? it.to ?? "");
+			const end = endRaw ? endRaw.toString() : "";
+			const periodStart = start ? start.slice(0, 7) : ""; // YYYY-MM
+			const periodEnd = end ? end.slice(0, 7) : (it.isCurrent ? "obecnie" : "");
 			const period = [periodStart, periodEnd].filter(Boolean).join(" – ");
 			const loc = it.location ? `, ${it.location}` : "";
-			const desc = it.description ? `\n${it.description}` : "";
-			return `${header}${loc}${period ? ` (${period})` : ""}${desc}`;
+			const descText = it.description
+				? String(it.description)
+				: Array.isArray(it.responsibilities) && it.responsibilities.length
+				? `\n- ${it.responsibilities.join("\n- ")}`
+				: "";
+			return `${header}${loc}${period ? ` (${period})` : ""}${descText ? `\n${descText}` : ""}`.trim();
 		});
-		return lines.join("\n\n");
+		return lines.filter(Boolean).join("\n\n");
 	};
 
-	const formatEducation = (items: Education[] | undefined) => {
-		if (!items || items.length === 0) return "";
-		const lines = items.map((it) => {
-			const inst = [it.degree, it.institution].filter(Boolean).join(", ");
-			const field = it.fieldOfStudy ? ` — ${it.fieldOfStudy}` : "";
-			const periodStart = it.startDate?.slice(0, 7) ?? "";
-			const periodEnd = it.isCurrent ? "obecnie" : (it.endDate?.slice(0, 7) ?? "");
-			const period = [periodStart, periodEnd].filter(Boolean).join(" – ");
+	const formatEducation = (items: unknown) => {
+		if (!Array.isArray(items) || items.length === 0) return "";
+		const lines = items.map((raw) => {
+			const it: any = raw ?? {};
+			const institution = it.institution ?? it.school ?? "";
+			const degree = it.degree ?? "";
+			const field = it.fieldOfStudy ?? it.field ?? "";
+			const start = (it.startDate ?? it.from ?? "").toString();
+			const endRaw = it.isCurrent ? "obecnie" : (it.endDate ?? it.to ?? "");
+			const end = endRaw ? endRaw.toString() : "";
+			const periodStart = start ? start.slice(0, 7) : ""; // YYYY-MM
+			const periodEnd = end ? end.slice(0, 7) : (it.isCurrent ? "obecnie" : "");
+			let period = [periodStart, periodEnd].filter(Boolean).join(" – ");
+			if (!period && it.graduationYear) {
+				period = String(it.graduationYear);
+			}
+			const title = [degree, institution].filter(Boolean).join(", ");
+			const fieldStr = field ? ` — ${field}` : "";
 			const loc = it.location ? `, ${it.location}` : "";
 			const desc = it.description ? `\n${it.description}` : "";
-			return `${inst}${field}${loc}${period ? ` (${period})` : ""}${desc}`;
+			return `${title}${fieldStr}${loc}${period ? ` (${period})` : ""}${desc}`.trim();
 		});
-		return lines.join("\n\n");
+		return lines.filter(Boolean).join("\n\n");
 	};
 
 	useEffect(() => {
