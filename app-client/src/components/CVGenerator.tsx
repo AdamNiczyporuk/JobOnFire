@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { candidateService } from "@/services/candidateService";
 import type { CandidateProfile } from "@/types/candidate";
 
@@ -26,6 +26,21 @@ export default function CVGenerator() {
 	const [loadedFromProfile, setLoadedFromProfile] = useState(false);
 	const [unauth, setUnauth] = useState(false);
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+	// refs for auto-resizing fields
+	const fullNameRef = useRef<HTMLTextAreaElement | null>(null);
+	const positionRef = useRef<HTMLTextAreaElement | null>(null);
+	const skillsRef = useRef<HTMLTextAreaElement | null>(null);
+	const summaryRef = useRef<HTMLTextAreaElement | null>(null);
+	const experienceRef = useRef<HTMLTextAreaElement | null>(null);
+	const educationRef = useRef<HTMLTextAreaElement | null>(null);
+
+	function adjustHeight(el: HTMLTextAreaElement | null) {
+		if (!el) return;
+		el.style.height = "auto";
+		// Add a small extra px to avoid scrollbar flicker
+		el.style.height = `${el.scrollHeight}px`;
+	}
 
 	// Helpers to map backend profile data into simple text fields
 	const joinFullName = (p: CandidateProfile) => {
@@ -122,6 +137,15 @@ export default function CVGenerator() {
 					return next;
 				});
 				setLoadedFromProfile(true);
+				// after prefill, ensure fields resize to content
+				setTimeout(() => {
+					adjustHeight(fullNameRef.current);
+					adjustHeight(positionRef.current);
+					adjustHeight(skillsRef.current);
+					adjustHeight(summaryRef.current);
+					adjustHeight(experienceRef.current);
+					adjustHeight(educationRef.current);
+				}, 0);
 			} catch (err: any) {
 				const status = err?.response?.status;
 				if (status === 401) {
@@ -140,6 +164,16 @@ export default function CVGenerator() {
 			mounted = false;
 		};
 	}, []);
+
+	// whenever the form changes, adjust heights so the UI stays in sync
+	useEffect(() => {
+		adjustHeight(fullNameRef.current);
+		adjustHeight(positionRef.current);
+		adjustHeight(skillsRef.current);
+		adjustHeight(summaryRef.current);
+		adjustHeight(experienceRef.current);
+		adjustHeight(educationRef.current);
+	}, [form.fullName, form.position, form.skills, form.summary, form.experience, form.education]);
 
 	return (
 		<div className="grid gap-6 md:grid-cols-2">
@@ -170,55 +204,73 @@ export default function CVGenerator() {
 				<div className="space-y-4">
 					<div>
 						<label className="text-sm font-medium">Imię i nazwisko</label>
-						<input
+						<textarea
+							ref={fullNameRef}
+							rows={1}
 							value={form.fullName}
 							onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-							className="mt-1 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40"
+							onInput={(e) => adjustHeight(e.currentTarget)}
+							className="mt-1 w-full rounded-md border px-3 py-2 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/40"
 							placeholder="Jan Kowalski"
 						/>
 					</div>
 					<div>
 						<label className="text-sm font-medium">Stanowisko</label>
-						<input
+						<textarea
+							ref={positionRef}
+							rows={1}
 							value={form.position}
 							onChange={(e) => setForm({ ...form, position: e.target.value })}
-							className="mt-1 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40"
+							onInput={(e) => adjustHeight(e.currentTarget)}
+							className="mt-1 w-full rounded-md border px-3 py-2 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/40"
 							placeholder="Frontend Developer"
 						/>
 					</div>
 					<div>
 						<label className="text-sm font-medium">Podsumowanie</label>
 						<textarea
+							ref={summaryRef}
+							rows={3}
 							value={form.summary}
 							onChange={(e) => setForm({ ...form, summary: e.target.value })}
-							className="mt-1 w-full rounded-md border px-3 py-2 h-24 focus:outline-none focus:ring-2 focus:ring-primary/40"
+							onInput={(e) => adjustHeight(e.currentTarget)}
+							className="mt-1 w-full rounded-md border px-3 py-2 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/40"
 							placeholder="Krótki opis Twojego doświadczenia i celów"
 						/>
 					</div>
 					<div>
 						<label className="text-sm font-medium">Umiejętności (oddziel przecinkami)</label>
-						<input
+						<textarea
+							ref={skillsRef}
+							rows={1}
 							value={form.skills}
 							onChange={(e) => setForm({ ...form, skills: e.target.value })}
-							className="mt-1 w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40"
+							onInput={(e) => adjustHeight(e.currentTarget)}
+							className="mt-1 w-full rounded-md border px-3 py-2 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/40"
 							placeholder="React, TypeScript, Next.js, Tailwind"
 						/>
 					</div>
 					<div>
 						<label className="text-sm font-medium">Doświadczenie</label>
 						<textarea
+							ref={experienceRef}
+							rows={4}
 							value={form.experience}
 							onChange={(e) => setForm({ ...form, experience: e.target.value })}
-							className="mt-1 w-full rounded-md border px-3 py-2 h-32 focus:outline-none focus:ring-2 focus:ring-primary/40"
+							onInput={(e) => adjustHeight(e.currentTarget)}
+							className="mt-1 w-full rounded-md border px-3 py-2 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/40"
 							placeholder="Rola, firma, zakres obowiązków, osiągnięcia"
 						/>
 					</div>
 					<div>
 						<label className="text-sm font-medium">Wykształcenie</label>
 						<textarea
+							ref={educationRef}
+							rows={3}
 							value={form.education}
 							onChange={(e) => setForm({ ...form, education: e.target.value })}
-							className="mt-1 w-full rounded-md border px-3 py-2 h-24 focus:outline-none focus:ring-2 focus:ring-primary/40"
+							onInput={(e) => adjustHeight(e.currentTarget)}
+							className="mt-1 w-full rounded-md border px-3 py-2 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/40"
 							placeholder="Uczelnia, kierunek, lata"
 						/>
 					</div>
