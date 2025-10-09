@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import { candidateService } from "@/services/candidateService";
 import { CandidateProfile } from "@/types/candidate";
@@ -12,9 +13,15 @@ export default function CandidateProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     loadProfile();
+    // open edit mode if ?edit=1 is present
+    const editParam = searchParams.get("edit");
+    if (editParam === "1") {
+      setIsEditing(true);
+    }
   }, []);
 
   const loadProfile = async () => {

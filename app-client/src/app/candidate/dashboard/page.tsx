@@ -1,13 +1,18 @@
 "use client";
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { candidateService } from "@/services/candidateService";
+import type { CandidateProfile, CandidateStats } from "@/types/candidate";
 
 export default function CandidateDashboard() {
   const { user } = useAuth();
   const router = useRouter();
+  const [loadingData, setLoadingData] = useState(false);
+  const [stats, setStats] = useState<CandidateStats | null>(null);
+  const [profile, setProfile] = useState<CandidateProfile | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -24,6 +29,60 @@ export default function CandidateDashboard() {
       return () => clearTimeout(timer);
     }
   }, [user, router]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!user || user.role !== "CANDIDATE") return;
+      setLoadingData(true);
+      try {
+        const [s, p] = await Promise.all([
+          candidateService.getStats().catch(() => null),
+          candidateService.getProfile().catch(() => null),
+        ]);
+        if (!active) return;
+        if (s) setStats(s);
+        if (p) setProfile(p);
+      } finally {
+        if (active) setLoadingData(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const recentApplications = useMemo(() => {
+    const apps = profile?.applications ?? [];
+    // We don't have appliedDate; show latest by array order and limit to 5
+    return apps.slice(0, 5).map((app: any, idx: number) => {
+      const status: string = app.status || "PENDING";
+      const mapStatusToUi = (s: string) => {
+        switch (s) {
+          case "ACCEPTED":
+            return { label: "Zaakceptowane", color: "bg-green-100 text-green-800" };
+          case "REJECTED":
+            return { label: "Odrzucone", color: "bg-red-100 text-red-800" };
+          case "CANCELED":
+            return { label: "Anulowane", color: "bg-gray-100 text-gray-800" };
+          case "PENDING":
+          default:
+            return { label: "W trakcie", color: "bg-yellow-100 text-yellow-800" };
+        }
+      };
+      const ui = mapStatusToUi(status);
+      const company = app.jobOffer?.employerProfile?.companyName || "Firma";
+      const position = app.jobOffer?.name || app.jobOffer?.title || "Stanowisko";
+      return {
+        id: app.id ?? idx,
+        company,
+        position,
+        status: ui.label,
+        statusColor: ui.color,
+      };
+    });
+  }, [profile]);
 
   if (!user) {
     return (
@@ -45,69 +104,11 @@ export default function CandidateDashboard() {
     );
   }
 
-  // Przykładowe dane - w prawdziwej aplikacji byłyby pobierane z API
-  const stats = {
-    applications: 12,
-    interviews: 3,
-    offers: 1,
-    views: 45
-  };
-
-  const recentApplications = [
-    {
-      id: 1,
-      company: "TechCorp",
-      position: "Frontend Developer",
-      status: "W trakcie",
-      appliedDate: "2025-01-05",
-      statusColor: "bg-yellow-100 text-yellow-800"
-    },
-    {
-      id: 2,
-      company: "StartupXYZ",
-      position: "React Developer",
-      status: "Rozmowa",
-      appliedDate: "2025-01-03",
-      statusColor: "bg-blue-100 text-blue-800"
-    },
-    {
-      id: 3,
-      company: "WebStudio",
-      position: "UI/UX Designer",
-      status: "Odrzucone",
-      appliedDate: "2024-12-28",
-      statusColor: "bg-red-100 text-red-800"
-    }
-  ];
-
-  const recommendedJobs = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: "InnovateTech",
-      location: "Warszawa",
-      salary: "15 000 - 20 000 PLN",
-      type: "Pełny etat",
-      posted: "2 dni temu"
-    },
-    {
-      id: 2,
-      title: "React Native Developer",
-      company: "MobileFirst",
-      location: "Kraków",
-      salary: "12 000 - 18 000 PLN",
-      type: "Pełny etat",
-      posted: "1 tydzień temu"
-    },
-    {
-      id: 3,
-      title: "Full Stack Developer",
-      company: "DevHouse",
-      location: "Gdańsk",
-      salary: "14 000 - 22 000 PLN",
-      type: "Pełny etat",
-      posted: "3 dni temu"
-    }
+  const cards = [
+    { label: "Aplikacje", value: stats?.totalApplications ?? 0, color: "text-primary" },
+    { label: "Oczekujące", value: stats?.pendingApplications ?? 0, color: "text-blue-600" },
+    { label: "Zaakceptowane", value: stats?.acceptedApplications ?? 0, color: "text-green-600" },
+    { label: "CV", value: stats?.totalCVs ?? 0, color: "text-purple-600" },
   ];
 
   return (
@@ -132,12 +133,14 @@ export default function CandidateDashboard() {
             </svg>
             Zaktualizuj CV
           </Button>
-          <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Wygeneruj CV
-          </Button>
+          <Link href="/tools/cv-generator" className="w-full">
+            <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Wygeneruj CV
+            </Button>
+          </Link>
           <Link href="/job-offers" className="w-full">
             <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,33 +149,25 @@ export default function CandidateDashboard() {
               Szukaj ofert
             </Button>
           </Link>
-          <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
+          <Link href="/candidate/profile?edit=1" className="w-full">
+            <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             Edytuj profil
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
 
       {/* Statystyki */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg border p-6 text-center hover:shadow-md transition-shadow">
-          <div className="text-2xl font-bold text-primary">{stats.applications}</div>
-          <div className="text-sm text-muted-foreground">Aplikacje</div>
-        </div>
-        <div className="bg-white rounded-lg border p-6 text-center hover:shadow-md transition-shadow">
-          <div className="text-2xl font-bold text-blue-600">{stats.interviews}</div>
-          <div className="text-sm text-muted-foreground">Rozmowy</div>
-        </div>
-        <div className="bg-white rounded-lg border p-6 text-center hover:shadow-md transition-shadow">
-          <div className="text-2xl font-bold text-green-600">{stats.offers}</div>
-          <div className="text-sm text-muted-foreground">Oferty</div>
-        </div>
-        <div className="bg-white rounded-lg border p-6 text-center hover:shadow-md transition-shadow">
-          <div className="text-2xl font-bold text-purple-600">{stats.views}</div>
-          <div className="text-sm text-muted-foreground">Wyświetlenia profilu</div>
-        </div>
+        {cards.map((c) => (
+          <div key={c.label} className="bg-white rounded-lg border p-6 text-center hover:shadow-md transition-shadow">
+            <div className={`text-2xl font-bold ${c.color}`}>{loadingData ? "…" : c.value}</div>
+            <div className="text-sm text-muted-foreground">{c.label}</div>
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -185,12 +180,15 @@ export default function CandidateDashboard() {
             </Button>
           </div>
           <div className="space-y-4">
-            {recentApplications.map((app) => (
+            {loadingData && (!recentApplications || recentApplications.length === 0) ? (
+              <div className="text-sm text-muted-foreground">Ładowanie…</div>
+            ) : recentApplications.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Brak aplikacji.</div>
+            ) : recentApplications.map((app) => (
               <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                 <div className="flex-1">
                   <h3 className="font-medium">{app.position}</h3>
                   <p className="text-sm text-muted-foreground">{app.company}</p>
-                  <p className="text-xs text-muted-foreground">Aplikowano: {app.appliedDate}</p>
                 </div>
                 <div className={`px-2 py-1 rounded-full text-xs font-medium ${app.statusColor}`}>
                   {app.status}
@@ -200,7 +198,7 @@ export default function CandidateDashboard() {
           </div>
         </div>
 
-        {/* Rekomendowane oferty */}
+        {/* Rekomendowane oferty (placeholder – brak danych z backendu) */}
         <div className="bg-white rounded-lg border p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold">Rekomendowane dla Ciebie</h2>
@@ -210,23 +208,7 @@ export default function CandidateDashboard() {
               </Button>
             </Link>
           </div>
-          <div className="space-y-4">
-            {recommendedJobs.map((job) => (
-              <div key={job.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <h3 className="font-medium mb-1">{job.title}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{job.company} • {job.location}</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-600">{job.salary}</p>
-                    <p className="text-xs text-muted-foreground">{job.type} • {job.posted}</p>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    Aplikuj
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <div className="text-sm text-muted-foreground">Brak rekomendacji. Wróć później.</div>
         </div>
       </div>
     </div>
