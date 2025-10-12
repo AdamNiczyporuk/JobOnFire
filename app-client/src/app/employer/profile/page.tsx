@@ -5,6 +5,7 @@ import { getEmployerProfile, updateEmployerProfile, addEmployerProfileLocation, 
 import { EmployerProfile, EmployerProfileUpdateRequest, EmployerProfileAddress } from "@/types/employer";
 import { COMPANY_LOGOS, CONTRACT_TYPES, POPULAR_INDUSTRIES, POPULAR_BENEFITS } from "@/constants/employer";
 import { Building } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function EmployerProfilePage() {
   const { user } = useAuth();
@@ -186,12 +187,12 @@ export default function EmployerProfilePage() {
         <div className="bg-white rounded shadow p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Dane firmy</h2>
-            <button
+            <Button
               onClick={() => setEditing(!editing)}
-              className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+              className="transition-all duration-200 hover:scale-105"
             >
               {editing ? "Anuluj" : "Edytuj profil"}
-            </button>
+            </Button>
           </div>
 
           {editing ? (
@@ -215,7 +216,7 @@ export default function EmployerProfilePage() {
                       <div
                         className={`cursor-pointer border-2 rounded p-2 ${
                           formData.companyImageUrl === logo.url 
-                            ? 'border-blue-500 bg-blue-50' 
+                            ? 'border-red-500 bg-red-50' 
                             : 'border-gray-300 hover:border-gray-400'
                         }`}
                         onClick={() => setFormData({...formData, companyImageUrl: logo.url})}
@@ -252,13 +253,14 @@ export default function EmployerProfilePage() {
                       }
                     }}
                   />
-                  <button
+                  <Button
                     type="button"
                     onClick={handleAddIndustry}
-                    className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+                    variant="outline"
+                    className="transition-all duration-200 hover:scale-105"
                   >
                     Dodaj
-                  </button>
+                  </Button>
                 </div>
                 
                 {/* Dropdown z popularnymi branżami */}
@@ -276,7 +278,7 @@ export default function EmployerProfilePage() {
                               industry: [...(formData.industry || []), industry]
                             });
                           }}
-                          className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-100"
+                          className="text-xs bg-red-50 text-red-700 px-2 py-1 rounded border border-red-200 hover:bg-red-100"
                         >
                           + {industry}
                         </button>
@@ -339,7 +341,7 @@ export default function EmployerProfilePage() {
                   {formData.contractType?.map((type, index) => (
                     <span
                       key={index}
-                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                      className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
                     >
                       {type}
                       <button
@@ -393,13 +395,14 @@ export default function EmployerProfilePage() {
                       }
                     }}
                   />
-                  <button
+                  <Button
                     type="button"
                     onClick={handleAddBenefit}
-                    className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+                    variant="outline"
+                    className="transition-all duration-200 hover:scale-105"
                   >
                     Dodaj
-                  </button>
+                  </Button>
                 </div>
                 
                 {/* Dropdown z popularnymi benefitami */}
@@ -417,7 +420,7 @@ export default function EmployerProfilePage() {
                               benefits: [...(formData.benefits || []), benefit]
                             });
                           }}
-                          className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-100"
+                          className="text-xs bg-red-50 text-red-700 px-2 py-1 rounded border border-red-200 hover:bg-red-100"
                         >
                           + {benefit}
                         </button>
@@ -449,19 +452,20 @@ export default function EmployerProfilePage() {
               </div>
 
               <div className="flex gap-3">
-                <button
+                <Button
                   type="submit"
-                  className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
+                  className="transition-all duration-200 hover:scale-105"
                 >
                   Zapisz zmiany
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
+                  variant="outline"
+                  className="transition-all duration-200 hover:scale-105"
                 >
                   Anuluj
-                </button>
+                </Button>
               </div>
             </form>
           ) : (
@@ -527,7 +531,7 @@ export default function EmployerProfilePage() {
                     {profile.industry.map((industry, index) => (
                       <span
                         key={index}
-                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                        className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium"
                       >
                         {industry}
                       </span>
@@ -544,7 +548,7 @@ export default function EmployerProfilePage() {
                     {profile.contractType.map((type, index) => (
                       <span
                         key={index}
-                        className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
+                        className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium"
                       >
                         {type}
                       </span>
@@ -563,7 +567,7 @@ export default function EmployerProfilePage() {
                         key={index}
                         className="flex items-center gap-2 text-sm text-gray-700"
                       >
-                        <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
                         {benefit}
                       </div>
                     ))}
@@ -591,12 +595,13 @@ export default function EmployerProfilePage() {
       <div className="bg-white rounded shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold">Lokalizacje firmy</h3>
-          <button
+          
+          <Button
             onClick={() => setAddingLocation(!addingLocation)}
-            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+            className="transition-all duration-200 hover:scale-105"
           >
             {addingLocation ? "Anuluj" : "Dodaj lokalizację"}
-          </button>
+          </Button>
         </div>
 
         {addingLocation && (
@@ -659,12 +664,12 @@ export default function EmployerProfilePage() {
                 />
               </div>
             </div>
-            <button
+            <Button
               type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              className="transition-all duration-200 hover:scale-105"
             >
               Dodaj lokalizację
-            </button>
+            </Button>
           </form>
         )}
 
@@ -687,12 +692,14 @@ export default function EmployerProfilePage() {
                     </div>
                   )}
                 </div>
-                <button
+                <Button
                   onClick={() => handleRemoveLocation(l.lokalization.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                  variant="destructive"
+                  size="sm"
+                  className="transition-all duration-200 hover:scale-105"
                 >
                   Usuń
-                </button>
+                </Button>
               </div>
             ))
           )}

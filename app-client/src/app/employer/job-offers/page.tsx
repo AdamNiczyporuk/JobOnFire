@@ -264,7 +264,7 @@ export default function JobOffersPage() {
               <h3 className="text-lg font-semibold mb-2">Tagi</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedJobOffer.tags.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                  <span key={index} className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
                     {tag}
                   </span>
                 ))}
