@@ -1,5 +1,13 @@
 import api from "@/api";
-import { CandidateProfile, CandidateStats, CandidateProfileFormData, CandidateCV } from "@/types/candidate";
+import { 
+  CandidateProfile, 
+  CandidateStats, 
+  CandidateProfileFormData, 
+  CandidateCV,
+  CandidateListResponse,
+  CandidateFilters,
+  CandidateDetailedProfile
+} from "@/types/candidate";
 
 export const candidateService = {
   /**
@@ -40,5 +48,30 @@ export const candidateService = {
   async getCV(id: number): Promise<CandidateCV> {
     const response = await api.get(`/candidate/cvs/${id}`);
     return response.data.cv;
+  },
+
+  /**
+   * Pobiera listę wszystkich kandydatów z możliwością filtrowania
+   */
+  async getCandidatesList(filters: CandidateFilters = {}): Promise<CandidateListResponse> {
+    const params = new URLSearchParams();
+    
+    if (filters.experience) params.append('experience', filters.experience);
+    if (filters.skills) params.append('skills', filters.skills);
+    if (filters.place) params.append('place', filters.place);
+    if (filters.education) params.append('education', filters.education);
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+
+    const response = await api.get(`/candidate/candidates?${params.toString()}`);
+    return response.data;
+  },
+
+  /**
+   * Pobiera szczegółowy profil konkretnego kandydata (publiczny dostęp)
+   */
+  async getCandidateProfile(candidateId: number): Promise<CandidateDetailedProfile> {
+    const response = await api.get(`/candidate/candidates/${candidateId}`);
+    return response.data.candidate;
   }
 };
