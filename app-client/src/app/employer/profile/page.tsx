@@ -698,7 +698,7 @@ export default function EmployerProfilePage() {
                   size="sm"
                   className="transition-all duration-200 hover:scale-105"
                 >
-                  Usuń
+                  <span className="text-xl font-bold text-red-900">×</span>
                 </Button>
               </div>
             ))
