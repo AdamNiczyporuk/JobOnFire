@@ -114,6 +114,53 @@ export interface CandidateProfileFormData {
   education: Education[];
 }
 
+// Typ dla elementu listy kandydatów (uproszczona wersja profilu)
+export interface CandidateListItem {
+  id: number;
+  name: string | null;
+  lastName: string | null;
+  description: string | null;
+  place: string | null;
+  experience: any;
+  skills: any;
+  education: any;
+  email?: string;
+}
+
+// Typ dla odpowiedzi z paginacją
+export interface CandidateListResponse {
+  candidates: CandidateListItem[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    limit: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+// Typ dla filtrów kandydatów
+export interface CandidateFilters {
+  experience?: string;
+  skills?: string;
+  place?: string;
+  education?: string;
+  page?: number;
+  limit?: number;
+}
+
+// Typ dla szczegółowego profilu kandydata (z dodatkową informacją z backend)
+export interface CandidateDetailedProfile extends CandidateProfile {
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    role: string;
+    registerDate: string;
+  };
+}
+
 // Stałe dla poziomów umiejętności
 export const SKILL_LEVELS: { value: SkillLevel; label: string }[] = [
   { value: 'BEGINNER', label: 'Początkujący' },

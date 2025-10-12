@@ -1,3 +1,11 @@
 packages:
-  - 'app-client'
-  - 'app-server'
+  - app-client
+  - app-server
+
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - bcrypt
+  - esbuild
+  - prisma
+  - sharp
