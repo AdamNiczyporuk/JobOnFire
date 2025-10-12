@@ -291,13 +291,13 @@ export default function JobOfferForm({
               {formData.jobLevel.map((level, index) => (
                 <span 
                   key={index}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-sm"
                 >
                   {level}
                   <button
                     type="button"
                     onClick={() => removeFromList('jobLevel', index)}
-                    className="text-blue-500 hover:text-blue-700"
+                    className="text-red-500 hover:text-red-700"
                   >
                     ×
                   </button>
@@ -329,13 +329,13 @@ export default function JobOfferForm({
               {formData.workingMode.map((mode, index) => (
                 <span 
                   key={index}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-sm"
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-sm"
                 >
                   {mode}
                   <button
                     type="button"
                     onClick={() => removeFromList('workingMode', index)}
-                    className="text-purple-500 hover:text-purple-700"
+                    className="text-red-500 hover:text-red-700"
                   >
                     ×
                   </button>
@@ -450,7 +450,7 @@ export default function JobOfferForm({
                 name="applicationMethod"
                 checked={!formData.applicationUrl}
                 onChange={() => setFormData(prev => ({ ...prev, applicationUrl: '' }))}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
               />
               <label htmlFor="internal-app" className="text-sm">
                 <span className="font-medium">System wewnętrzny</span>
@@ -465,7 +465,7 @@ export default function JobOfferForm({
                 name="applicationMethod"
                 checked={!!formData.applicationUrl}
                 onChange={() => setFormData(prev => ({ ...prev, applicationUrl: 'https://' }))}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
               />
               <label htmlFor="external-app" className="text-sm">
                 <span className="font-medium">Link zewnętrzny</span>
@@ -582,7 +582,7 @@ const ResponsibilityInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove,
       <div className="flex flex-wrap gap-2">
         {Object.entries(RESPONSIBILITY_TEMPLATES).map(([role, responsibilities]) => (
           <details key={role} className="text-sm">
-            <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+            <summary className="cursor-pointer text-red-600 hover:text-red-800">
               Szablon: {role}
             </summary>
             <div className="mt-1 space-y-1">
@@ -591,7 +591,7 @@ const ResponsibilityInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove,
                   key={index}
                   type="button"
                   onClick={() => onAdd(resp)}
-                  className="block w-full text-left px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                  className="block w-full text-left px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100"
                 >
                   + {resp}
                 </button>
@@ -661,7 +661,7 @@ const RequirementInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, pl
       <div className="flex flex-wrap gap-2">
         {Object.entries(REQUIREMENT_TEMPLATES).map(([role, requirements]) => (
           <details key={role} className="text-sm">
-            <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+            <summary className="cursor-pointer text-red-600 hover:text-red-800">
               Szablon: {role}
             </summary>
             <div className="mt-1 space-y-1">
@@ -670,7 +670,7 @@ const RequirementInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, pl
                   key={index}
                   type="button"
                   onClick={() => onAdd(req)}
-                  className="block w-full text-left px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                  className="block w-full text-left px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100"
                 >
                   + {req}
                 </button>
@@ -743,7 +743,7 @@ const OfferInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, placehol
             key={benefit}
             type="button"
             onClick={() => onAdd(benefit)}
-            className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+            className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
           >
             + {benefit}
           </button>
@@ -852,7 +852,7 @@ const TagInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, placeholde
               key={tag}
               type="button"
               onClick={() => onAdd(tag)}
-              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
             >
               + {tag}
             </button>
@@ -866,7 +866,7 @@ const TagInput: React.FC<ListInputProps> = ({ items, onAdd, onRemove, placeholde
               key={tag}
               type="button"
               onClick={() => onAdd(tag)}
-              className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+              className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
             >
               + {tag}
             </button>
