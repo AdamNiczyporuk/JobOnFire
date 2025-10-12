@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { MobileMenu } from "@/components/mobile-menu";
@@ -13,6 +13,7 @@ export function SharedHeader() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Sprawdź czy jesteśmy na stronie logowania/rejestracji
   const isAuthPage = !pathname || pathname.includes('/login') || pathname.includes('/register');
@@ -24,12 +25,16 @@ export function SharedHeader() {
     router.push('/'); // Przekieruj na stronę główną
   };
 
-  // Zamknij dropdown przy kliknięciu poza nim
+  // Zamknij dropdown przy kliknięciu poza nim (sprawdzaj czy kliknięcie było poza kontenerem menu)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isDropdownOpen) {
-        setIsDropdownOpen(false);
+      const target = event.target as Node;
+      if (!isDropdownOpen) return;
+      if (containerRef.current && containerRef.current.contains(target)) {
+        // kliknięcie wewnątrz kontenera - nie zamykaj
+        return;
       }
+      setIsDropdownOpen(false);
     };
 
     if (isDropdownOpen) {
@@ -130,7 +135,7 @@ export function SharedHeader() {
               </Link>
             </div>
             
-            <div className="flex items-center">
+            <div className="flex items-center" ref={containerRef}>
               {/* Menu mobilne - używaj odpowiedniego w zależności od użytkownika */}
               {user && user.role === 'CANDIDATE' ? <CandidateMobileMenu /> : <MobileMenu />}
 
@@ -322,8 +327,8 @@ export function SharedHeader() {
                   ) : null}
                 </div>
                 
-                {/* Sekcja "Dla firm" - zmniejszony odstęp */}
-                {(!user || user.role === 'CANDIDATE') && !isLoggingOut && (
+                {/* Sekcja "Dla firm" - widoczna zarówno dla niezalogowanych jak i pracodawców */}
+                {!isLoggingOut && (
                   <div className="hidden sm:block ml-4">
                     <div>
                       <Link
@@ -332,12 +337,21 @@ export function SharedHeader() {
                       >
                         Dla firm
                       </Link>
-                      <Link
-                        href="/employer/dashboard"
-                        className="text-xs text-red-600 hover:text-red-700 transition-colors duration-200 block"
-                      >
-                        Dodaj ofertę
-                      </Link>
+                      {user && user.role === 'EMPLOYER' ? (
+                        <Link
+                          href="/employer/dashboard"
+                          className="text-xs text-red-600 hover:text-red-700 transition-colors duration-200 block"
+                        >
+                          Dodaj ofertę
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/employer/dashboard"
+                          className="text-xs text-red-600 hover:text-red-700 transition-colors duration-200 block"
+                        >
+                          Dodaj ofertę
+                        </Link>
+                      )}
                     </div>
                   </div>
                 )}
