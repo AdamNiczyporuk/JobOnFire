@@ -195,7 +195,7 @@ export default function JobOfferList({
                 onClick={() => onView(jobOffer)}
                 variant="outline"
                 size="sm"
-                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Zobacz
               </Button>
@@ -204,7 +204,7 @@ export default function JobOfferList({
                 onClick={() => onEdit(jobOffer)}
                 variant="outline"
                 size="sm"
-                className="text-green-600 border-green-600 hover:bg-green-50"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Edytuj
               </Button>
@@ -213,10 +213,7 @@ export default function JobOfferList({
                 onClick={() => onToggleStatus(jobOffer.id)}
                 variant="outline"
                 size="sm"
-                className={jobOffer.isActive 
-                  ? "text-orange-600 border-orange-600 hover:bg-orange-50"
-                  : "text-green-600 border-green-600 hover:bg-green-50"
-                }
+                className="transition-all duration-200 hover:scale-105"
               >
                 {jobOffer.isActive ? 'Dezaktywuj' : 'Aktywuj'}
               </Button>
@@ -225,7 +222,7 @@ export default function JobOfferList({
                 onClick={() => onDelete(jobOffer.id)}
                 variant="outline"
                 size="sm"
-                className="text-red-600 border-red-600 hover:bg-red-50"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Usuń
               </Button>

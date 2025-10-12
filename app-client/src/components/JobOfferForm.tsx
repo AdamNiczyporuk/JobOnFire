@@ -496,7 +496,7 @@ export default function JobOfferForm({
           <Button
             type="submit"
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+            className="transition-all duration-200 hover:scale-105"
           >
             {isLoading ? 'Zapisywanie...' : (isEditing ? 'Zapisz zmiany' : 'Utwórz ofertę')}
           </Button>
@@ -505,7 +505,7 @@ export default function JobOfferForm({
             type="button"
             onClick={onCancel}
             variant="outline"
-            className="px-6 py-2"
+            className="transition-all duration-200 hover:scale-105"
           >
             Anuluj
           </Button>

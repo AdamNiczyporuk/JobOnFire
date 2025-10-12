@@ -145,13 +145,14 @@ export default function JobOffersPage() {
           <div className="flex gap-2">
             <Button
               onClick={() => handleEditClick(selectedJobOffer)}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="transition-all duration-200 hover:scale-105"
             >
               Edytuj
             </Button>
             <Button
               onClick={() => setViewMode('list')}
               variant="outline"
+              className="transition-all duration-200 hover:scale-105"
             >
               Powrót do listy
             </Button>
@@ -291,7 +292,7 @@ export default function JobOffersPage() {
           </div>
           <Button
             onClick={() => setViewMode('create')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+            className="transition-all duration-200 hover:scale-105"
           >
             Utwórz nową ofertę
           </Button>
@@ -338,6 +339,7 @@ export default function JobOffersPage() {
                 onClick={() => loadJobOffers(pagination.page - 1)}
                 disabled={pagination.page <= 1}
                 variant="outline"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Poprzednia
               </Button>
@@ -348,6 +350,7 @@ export default function JobOffersPage() {
                 onClick={() => loadJobOffers(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
                 variant="outline"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Następna
               </Button>
