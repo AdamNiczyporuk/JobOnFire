@@ -157,7 +157,7 @@ export default function CandidateDetailPage() {
   const educationData = formatEducation(candidate.education);
 
   return (
-    <div className="flex min-h-screen flex-col items-center">
+    <div className="flex flex-col h-full items-center">
       <main className="flex-1 w-full">
         <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
           {/* Header */}

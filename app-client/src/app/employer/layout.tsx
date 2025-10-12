@@ -71,7 +71,9 @@ export default function EmployerLayout({ children }: { children: ReactNode }) {
       {user && !isOnAuthRoute && <EmployerHeader />}
       {/* Pokazuj SharedHeader na stronach autoryzacji */}
       {isOnAuthRoute && <SharedHeader />}
-      {children}
+      <div className="w-full flex-1 pb-28">
+        {children}
+      </div>
 
       {/* Footer */}
       <footer className="w-full border-t bg-white">

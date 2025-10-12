@@ -130,7 +130,7 @@ export default function EmployerCandidatesPage() {
     return (
       <div className="flex h-screen flex-col items-center overflow-hidden">
         <main className="flex-1 w-full flex flex-col overflow-hidden">
-          <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 h-full flex flex-col">
+          <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 flex flex-col">
             <div className="mb-12 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Kandydaci</h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -153,7 +153,7 @@ export default function EmployerCandidatesPage() {
     return (
       <div className="flex h-screen flex-col items-center overflow-hidden">
         <main className="flex-1 w-full flex flex-col overflow-hidden">
-          <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 h-full flex flex-col">
+          <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 flex flex-col">
             <div className="mb-12 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Kandydaci</h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -173,9 +173,9 @@ export default function EmployerCandidatesPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col items-center overflow-hidden">
+  <div className="flex flex-col h-full items-center overflow-hidden">
       <main className="flex-1 w-full flex flex-col overflow-hidden">
-        <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 h-full flex flex-col">
+        <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 flex flex-col">
           <div className="mb-12 text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Kandydaci</h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto mb-4">
