@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { SmartHeader } from "@/components/SmartHeader";
 import { candidateService } from "@/services/candidateService";
 import { CandidateDetailedProfile } from "@/types/candidate";
 import { 
@@ -122,7 +121,6 @@ export default function CandidateDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center">
-        <SmartHeader />
         <main className="flex-1 w-full">
           <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
             <div className="flex justify-center items-center py-12">
@@ -140,7 +138,6 @@ export default function CandidateDetailPage() {
   if (error || !candidate) {
     return (
       <div className="flex min-h-screen flex-col items-center">
-        <SmartHeader />
         <main className="flex-1 w-full">
           <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
             <div className="flex justify-center items-center py-12">
@@ -161,8 +158,6 @@ export default function CandidateDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center">
-      <SmartHeader />
-      
       <main className="flex-1 w-full">
         <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
           {/* Header */}

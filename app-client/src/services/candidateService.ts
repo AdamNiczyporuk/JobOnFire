@@ -56,6 +56,7 @@ export const candidateService = {
   async getCandidatesList(filters: CandidateFilters = {}): Promise<CandidateListResponse> {
     const params = new URLSearchParams();
     
+    if (filters.search) params.append('search', filters.search);
     if (filters.experience) params.append('experience', filters.experience);
     if (filters.skills) params.append('skills', filters.skills);
     if (filters.place) params.append('place', filters.place);

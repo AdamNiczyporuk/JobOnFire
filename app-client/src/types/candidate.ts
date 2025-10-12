@@ -142,6 +142,7 @@ export interface CandidateListResponse {
 
 // Typ dla filtrów kandydatów
 export interface CandidateFilters {
+  search?: string;
   experience?: string;
   skills?: string;
   place?: string;

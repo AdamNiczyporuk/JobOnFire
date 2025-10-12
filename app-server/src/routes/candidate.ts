@@ -212,11 +212,12 @@ router.get('/cvs/:id', ensureCandidate, async (req: Request, res: Response): Pro
 /**
  * GET /candidates
  * Pobiera listę wszystkich kandydatów z możliwością filtrowania
- * Query params: experience, skills, place, education, page, limit
+ * Query params: search, experience, skills, place, education, page, limit
  */
 router.get('/candidates', async (req: Request, res: Response): Promise<void> => {
   try {
     const {
+      search,
       experience,
       skills,
       place,
@@ -235,6 +236,24 @@ router.get('/candidates', async (req: Request, res: Response): Promise<void> => 
         isDeleted: false
       }
     };
+
+    // Wyszukiwanie po imieniu i nazwisku
+    if (search) {
+      whereConditions.OR = [
+        {
+          name: {
+            contains: search as string,
+            mode: 'insensitive'
+          }
+        },
+        {
+          lastName: {
+            contains: search as string,
+            mode: 'insensitive'
+          }
+        }
+      ];
+    }
 
     if (place) {
       whereConditions.place = {
@@ -269,15 +288,23 @@ router.get('/candidates', async (req: Request, res: Response): Promise<void> => 
     let candidates;
     let totalCount;
 
-    if (rawWhereConditions.length > 0) {
-      // Używamy raw query dla filtrowania JSON pól
+    if (rawWhereConditions.length > 0 || search) {
+      // Używamy raw query dla filtrowania JSON pól i wyszukiwania
       const whereClause = rawWhereConditions.join(' AND ');
+      const searchClause = search ? `(cp.name ILIKE '%${search}%' OR cp."lastName" ILIKE '%${search}%')` : '';
+      
+      let conditions = [];
+      if (place) conditions.push(`cp.place ILIKE '%${place}%'`);
+      if (whereClause) conditions.push(whereClause);
+      if (searchClause) conditions.push(searchClause);
+      
+      const additionalWhere = conditions.length > 0 ? `AND ${conditions.join(' AND ')}` : '';
+      
       const baseQuery = `
         FROM "candidateProfile" cp
         JOIN "user" u ON cp."userId" = u.id
         WHERE u."isDeleted" = false
-        ${place ? `AND cp.place ILIKE '%${place}%'` : ''}
-        ${whereClause ? `AND ${whereClause}` : ''}
+        ${additionalWhere}
       `;
 
       const countResult = await prisma.$queryRawUnsafe(
