@@ -126,13 +126,15 @@ export default function JobOfferDetailsPage() {
         <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
           {/* Breadcrumb i powrót */}
           <div className="mb-6">
-            <Link 
-              href="/job-offers" 
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Powrót do ofert pracy
-            </Link>
+            <div className="flex items-center justify-between">
+                <button
+                  onClick={() => router.back()}
+                  className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Wróć
+                </button>
+              </div>
           </div>
 
           {/* Formularz aplikacji lub szczegóły oferty */}

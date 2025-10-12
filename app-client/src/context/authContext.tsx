@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import api from "@/api";
 
-type User = { username: string; role: string } | null;
+type User = { username: string; role: string; hasPassword?: boolean } | null;
 
 const AuthContext = createContext<{
   user: User;

@@ -108,7 +108,9 @@ router.post('/login', (req, res, next) => {
 
 router.get('/me', (req, res) => {
   if (req.isAuthenticated() && req.user) {
-    res.json({ user: { username: req.user.username, role: req.user.role } });
+    // don't expose passwordHash to client, but indicate if a password is set
+    const hasPassword = !!(req.user as any).passwordHash;
+    res.json({ user: { username: (req.user as any).username, role: (req.user as any).role, hasPassword } });
   } else {
     res.status(401).json({ user: null });
   }
@@ -148,6 +150,69 @@ router.get('/google/callback', passport.authenticate('google', {
     res.redirect(process.env.FRONTEND_BASE_URL + '/employer/dashboard');
   } else {
     res.redirect(process.env.FRONTEND_BASE_URL + '/candidate/dashboard');
+  }
+});
+
+// Zmiana hasła dla zalogowanego użytkownika
+router.put('/change-password', ensureAuthenticated, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+    if (!newPassword) {
+      res.status(400).json({ message: 'Brak nowego hasła' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.isDeleted) {
+      res.status(404).json({ message: 'Użytkownik nie istnieje' });
+      return;
+    }
+
+    // If user has no password (e.g. created via Google OAuth) disallow password change
+    if (!user.passwordHash) {
+      res.status(400).json({ message: 'Konto nie ma ustawionego hasła. Zalogowano przez zewnętrznego providera (np. Google).' });
+      return;
+    }
+
+    // Jeśli użytkownik ma ustawione hasło (nie konto tylko Google), zweryfikuj obecne hasło
+    if (user.passwordHash) {
+      const ok = await bcrypt.compare(currentPassword || '', user.passwordHash);
+      if (!ok) {
+        res.status(400).json({ message: 'Nieprawidłowe aktualne hasło' });
+        return;
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    res.status(200).json({ message: 'Hasło zostało zmienione' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ message: 'Błąd serwera podczas zmiany hasła' });
+  }
+});
+
+// Usunięcie (dezaktywacja) konta zalogowanego użytkownika
+router.delete('/delete-account', ensureAuthenticated, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    // Soft delete użytkownika
+    await prisma.user.update({ where: { id: userId }, data: { isDeleted: true } });
+
+    // Wyloguj i wyczyść sesję
+    req.logout(function(err) {
+      if (err) {
+        console.error('Logout after delete error:', err);
+      }
+      req.session?.destroy(() => {
+        res.clearCookie('connect.sid');
+        res.status(200).json({ message: 'Konto zostało usunięte' });
+      });
+    });
+  } catch (err) {
+    console.error('Delete account error:', err);
+    res.status(500).json({ message: 'Błąd serwera podczas usuwania konta' });
   }
 });
 

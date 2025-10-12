@@ -20,3 +20,13 @@ export const logout = async () => {
   const response = await api.post("/auth/logout");
   return response.data;
 };
+
+export const changePassword = async (payload: { currentPassword?: string; newPassword: string }) => {
+  const response = await api.put("/auth/change-password", payload);
+  return response.data;
+};
+
+export const deleteAccount = async () => {
+  const response = await api.delete("/auth/delete-account");
+  return response.data;
+};

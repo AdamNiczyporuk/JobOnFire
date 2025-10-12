@@ -12,8 +12,8 @@ passport.use(new LocalStrategy(
   async (req, username, password, done) => {
     try {
       const role = req.body.role;
-      const user = await prisma.user.findFirst({ where: { username, role } }) 
-        ?? await prisma.user.findFirst({ where: { email: username, role } });
+      const user = await prisma.user.findFirst({ where: { username, role, isDeleted: false } }) 
+        ?? await prisma.user.findFirst({ where: { email: username, role, isDeleted: false } });
 
       if (!user) {
         return done(null, false, { message: 'Incorrect username/email or role.' });
