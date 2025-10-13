@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ensureAuthenticated } from '../auth/auth_middleware';
 import { ensureCandidate } from '../auth/ensureCandidate';
+import { ensureEmployer } from '../auth/ensureEmployer';
 import { prisma } from '../db';
 import { applicationCreateValidation, applicationUpdateValidation } from '../validation/applicationValidation';
 import { 
@@ -69,7 +70,8 @@ router.post('/', ensureAuthenticated, ensureCandidate, async (req: Request, res:
           status: 'PENDING',
           candidateProfileId: candidateProfile.id,
           jobOfferId: jobOfferId,
-          cvId: cvId
+          cvId: cvId,
+          createDate: new Date()
         }
       });
 
@@ -252,6 +254,154 @@ router.get('/', ensureAuthenticated, ensureCandidate, async (req: Request, res: 
 
   } catch (error) {
     console.error('Błąd podczas pobierania aplikacji:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// GET /applications/employer - Pobranie wszystkich aplikacji do ofert pracodawcy
+router.get('/employer', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Pobranie profilu pracodawcy
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { userId: req.user!.id }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Profil pracodawcy nie został znaleziony' });
+      return;
+    }
+
+    // Parametry paginacji i filtrowania
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const offset = (page - 1) * limit;
+    const status = req.query.status as string;
+    const jobOfferId = req.query.jobOfferId ? parseInt(req.query.jobOfferId as string) : undefined;
+
+    // Budowanie warunków where
+    const whereConditions: any = {
+      jobOffer: {
+        employerProfileId: employerProfile.id
+      }
+    };
+
+    if (status && ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED'].includes(status)) {
+      whereConditions.status = status;
+    }
+
+    if (jobOfferId && !isNaN(jobOfferId)) {
+      whereConditions.jobOfferId = jobOfferId;
+    }
+
+    const [applications, total] = await Promise.all([
+      prisma.applicationForJobOffer.findMany({
+        where: whereConditions,
+        include: {
+          jobOffer: {
+            select: {
+              id: true,
+              name: true,
+              questions: {
+                select: {
+                  id: true
+                }
+              }
+            }
+          },
+          candidateProfile: {
+            select: {
+              id: true,
+              name: true,
+              lastName: true
+            }
+          },
+          answers: {
+            select: {
+              recruitmentQuestionId: true
+            }
+          },
+          meetings: {
+            select: {
+              id: true,
+              dateTime: true,
+              type: true
+            },
+            orderBy: {
+              dateTime: 'desc'
+            },
+            take: 1
+          }
+        },
+        orderBy: [
+          {
+            jobOffer: {
+              name: 'asc'
+            }
+          },
+          {
+            id: 'desc'
+          }
+        ],
+        skip: offset,
+        take: limit
+      }),
+      prisma.applicationForJobOffer.count({
+        where: whereConditions
+      })
+    ]);
+
+    // Formatowanie odpowiedzi z dodatkowymi informacjami
+    const formattedApplications = applications.map(app => {
+      const totalQuestions = app.jobOffer.questions.length;
+      const answeredQuestions = app.answers.length;
+      const hasAnsweredAllQuestions = totalQuestions === 0 || answeredQuestions === totalQuestions;
+      const latestMeeting = app.meetings.length > 0 ? app.meetings[0] : null;
+
+      return {
+        id: app.id,
+        status: app.status,
+        jobOffer: {
+          id: app.jobOffer.id,
+          name: app.jobOffer.name
+        },
+        candidate: {
+          id: app.candidateProfile.id,
+          name: app.candidateProfile.name || 'Brak imienia',
+          lastName: app.candidateProfile.lastName || 'Brak nazwiska',
+          fullName: `${app.candidateProfile.name || 'Brak imienia'} ${app.candidateProfile.lastName || 'Brak nazwiska'}`
+        },
+        recruitmentQuestions: {
+          total: totalQuestions,
+          answered: answeredQuestions,
+          allAnswered: hasAnsweredAllQuestions
+        },
+        meeting: latestMeeting ? {
+          id: latestMeeting.id,
+          dateTime: latestMeeting.dateTime,
+          type: latestMeeting.type,
+          isScheduled: true
+        } : {
+          isScheduled: false
+        },
+        createdAt: app.createDate
+      };
+    });
+
+    res.json({
+      applications: formattedApplications,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      },
+      summary: {
+        totalApplications: total
+      }
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas pobierania aplikacji pracodawcy:', error);
     res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
   }
 });
@@ -632,6 +782,294 @@ router.get('/:id/questions', ensureAuthenticated, ensureCandidate, async (req: R
 
   } catch (error) {
     console.error('Błąd podczas pobierania pytań:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// GET /applications/employer/:id - Szczegóły aplikacji dla pracodawcy
+router.get('/employer/:id', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { userId: req.user!.id }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Profil pracodawcy nie został znaleziony' });
+      return;
+    }
+
+    const applicationId = parseInt(req.params.id);
+    if (isNaN(applicationId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID aplikacji' });
+      return;
+    }
+
+    const application = await prisma.applicationForJobOffer.findFirst({
+      where: {
+        id: applicationId,
+        jobOffer: {
+          employerProfileId: employerProfile.id
+        }
+      },
+      include: {
+        jobOffer: {
+          include: {
+            questions: true
+          }
+        },
+        candidateProfile: {
+          select: {
+            id: true,
+            name: true,
+            lastName: true,
+            description: true,
+            experience: true,
+            skills: true,
+            place: true,
+            education: true,
+            phoneNumber: true
+          }
+        },
+        candidateCV: {
+          select: {
+            id: true,
+            name: true,
+            cvUrl: true
+          }
+        },
+        answers: {
+          include: {
+            question: true
+          }
+        },
+        response: true,
+        meetings: {
+          orderBy: {
+            dateTime: 'desc'
+          }
+        }
+      }
+    });
+
+    if (!application) {
+      res.status(404).json({ message: 'Aplikacja nie została znaleziona' });
+      return;
+    }
+
+    res.json(application);
+
+  } catch (error) {
+    console.error('Błąd podczas pobierania szczegółów aplikacji:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// POST /applications/employer/:id/response - Odpowiedź pracodawcy na aplikację
+router.post('/employer/:id/response', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { userId: req.user!.id }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Profil pracodawcy nie został znaleziony' });
+      return;
+    }
+
+    const applicationId = parseInt(req.params.id);
+    if (isNaN(applicationId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID aplikacji' });
+      return;
+    }
+
+    const { response } = req.body;
+
+    // Sprawdź czy aplikacja należy do pracodawcy
+    const application = await prisma.applicationForJobOffer.findFirst({
+      where: {
+        id: applicationId,
+        jobOffer: {
+          employerProfileId: employerProfile.id
+        }
+      }
+    });
+
+    if (!application) {
+      res.status(404).json({ message: 'Aplikacja nie została znaleziona' });
+      return;
+    }
+
+    // Upsert response
+    await prisma.applicationResponse.upsert({
+      where: { applicationForJobOfferId: applicationId },
+      update: { response },
+      create: {
+        applicationForJobOfferId: applicationId,
+        response
+      }
+    });
+
+    res.json({ message: 'Odpowiedź została wysłana pomyślnie' });
+
+  } catch (error) {
+    console.error('Błąd podczas wysyłania odpowiedzi:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// PUT /applications/employer/:id/status - Aktualizacja statusu aplikacji przez pracodawcę
+router.put('/employer/:id/status', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { userId: req.user!.id }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Profil pracodawcy nie został znaleziony' });
+      return;
+    }
+
+    const applicationId = parseInt(req.params.id);
+    if (isNaN(applicationId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID aplikacji' });
+      return;
+    }
+
+    const { status } = req.body;
+
+    if (!['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED'].includes(status)) {
+      res.status(400).json({ message: 'Nieprawidłowy status' });
+      return;
+    }
+
+    // Sprawdź czy aplikacja należy do pracodawcy
+    const application = await prisma.applicationForJobOffer.findFirst({
+      where: {
+        id: applicationId,
+        jobOffer: {
+          employerProfileId: employerProfile.id
+        }
+      }
+    });
+
+    if (!application) {
+      res.status(404).json({ message: 'Aplikacja nie została znaleziona' });
+      return;
+    }
+
+    await prisma.applicationForJobOffer.update({
+      where: { id: applicationId },
+      data: { status }
+    });
+
+    res.json({ message: 'Status aplikacji został zaktualizowany' });
+
+  } catch (error) {
+    console.error('Błąd podczas aktualizacji statusu:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// POST /applications/employer/:id/meeting - Planowanie spotkania
+router.post('/employer/:id/meeting', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { userId: req.user!.id }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Profil pracodawcy nie został znaleziony' });
+      return;
+    }
+
+    const applicationId = parseInt(req.params.id);
+    if (isNaN(applicationId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID aplikacji' });
+      return;
+    }
+
+    const { dateTime, type, contributors, onlineMeetingUrl, message } = req.body;
+
+    // Sprawdź czy aplikacja należy do pracodawcy
+    const application = await prisma.applicationForJobOffer.findFirst({
+      where: {
+        id: applicationId,
+        jobOffer: {
+          employerProfileId: employerProfile.id
+        }
+      }
+    });
+
+    if (!application) {
+      res.status(404).json({ message: 'Aplikacja nie została znaleziona' });
+      return;
+    }
+
+    const meeting = await prisma.meeting.create({
+      data: {
+        dateTime: new Date(dateTime),
+        type,
+        contributors,
+        onlineMeetingUrl,
+        message,
+        applicationForJobOfferId: applicationId
+      }
+    });
+
+    res.json({ 
+      message: 'Spotkanie zostało zaplanowane pomyślnie',
+      meeting
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas planowania spotkania:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// DELETE /applications/employer/meetings/:id - Usunięcie spotkania
+router.delete('/employer/meetings/:id', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { userId: req.user!.id }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Profil pracodawcy nie został znaleziony' });
+      return;
+    }
+
+    const meetingId = parseInt(req.params.id);
+    if (isNaN(meetingId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID spotkania' });
+      return;
+    }
+
+    // Sprawdź czy spotkanie należy do aplikacji pracodawcy
+    const meeting = await prisma.meeting.findFirst({
+      where: {
+        id: meetingId,
+        application: {
+          jobOffer: {
+            employerProfileId: employerProfile.id
+          }
+        }
+      }
+    });
+
+    if (!meeting) {
+      res.status(404).json({ message: 'Spotkanie nie zostało znalezione' });
+      return;
+    }
+
+    await prisma.meeting.delete({
+      where: { id: meetingId }
+    });
+
+    res.json({ message: 'Spotkanie zostało usunięte' });
+
+  } catch (error) {
+    console.error('Błąd podczas usuwania spotkania:', error);
     res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
   }
 });

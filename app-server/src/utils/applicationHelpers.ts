@@ -80,6 +80,12 @@ export async function validateApplicationExists(applicationId: number, candidate
         include: {
           question: true
         }
+      },
+      response: true,
+      meetings: {
+        orderBy: {
+          dateTime: 'desc'
+        }
       }
     }
   });

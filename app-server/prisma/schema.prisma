@@ -106,6 +106,7 @@ model applicationForJobOffer {
   id                  Int     @id @default(autoincrement())
   message             String?
   status              ApplicationStatus
+  createDate          DateTime @default(now())
   candidateProfileId  Int
   jobOfferId          Int
   cvId                Int
