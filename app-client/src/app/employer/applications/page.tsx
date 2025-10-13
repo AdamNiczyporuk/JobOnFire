@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { getEmployerApplications } from "@/services/applicationService";
 import { EmployerApplication, EmployerApplicationsParams } from "@/types/application";
-import { Search, Briefcase, User, Calendar, MessageSquare, Video, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
+import { Search, Briefcase, User, Calendar, MessageSquare, Video, CheckCircle, XCircle, Clock, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function EmployerApplicationsPage() {
   const [applications, setApplications] = useState<EmployerApplication[]>([]);
+  const [allApplications, setAllApplications] = useState<EmployerApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -31,7 +32,7 @@ export default function EmployerApplicationsPage() {
 
   useEffect(() => {
     fetchApplications();
-  }, [page, searchQuery, appliedStatus, appliedJobOffer]);
+  }, [page, searchQuery, appliedStatus, appliedJobOffer, appliedMeeting]);
 
   const fetchApplications = async () => {
     try {
@@ -39,23 +40,57 @@ export default function EmployerApplicationsPage() {
       setError(null);
       
       const params: EmployerApplicationsParams = {
-        page,
-        limit: 12,
+        page: 1,
+        limit: 1000, // Pobierz wszystkie aplikacje
       };
 
+      // Tylko status może być filtrowany po stronie backendu
       if (appliedStatus) {
         params.status = appliedStatus as any;
       }
 
-      if (appliedJobOffer) {
-        params.jobOfferId = parseInt(appliedJobOffer);
-      }
-
       const response = await getEmployerApplications(params);
       
-      setApplications(response.applications);
-      setTotalPages(response.pagination.pages);
-      setTotalCount(response.pagination.total);
+      let filteredApplications = response.applications;
+      
+      // Filtrowanie po nazwie oferty pracy
+      if (appliedJobOffer) {
+        filteredApplications = filteredApplications.filter(app => 
+          app.jobOffer.name.toLowerCase().includes(appliedJobOffer.toLowerCase())
+        );
+      }
+      
+      // Filtrowanie po statusie spotkania
+      if (appliedMeeting) {
+        filteredApplications = filteredApplications.filter(app => {
+          if (appliedMeeting === 'scheduled') {
+            return app.meeting.isScheduled;
+          } else if (appliedMeeting === 'not_scheduled') {
+            return !app.meeting.isScheduled;
+          }
+          return true;
+        });
+      }
+      
+      // Filtrowanie po wyszukiwanej frazie
+      if (searchQuery) {
+        filteredApplications = filteredApplications.filter(app => 
+          app.jobOffer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          app.candidate.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+      
+      setAllApplications(response.applications);
+      
+      // Paginacja po stronie frontendu
+      const itemsPerPage = 12;
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedApplications = filteredApplications.slice(startIndex, endIndex);
+      
+      setApplications(paginatedApplications);
+      setTotalPages(Math.ceil(filteredApplications.length / itemsPerPage));
+      setTotalCount(filteredApplications.length);
     } catch (err) {
       console.error('Błąd podczas pobierania aplikacji:', err);
       setError('Nie udało się pobrać aplikacji. Spróbuj ponownie.');
@@ -239,16 +274,30 @@ export default function EmployerApplicationsPage() {
                 </select>
               </div>
 
-              {/* Job Offer ID */}
+              {/* Job Offer Name */}
               <div className="mb-4">
-                <p className="text-xs font-medium text-muted-foreground mb-2">ID Oferty pracy</p>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Nazwa oferty pracy</p>
                 <input
-                  type="number"
+                  type="text"
                   value={jobOfferFilter}
                   onChange={(e) => setJobOfferFilter(e.target.value)}
-                  placeholder="np. 123"
+                  placeholder="np. Frontend Developer"
                   className="w-full px-3 py-2 border rounded-md text-sm"
                 />
+              </div>
+
+              {/* Meeting Status */}
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Spotkanie</p>
+                <select
+                  value={meetingFilter}
+                  onChange={(e) => setMeetingFilter(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                >
+                  <option value="">Wszystkie</option>
+                  <option value="scheduled">Zaplanowane</option>
+                  <option value="not_scheduled">Niezaplanowane</option>
+                </select>
               </div>
 
               <div className="flex gap-2 mt-4">
@@ -256,6 +305,7 @@ export default function EmployerApplicationsPage() {
                   onClick={() => {
                     setAppliedStatus(statusFilter);
                     setAppliedJobOffer(jobOfferFilter);
+                    setAppliedMeeting(meetingFilter);
                     setPage(1);
                   }}
                   className="flex-1"
