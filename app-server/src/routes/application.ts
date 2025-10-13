@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ensureAuthenticated } from '../auth/auth_middleware';
 import { ensureCandidate } from '../auth/ensureCandidate';
+import { ensureEmployer } from '../auth/ensureEmployer';
 import { prisma } from '../db';
 import { applicationCreateValidation, applicationUpdateValidation } from '../validation/applicationValidation';
 import { 
@@ -69,7 +70,8 @@ router.post('/', ensureAuthenticated, ensureCandidate, async (req: Request, res:
           status: 'PENDING',
           candidateProfileId: candidateProfile.id,
           jobOfferId: jobOfferId,
-          cvId: cvId
+          cvId: cvId,
+          createDate: new Date()
         }
       });
 
@@ -252,6 +254,154 @@ router.get('/', ensureAuthenticated, ensureCandidate, async (req: Request, res: 
 
   } catch (error) {
     console.error('Błąd podczas pobierania aplikacji:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
+// GET /applications/employer - Pobranie wszystkich aplikacji do ofert pracodawcy
+router.get('/employer', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Pobranie profilu pracodawcy
+    const employerProfile = await prisma.employerProfile.findUnique({
+      where: { userId: req.user!.id }
+    });
+
+    if (!employerProfile) {
+      res.status(404).json({ message: 'Profil pracodawcy nie został znaleziony' });
+      return;
+    }
+
+    // Parametry paginacji i filtrowania
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const offset = (page - 1) * limit;
+    const status = req.query.status as string;
+    const jobOfferId = req.query.jobOfferId ? parseInt(req.query.jobOfferId as string) : undefined;
+
+    // Budowanie warunków where
+    const whereConditions: any = {
+      jobOffer: {
+        employerProfileId: employerProfile.id
+      }
+    };
+
+    if (status && ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED'].includes(status)) {
+      whereConditions.status = status;
+    }
+
+    if (jobOfferId && !isNaN(jobOfferId)) {
+      whereConditions.jobOfferId = jobOfferId;
+    }
+
+    const [applications, total] = await Promise.all([
+      prisma.applicationForJobOffer.findMany({
+        where: whereConditions,
+        include: {
+          jobOffer: {
+            select: {
+              id: true,
+              name: true,
+              questions: {
+                select: {
+                  id: true
+                }
+              }
+            }
+          },
+          candidateProfile: {
+            select: {
+              id: true,
+              name: true,
+              lastName: true
+            }
+          },
+          answers: {
+            select: {
+              recruitmentQuestionId: true
+            }
+          },
+          meetings: {
+            select: {
+              id: true,
+              dateTime: true,
+              type: true
+            },
+            orderBy: {
+              dateTime: 'desc'
+            },
+            take: 1
+          }
+        },
+        orderBy: [
+          {
+            jobOffer: {
+              name: 'asc'
+            }
+          },
+          {
+            id: 'desc'
+          }
+        ],
+        skip: offset,
+        take: limit
+      }),
+      prisma.applicationForJobOffer.count({
+        where: whereConditions
+      })
+    ]);
+
+    // Formatowanie odpowiedzi z dodatkowymi informacjami
+    const formattedApplications = applications.map(app => {
+      const totalQuestions = app.jobOffer.questions.length;
+      const answeredQuestions = app.answers.length;
+      const hasAnsweredAllQuestions = totalQuestions === 0 || answeredQuestions === totalQuestions;
+      const latestMeeting = app.meetings.length > 0 ? app.meetings[0] : null;
+
+      return {
+        id: app.id,
+        status: app.status,
+        jobOffer: {
+          id: app.jobOffer.id,
+          name: app.jobOffer.name
+        },
+        candidate: {
+          id: app.candidateProfile.id,
+          name: app.candidateProfile.name || 'Brak imienia',
+          lastName: app.candidateProfile.lastName || 'Brak nazwiska',
+          fullName: `${app.candidateProfile.name || 'Brak imienia'} ${app.candidateProfile.lastName || 'Brak nazwiska'}`
+        },
+        recruitmentQuestions: {
+          total: totalQuestions,
+          answered: answeredQuestions,
+          allAnswered: hasAnsweredAllQuestions
+        },
+        meeting: latestMeeting ? {
+          id: latestMeeting.id,
+          dateTime: latestMeeting.dateTime,
+          type: latestMeeting.type,
+          isScheduled: true
+        } : {
+          isScheduled: false
+        },
+        createdAt: app.createDate
+      };
+    });
+
+    res.json({
+      applications: formattedApplications,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      },
+      summary: {
+        totalApplications: total
+      }
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas pobierania aplikacji pracodawcy:', error);
     res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
   }
 });

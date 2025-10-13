@@ -28,3 +28,51 @@ export interface ApplicationFormData {
   cvId: number | null;
   answers: QuestionAnswer[];
 }
+
+// Typy dla endpointu pracodawcy
+export interface EmployerApplication {
+  id: number;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELED';
+  jobOffer: {
+    id: number;
+    name: string;
+  };
+  candidate: {
+    id: number;
+    name: string;
+    lastName: string;
+    fullName: string;
+  };
+  recruitmentQuestions: {
+    total: number;
+    answered: number;
+    allAnswered: boolean;
+  };
+  meeting: {
+    id?: number;
+    dateTime?: string;
+    type?: 'ONLINE' | 'OFFLINE';
+    isScheduled: boolean;
+  };
+  createdAt: string;
+}
+
+export interface EmployerApplicationsResponse {
+  applications: EmployerApplication[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  summary: {
+    totalApplications: number;
+  };
+}
+
+export interface EmployerApplicationsParams {
+  page?: number;
+  limit?: number;
+  status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELED';
+  jobOfferId?: number;
+}

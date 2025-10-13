@@ -1,4 +1,4 @@
-import { ApplicationCreateRequest, ApplicationUpdateRequest } from '@/types/application';
+import { ApplicationCreateRequest, ApplicationUpdateRequest, EmployerApplicationsResponse, EmployerApplicationsParams } from '@/types/application';
 import { Application } from '@/types/candidate';
 import api from '@/api';
 
@@ -81,5 +81,13 @@ export const getApplicationQuestions = async (id: number): Promise<{
 // Aktualizacja odpowiedzi na pytania rekrutacyjne
 export const updateApplicationAnswers = async (id: number, answers: { recruitmentQuestionId: number; answer?: string }[]): Promise<{ message: string; application: Application }> => {
   const response = await api.put(`/applications/${id}/answers`, { answers });
+  return response.data;
+};
+
+// METODY DLA PRACODAWCÓW
+
+// Pobranie wszystkich aplikacji do ofert pracodawcy
+export const getEmployerApplications = async (params?: EmployerApplicationsParams): Promise<EmployerApplicationsResponse> => {
+  const response = await api.get('/applications/employer', { params });
   return response.data;
 };
