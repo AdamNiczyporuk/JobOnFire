@@ -244,8 +244,7 @@ export default function EmployerApplicationsPage() {
                 />
                 <Button
                   type="submit"
-                  size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
                 >
                   Szukaj
                 </Button>
@@ -308,7 +307,7 @@ export default function EmployerApplicationsPage() {
                     setAppliedMeeting(meetingFilter);
                     setPage(1);
                   }}
-                  className="flex-1"
+                  className="transition-all duration-200 hover:scale-105"
                 >
                   Zastosuj
                 </Button>
@@ -325,7 +324,7 @@ export default function EmployerApplicationsPage() {
                     setAppliedQuestions('');
                     setPage(1);
                   }}
-                  className="w-36"
+                  className="w-36 px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
                 >
                   Wyczyść
                 </Button>
@@ -431,9 +430,8 @@ export default function EmployerApplicationsPage() {
                         <div className="flex gap-2 pt-2 border-t">
                           <Link href={`/employer/applications/${application.id}`}>
                             <Button
-                              size="sm"
                               variant="outline"
-                              className="flex-1"
+                              className="flex-1 px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
                             >
                               Zobacz szczegóły
                             </Button>
@@ -441,14 +439,12 @@ export default function EmployerApplicationsPage() {
                           {application.status === 'PENDING' && (
                             <>
                               <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700"
+                                className="transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700"
                               >
                                 Akceptuj
                               </Button>
                               <Button
-                                size="sm"
-                                variant="destructive"
+                                className="transition-all duration-200 hover:scale-105"
                               >
                                 Odrzuć
                               </Button>

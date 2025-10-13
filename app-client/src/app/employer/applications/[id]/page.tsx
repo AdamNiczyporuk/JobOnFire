@@ -90,7 +90,7 @@ export default function EmployerApplicationDetailPage() {
       await respondToApplication(applicationId, { response: responseText });
       await fetchApplicationDetail();
       setIsRespondingMode(false);
-      alert('Odpowiedź została wysłana pomyślnie!');
+      // Nie pokazujemy alertu systemowego — UI odświeżone i zamykamy formularz
     } catch (err) {
       console.error('Błąd podczas wysyłania odpowiedzi:', err);
       alert('Błąd podczas wysyłania odpowiedzi');
@@ -127,7 +127,7 @@ export default function EmployerApplicationDetailPage() {
         onlineMeetingUrl: '',
         message: ''
       });
-      alert('Spotkanie zostało zaplanowane pomyślnie!');
+      // Nie pokazujemy alertu systemowego — UI odświeżone i formularz zamknięty
     } catch (err) {
       console.error('Błąd podczas planowania spotkania:', err);
       alert('Błąd podczas planowania spotkania');
@@ -330,6 +330,7 @@ export default function EmployerApplicationDetailPage() {
                       size="sm"
                       onClick={() => setIsRespondingMode(true)}
                       variant={application.response ? "outline" : "default"}
+                      className="transition-all duration-200 hover:scale-105"
                     >
                       {application.response ? 'Edytuj odpowiedź' : 'Odpowiedz'}
                     </Button>
@@ -345,7 +346,7 @@ export default function EmployerApplicationDetailPage() {
                       className="w-full h-32 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                     <div className="flex gap-2">
-                      <Button onClick={handleSubmitResponse} size="sm">
+                      <Button onClick={handleSubmitResponse} size="sm" className="px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-primary text-white hover:opacity-95">
                         Wyślij odpowiedź
                       </Button>
                       <Button 
@@ -355,6 +356,7 @@ export default function EmployerApplicationDetailPage() {
                           setIsRespondingMode(false);
                           setResponseText(application.response?.response || '');
                         }}
+                        className="px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
                       >
                         Anuluj
                       </Button>
@@ -380,7 +382,7 @@ export default function EmployerApplicationDetailPage() {
                 <Button
                   size="sm"
                   onClick={() => setIsMeetingMode(true)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 transition-all duration-200 hover:scale-105"
                 >
                   <Calendar className="w-4 h-4" />
                   Zaplanuj spotkanie
@@ -444,13 +446,14 @@ export default function EmployerApplicationDetailPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4">
-                    <Button onClick={handleScheduleMeeting} size="sm">
+                    <Button onClick={handleScheduleMeeting} size="sm" className="px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-primary text-white hover:opacity-95">
                       Zaplanuj spotkanie
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setIsMeetingMode(false)}
+                      className="px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
                     >
                       Anuluj
                     </Button>
@@ -503,7 +506,7 @@ export default function EmployerApplicationDetailPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteMeeting(meeting.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 transition-all duration-200 hover:scale-105"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -590,15 +593,14 @@ export default function EmployerApplicationDetailPage() {
                 <div className="space-y-2">
                   <Button
                     onClick={() => handleStatusUpdate('ACCEPTED')}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700 text-white"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Zaakceptuj aplikację
                   </Button>
                   <Button
                     onClick={() => handleStatusUpdate('REJECTED')}
-                    variant="destructive"
-                    className="w-full"
+                    className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-red-600 hover:bg-red-700 text-white"
                   >
                     <XCircle className="w-4 h-4 mr-2" />
                     Odrzuć aplikację
