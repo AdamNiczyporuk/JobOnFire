@@ -8,7 +8,6 @@ interface JobOfferListProps {
   jobOffers: JobOffer[];
   onEdit: (jobOffer: JobOffer) => void;
   onDelete: (id: number) => void;
-  onToggleStatus: (id: number) => void;
   onView: (jobOffer: JobOffer) => void;
   isLoading?: boolean;
 }
@@ -17,7 +16,6 @@ export default function JobOfferList({
   jobOffers, 
   onEdit, 
   onDelete, 
-  onToggleStatus, 
   onView,
   isLoading = false 
 }: JobOfferListProps) {
@@ -55,10 +53,10 @@ export default function JobOfferList({
           key={jobOffer.id} 
           className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${
             !jobOffer.isActive 
-              ? 'border-gray-400 bg-gray-50' 
+              ? 'border-red-400' 
               : isExpired(jobOffer.expireDate)
-              ? 'border-red-400'
-              : 'border-green-400'
+              ? 'border-red-600'
+              : 'border-red-500'
           }`}
         >
           <div className="flex justify-between items-start">
@@ -87,7 +85,7 @@ export default function JobOfferList({
                   
                   {/* Applications count */}
                   {jobOffer._count && (
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                       {jobOffer._count.applications} aplikacji
                     </span>
                   )}
@@ -116,7 +114,7 @@ export default function JobOfferList({
                       {jobOffer.jobLevel.map((level, index) => (
                         <span 
                           key={index}
-                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
                         >
                           {level}
                         </span>
@@ -132,7 +130,7 @@ export default function JobOfferList({
                       {jobOffer.workingMode.map((mode, index) => (
                         <span 
                           key={index}
-                          className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded"
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
                         >
                           {mode}
                         </span>
@@ -195,7 +193,7 @@ export default function JobOfferList({
                 onClick={() => onView(jobOffer)}
                 variant="outline"
                 size="sm"
-                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Zobacz
               </Button>
@@ -204,28 +202,16 @@ export default function JobOfferList({
                 onClick={() => onEdit(jobOffer)}
                 variant="outline"
                 size="sm"
-                className="text-green-600 border-green-600 hover:bg-green-50"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Edytuj
-              </Button>
-              
-              <Button
-                onClick={() => onToggleStatus(jobOffer.id)}
-                variant="outline"
-                size="sm"
-                className={jobOffer.isActive 
-                  ? "text-orange-600 border-orange-600 hover:bg-orange-50"
-                  : "text-green-600 border-green-600 hover:bg-green-50"
-                }
-              >
-                {jobOffer.isActive ? 'Dezaktywuj' : 'Aktywuj'}
               </Button>
               
               <Button
                 onClick={() => onDelete(jobOffer.id)}
                 variant="outline"
                 size="sm"
-                className="text-red-600 border-red-600 hover:bg-red-50"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Usuń
               </Button>

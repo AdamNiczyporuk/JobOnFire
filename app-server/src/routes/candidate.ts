@@ -15,15 +15,14 @@ import {
 
 export const router = Router();
 
-// Wszystkie trasy wymagają autoryzacji i roli kandydata
+// Wszystkie trasy wymagają autoryzacji
 router.use(ensureAuthenticated);
-router.use(ensureCandidate);
 
 /**
  * GET /candidate/profile
  * Pobiera profil aktualnie zalogowanego kandydata
  */
-router.get('/profile', async (req: Request, res: Response): Promise<void> => {
+router.get('/profile', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     
@@ -46,7 +45,7 @@ router.get('/profile', async (req: Request, res: Response): Promise<void> => {
  * PUT /candidate/profile
  * Aktualizuje profil aktualnie zalogowanego kandydata
  */
-router.put('/profile', async (req: Request, res: Response): Promise<void> => {
+router.put('/profile', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     
@@ -103,7 +102,7 @@ router.put('/profile', async (req: Request, res: Response): Promise<void> => {
  * GET /candidate/profile/stats
  * Pobiera statystyki kandydata (liczba aplikacji, CV itp.)
  */
-router.get('/profile/stats', async (req: Request, res: Response): Promise<void> => {
+router.get('/profile/stats', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     
@@ -134,7 +133,7 @@ router.get('/profile/stats', async (req: Request, res: Response): Promise<void> 
 });
 
 // Endpoint - Pobranie wszystkich CV kandydata
-router.get('/cvs', async (req: Request, res: Response): Promise<void> => {
+router.get('/cvs', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
     const candidateProfile = await prisma.candidateProfile.findUnique({
       where: { userId: req.user!.id },
@@ -166,7 +165,7 @@ router.get('/cvs', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Endpoint - Pobranie szczegółów konkretnego CV
-router.get('/cvs/:id', async (req: Request, res: Response): Promise<void> => {
+router.get('/cvs/:id', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
     const cvId = parseInt(req.params.id);
     
@@ -207,6 +206,264 @@ router.get('/cvs/:id', async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Błąd podczas pobierania CV:', error);
     res.status(500).json({ message: 'Błąd serwera podczas pobierania CV' });
+  }
+});
+
+/**
+ * GET /candidates
+ * Pobiera listę wszystkich kandydatów z możliwością filtrowania
+ * Query params: search, experience, skills, place, education, page, limit
+ */
+router.get('/candidates', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+      search,
+      experience,
+      skills,
+      place,
+      education,
+      page = '1',
+      limit = '20'
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Budowanie warunków filtrowania
+    const whereConditions: any = {
+      user: {
+        isDeleted: false
+      }
+    };
+
+    // Wyszukiwanie po imieniu i nazwisku
+    if (search) {
+      whereConditions.OR = [
+        {
+          name: {
+            contains: search as string,
+            mode: 'insensitive'
+          }
+        },
+        {
+          lastName: {
+            contains: search as string,
+            mode: 'insensitive'
+          }
+        }
+      ];
+    }
+
+    if (place) {
+      whereConditions.place = {
+        contains: place as string,
+        mode: 'insensitive'
+      };
+    }
+
+    // Filtrowanie po JSON polach - używamy raw query dla lepszej wydajności
+    let rawWhereConditions: string[] = [];
+    let queryParams: any[] = [];
+    let paramIndex = 1;
+
+    if (experience) {
+      rawWhereConditions.push(`experience::text ILIKE $${paramIndex}`);
+      queryParams.push(`%${experience}%`);
+      paramIndex++;
+    }
+
+    if (skills) {
+      rawWhereConditions.push(`skills::text ILIKE $${paramIndex}`);
+      queryParams.push(`%${skills}%`);
+      paramIndex++;
+    }
+
+    if (education) {
+      rawWhereConditions.push(`education::text ILIKE $${paramIndex}`);
+      queryParams.push(`%${education}%`);
+      paramIndex++;
+    }
+
+    let candidates;
+    let totalCount;
+
+    if (rawWhereConditions.length > 0 || search) {
+      // Używamy raw query dla filtrowania JSON pól i wyszukiwania
+      const whereClause = rawWhereConditions.join(' AND ');
+      const searchClause = search ? `(cp.name ILIKE '%${search}%' OR cp."lastName" ILIKE '%${search}%')` : '';
+      
+      let conditions = [];
+      if (place) conditions.push(`cp.place ILIKE '%${place}%'`);
+      if (whereClause) conditions.push(whereClause);
+      if (searchClause) conditions.push(searchClause);
+      
+      const additionalWhere = conditions.length > 0 ? `AND ${conditions.join(' AND ')}` : '';
+      
+      const baseQuery = `
+        FROM "candidateProfile" cp
+        JOIN "user" u ON cp."userId" = u.id
+        WHERE u."isDeleted" = false
+        ${additionalWhere}
+      `;
+
+      const countResult = await prisma.$queryRawUnsafe(
+        `SELECT COUNT(*) ${baseQuery}`,
+        ...queryParams
+      );
+      totalCount = parseInt((countResult as any)[0].count);
+
+      const candidatesResult = await prisma.$queryRawUnsafe(
+        `
+        SELECT 
+          cp.id,
+          cp.name,
+          cp."lastName",
+          cp.description,
+          cp.place,
+          cp.experience,
+          cp.skills,
+          cp.education,
+          u.email
+        ${baseQuery}
+        ORDER BY cp.id DESC
+        LIMIT ${limitNum} OFFSET ${skip}
+        `,
+        ...queryParams
+      );
+
+      candidates = candidatesResult;
+    } else {
+      // Standardowe query bez filtrowania JSON
+      totalCount = await prisma.candidateProfile.count({
+        where: whereConditions
+      });
+
+      candidates = await prisma.candidateProfile.findMany({
+        where: whereConditions,
+        select: {
+          id: true,
+          name: true,
+          lastName: true,
+          description: true,
+          place: true,
+          experience: true,
+          skills: true,
+          education: true,
+          user: {
+            select: {
+              email: true
+            }
+          }
+        },
+        orderBy: {
+          id: 'desc'
+        },
+        skip,
+        take: limitNum
+      });
+    }
+
+    const totalPages = Math.ceil(totalCount / limitNum);
+
+    res.json({
+      candidates,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalCount,
+        limit: limitNum,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1
+      }
+    });
+
+  } catch (error) {
+    console.error('Błąd podczas pobierania listy kandydatów:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas pobierania listy kandydatów' });
+  }
+});
+
+/**
+ * GET /candidates/:id
+ * Pobiera szczegółowy profil konkretnego kandydata
+ */
+router.get('/candidates/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const candidateId = parseInt(req.params.id);
+    
+    if (!candidateId || isNaN(candidateId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID kandydata' });
+      return;
+    }
+
+    const candidate = await prisma.candidateProfile.findFirst({
+      where: {
+        id: candidateId,
+        user: {
+          isDeleted: false
+        }
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+            registerDate: true
+          }
+        },
+        profileLinks: {
+          select: {
+            id: true,
+            name: true,
+            url: true
+          }
+        },
+        candidateCVs: {
+          select: {
+            id: true,
+            name: true,
+            cvUrl: true
+          },
+          orderBy: {
+            id: 'desc'
+          }
+        },
+        applications: {
+          select: {
+            id: true,
+            status: true,
+            jobOffer: {
+              select: {
+                id: true,
+                name: true,
+                employerProfile: {
+                  select: {
+                    companyName: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            id: 'desc'
+          },
+          take: 10 // Ostatnie 10 aplikacji
+        }
+      }
+    });
+
+    if (!candidate) {
+      res.status(404).json({ message: 'Kandydat nie został znaleziony' });
+      return;
+    }
+
+    const formattedCandidate = formatCandidateProfileResponse(candidate);
+
+    res.json({ candidate: formattedCandidate });
+
+  } catch (error) {
+    console.error('Błąd podczas pobierania profilu kandydata:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas pobierania profilu kandydata' });
   }
 });
 

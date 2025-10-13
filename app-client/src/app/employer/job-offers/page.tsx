@@ -8,8 +8,7 @@ import {
   getJobOffers, 
   createJobOffer, 
   updateJobOffer, 
-  deleteJobOffer, 
-  toggleJobOfferStatus 
+  deleteJobOffer
 } from '@/services/jobOfferService';
 import { JobOffer, JobOfferCreateRequest, JobOfferUpdateRequest } from '@/types/jobOffer';
 
@@ -21,6 +20,7 @@ export default function JobOffersPage() {
   const [selectedJobOffer, setSelectedJobOffer] = useState<JobOffer | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; jobId: number | null }>({ show: false, jobId: null });
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -84,14 +84,17 @@ export default function JobOffersPage() {
   };
 
   // Usuwanie oferty
-  const handleDelete = async (id: number) => {
-    if (!confirm('Czy na pewno chcesz usunąć tę ofertę pracy?')) {
-      return;
-    }
+  const handleDelete = (id: number) => {
+    setDeleteConfirm({ show: true, jobId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.jobId) return;
 
     try {
-      await deleteJobOffer(id);
+      await deleteJobOffer(deleteConfirm.jobId);
       await loadJobOffers(); // Odświeżenie listy
+      setDeleteConfirm({ show: false, jobId: null });
       // Tutaj można dodać toast notification sukcesu
     } catch (error) {
       console.error('Error deleting job offer:', error);
@@ -99,17 +102,11 @@ export default function JobOffersPage() {
     }
   };
 
-  // Przełączanie statusu aktywności
-  const handleToggleStatus = async (id: number) => {
-    try {
-      await toggleJobOfferStatus(id);
-      await loadJobOffers(); // Odświeżenie listy
-      // Tutaj można dodać toast notification sukcesu
-    } catch (error) {
-      console.error('Error toggling job offer status:', error);
-      // Tutaj można dodać toast notification błędu
-    }
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, jobId: null });
   };
+
+
 
   // Anulowanie formularza
   const handleCancel = () => {
@@ -145,13 +142,14 @@ export default function JobOffersPage() {
           <div className="flex gap-2">
             <Button
               onClick={() => handleEditClick(selectedJobOffer)}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="transition-all duration-200 hover:scale-105"
             >
               Edytuj
             </Button>
             <Button
               onClick={() => setViewMode('list')}
               variant="outline"
+              className="transition-all duration-200 hover:scale-105"
             >
               Powrót do listy
             </Button>
@@ -266,7 +264,7 @@ export default function JobOffersPage() {
               <h3 className="text-lg font-semibold mb-2">Tagi</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedJobOffer.tags.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                  <span key={index} className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
                     {tag}
                   </span>
                 ))}
@@ -291,7 +289,7 @@ export default function JobOffersPage() {
           </div>
           <Button
             onClick={() => setViewMode('create')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+            className="transition-all duration-200 hover:scale-105"
           >
             Utwórz nową ofertę
           </Button>
@@ -303,18 +301,18 @@ export default function JobOffersPage() {
         <div>
           {/* Statystyki */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-              <div className="text-2xl font-bold text-blue-600">{pagination.total}</div>
+            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+              <div className="text-2xl font-bold text-red-600">{pagination.total}</div>
               <div className="text-gray-600">Wszystkie oferty</div>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-              <div className="text-2xl font-bold text-green-600">
+            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+              <div className="text-2xl font-bold text-red-600">
                 {jobOffers.filter(jo => jo.isActive).length}
               </div>
               <div className="text-gray-600">Aktywne oferty</div>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-              <div className="text-2xl font-bold text-purple-600">
+            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+              <div className="text-2xl font-bold text-red-600">
                 {jobOffers.reduce((sum, jo) => sum + (jo._count?.applications || 0), 0)}
               </div>
               <div className="text-gray-600">Aplikacje</div>
@@ -326,7 +324,6 @@ export default function JobOffersPage() {
             jobOffers={jobOffers}
             onEdit={handleEditClick}
             onDelete={handleDelete}
-            onToggleStatus={handleToggleStatus}
             onView={handleViewClick}
             isLoading={isLoading}
           />
@@ -338,6 +335,7 @@ export default function JobOffersPage() {
                 onClick={() => loadJobOffers(pagination.page - 1)}
                 disabled={pagination.page <= 1}
                 variant="outline"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Poprzednia
               </Button>
@@ -348,6 +346,7 @@ export default function JobOffersPage() {
                 onClick={() => loadJobOffers(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
                 variant="outline"
+                className="transition-all duration-200 hover:scale-105"
               >
                 Następna
               </Button>
@@ -378,6 +377,47 @@ export default function JobOffersPage() {
 
       {/* Widok szczegółów */}
       {viewMode === 'view' && renderJobOfferDetails()}
+
+      {/* Modal potwierdzenia usunięcia */}
+      {deleteConfirm.show && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-200">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Usuń ofertę pracy
+                </h3>
+              </div>
+            </div>
+            <div className="mb-6">
+              <p className="text-sm text-gray-500">
+                Czy na pewno chcesz usunąć tę ofertę pracy? Ta akcja jest nieodwracalna i wszystkie dane związane z ofertą zostaną trwale utracone.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={cancelDelete}
+                variant="outline"
+                className="transition-all duration-200 hover:scale-105"
+              >
+                Anuluj
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                variant="destructive"
+                className="transition-all duration-200 hover:scale-105"
+              >
+                Usuń ofertę
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
