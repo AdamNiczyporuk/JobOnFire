@@ -87,6 +87,19 @@ export interface Application {
       companyImageUrl?: string | null;
     };
   };
+  response?: {
+    applicationForJobOfferId: number;
+    response?: string | null;
+  } | null;
+  meetings: {
+    id: number;
+    dateTime: string;
+    type: 'ONLINE' | 'OFFLINE';
+    contributors?: string | null;
+    onlineMeetingUrl?: string | null;
+    message?: string | null;
+    applicationForJobOfferId: number;
+  }[];
 }
 
 // Typ dla statystyk kandydata

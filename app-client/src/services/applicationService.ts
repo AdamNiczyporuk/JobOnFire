@@ -1,4 +1,13 @@
-import { ApplicationCreateRequest, ApplicationUpdateRequest, EmployerApplicationsResponse, EmployerApplicationsParams } from '@/types/application';
+import { 
+  ApplicationCreateRequest, 
+  ApplicationUpdateRequest, 
+  EmployerApplicationsResponse, 
+  EmployerApplicationsParams,
+  EmployerApplicationDetail,
+  ApplicationResponseRequest,
+  MeetingCreateRequest,
+  ApplicationStatusUpdateRequest
+} from '@/types/application';
 import { Application } from '@/types/candidate';
 import api from '@/api';
 
@@ -89,5 +98,35 @@ export const updateApplicationAnswers = async (id: number, answers: { recruitmen
 // Pobranie wszystkich aplikacji do ofert pracodawcy
 export const getEmployerApplications = async (params?: EmployerApplicationsParams): Promise<EmployerApplicationsResponse> => {
   const response = await api.get('/applications/employer', { params });
+  return response.data;
+};
+
+// Pobranie szczegółów aplikacji dla pracodawcy
+export const getEmployerApplicationDetail = async (id: number): Promise<EmployerApplicationDetail> => {
+  const response = await api.get(`/applications/employer/${id}`);
+  return response.data;
+};
+
+// Odpowiedź pracodawcy na aplikację
+export const respondToApplication = async (id: number, data: ApplicationResponseRequest): Promise<{ message: string }> => {
+  const response = await api.post(`/applications/employer/${id}/response`, data);
+  return response.data;
+};
+
+// Aktualizacja statusu aplikacji przez pracodawcę
+export const updateApplicationStatus = async (id: number, data: ApplicationStatusUpdateRequest): Promise<{ message: string }> => {
+  const response = await api.put(`/applications/employer/${id}/status`, data);
+  return response.data;
+};
+
+// Planowanie spotkania
+export const scheduleMeeting = async (applicationId: number, data: MeetingCreateRequest): Promise<{ message: string; meeting: any }> => {
+  const response = await api.post(`/applications/employer/${applicationId}/meeting`, data);
+  return response.data;
+};
+
+// Usunięcie spotkania
+export const deleteMeeting = async (meetingId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/applications/employer/meetings/${meetingId}`);
   return response.data;
 };

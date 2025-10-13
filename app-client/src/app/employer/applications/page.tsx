@@ -379,13 +379,15 @@ export default function EmployerApplicationsPage() {
 
                         {/* Actions */}
                         <div className="flex gap-2 pt-2 border-t">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1"
-                          >
-                            Zobacz szczegóły
-                          </Button>
+                          <Link href={`/employer/applications/${application.id}`}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                            >
+                              Zobacz szczegóły
+                            </Button>
+                          </Link>
                           {application.status === 'PENDING' && (
                             <>
                               <Button

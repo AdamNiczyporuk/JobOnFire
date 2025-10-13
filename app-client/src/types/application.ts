@@ -76,3 +76,78 @@ export interface EmployerApplicationsParams {
   status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELED';
   jobOfferId?: number;
 }
+
+// Typy dla widoku szczegółowego aplikacji pracodawcy
+export interface EmployerApplicationDetail {
+  id: number;
+  message?: string | null;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELED';
+  createDate: string;
+  candidateProfileId: number;
+  jobOfferId: number;
+  cvId: number;
+  jobOffer: {
+    id: number;
+    name: string;
+    description?: string;
+    requirements?: any;
+    responsibilities?: any;
+    whatWeOffer?: any;
+    questions: {
+      id: number;
+      question?: string;
+    }[];
+  };
+  candidateProfile: {
+    id: number;
+    name?: string;
+    lastName?: string;
+    description?: string;
+    experience?: any;
+    skills?: any;
+    place?: string;
+    education?: any;
+    phoneNumber?: number;
+  };
+  candidateCV: {
+    id: number;
+    name?: string;
+    cvUrl?: string;
+  };
+  answers: {
+    recruitmentQuestionId: number;
+    answer?: string;
+    question: {
+      id: number;
+      question?: string;
+    };
+  }[];
+  response?: {
+    applicationForJobOfferId: number;
+    response?: string | null;
+  } | null;
+  meetings: {
+    id: number;
+    dateTime: string;
+    type: 'ONLINE' | 'OFFLINE';
+    contributors?: string | null;
+    onlineMeetingUrl?: string | null;
+    message?: string | null;
+  }[];
+}
+
+export interface ApplicationResponseRequest {
+  response: string;
+}
+
+export interface MeetingCreateRequest {
+  dateTime: string;
+  type: 'ONLINE' | 'OFFLINE';
+  contributors?: string;
+  onlineMeetingUrl?: string;
+  message?: string;
+}
+
+export interface ApplicationStatusUpdateRequest {
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELED';
+}
