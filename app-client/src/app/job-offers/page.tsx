@@ -22,10 +22,17 @@ export default function JobOffersPage() {
   const [selectedWorkloads, setSelectedWorkloads] = useState<string[]>([]);
   const [techInput, setTechInput] = useState(''); // comma-separated technologies
 
+  // Applied filters: used only after clicking "Zastosuj"
+  const [appliedWorkingModes, setAppliedWorkingModes] = useState<string[]>([]);
+  const [appliedContractTypes, setAppliedContractTypes] = useState<string[]>([]);
+  const [appliedJobLevels, setAppliedJobLevels] = useState<string[]>([]);
+  const [appliedWorkloads, setAppliedWorkloads] = useState<string[]>([]);
+  const [appliedTechInput, setAppliedTechInput] = useState('');
+
   // Compute backend filter params (first selected for workingMode/contractType; tags as CSV)
-  const backendWorkingMode = selectedWorkingModes[0];
-  const backendContractType = selectedContractTypes[0];
-  const backendTags = techInput
+  const backendWorkingMode = appliedWorkingModes[0];
+  const backendContractType = appliedContractTypes[0];
+  const backendTags = appliedTechInput
     .split(',')
     .map(t => t.trim())
     .filter(Boolean)
@@ -67,7 +74,6 @@ export default function JobOffersPage() {
 
   const toggleSelection = (arr: string[], value: string, setter: (v: string[]) => void) => {
     setter(arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]);
-    setPage(1);
   };
 
   const formatSalary = (salary?: string) => {
@@ -93,35 +99,35 @@ export default function JobOffersPage() {
   const filteredJobOffers = useMemo(() => {
     return jobOffers.filter((offer) => {
       // working mode (support multiple)
-      if (selectedWorkingModes.length > 0) {
+      if (appliedWorkingModes.length > 0) {
         const modes = (offer.workingMode || []).map(m => m.toLowerCase());
-        const matchMode = selectedWorkingModes.some(sel => modes.some(m => m.includes(sel.toLowerCase())));
+        const matchMode = appliedWorkingModes.some(sel => modes.some(m => m.includes(sel.toLowerCase())));
         if (!matchMode) return false;
       }
 
       // contract type (support multiple)
-      if (selectedContractTypes.length > 0) {
+      if (appliedContractTypes.length > 0) {
         const ct = (offer.contractType || '').toLowerCase();
-        const matchCt = selectedContractTypes.some(sel => ct.includes(sel.toLowerCase()));
+        const matchCt = appliedContractTypes.some(sel => ct.includes(sel.toLowerCase()));
         if (!matchCt) return false;
       }
 
       // job level
-      if (selectedJobLevels.length > 0) {
+      if (appliedJobLevels.length > 0) {
         const levels = (offer.jobLevel || []).map(l => l.toLowerCase());
-        const matchLevel = selectedJobLevels.some(sel => levels.some(l => l.includes(sel.toLowerCase())));
+        const matchLevel = appliedJobLevels.some(sel => levels.some(l => l.includes(sel.toLowerCase())));
         if (!matchLevel) return false;
       }
 
       // workload
-      if (selectedWorkloads.length > 0) {
+      if (appliedWorkloads.length > 0) {
         const wl = (offer.workload || '').toLowerCase();
-        const matchWl = selectedWorkloads.some(sel => wl.includes(sel.toLowerCase()));
+        const matchWl = appliedWorkloads.some(sel => wl.includes(sel.toLowerCase()));
         if (!matchWl) return false;
       }
 
       // technologies (tags) client-side as well for robustness
-      const techs = techInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+      const techs = appliedTechInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
       if (techs.length > 0) {
         const tags = (offer.tags || []).map(t => t.toLowerCase());
         const matchTechs = techs.every(t => tags.some(tag => tag.includes(t)));
@@ -130,7 +136,7 @@ export default function JobOffersPage() {
 
       return true;
     });
-  }, [jobOffers, selectedWorkingModes, selectedContractTypes, selectedJobLevels, selectedWorkloads, techInput]);
+  }, [jobOffers, appliedWorkingModes, appliedContractTypes, appliedJobLevels, appliedWorkloads, appliedTechInput]);
 
   if (loading) {
     return (
@@ -214,94 +220,131 @@ export default function JobOffersPage() {
             </form>
           </div>
 
-          {filteredJobOffers.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg mb-4">Brak dostępnych ofert pracy</p>
-              <p className="text-sm text-muted-foreground">Sprawdź ponownie później lub zmień kryteria wyszukiwania</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
-              {/* Sidebar filters */}
-              <aside className="rounded-lg border bg-white p-4 h-fit"> 
-                <h3 className="text-sm font-semibold mb-3">Filtry</h3>
+          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+            {/* Sidebar filters - always visible */}
+            <aside className="rounded-lg border bg-white p-4 h-fit"> 
+              <h3 className="text-sm font-semibold mb-3">Filtry</h3>
 
-                {/* Tryb pracy */}
-                <div className="mb-4">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Tryb pracy</p>
-                  {['Zdalna', 'Hybrydowa', 'Stacjonarna'].map((mode) => (
-                    <label key={mode} className="flex items-center gap-2 text-sm mb-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedWorkingModes.includes(mode)}
-                        onChange={() => toggleSelection(selectedWorkingModes, mode, setSelectedWorkingModes)}
-                      />
-                      <span>{mode}</span>
-                    </label>
-                  ))}
+              {/* Tryb pracy */}
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Tryb pracy</p>
+                {['Zdalna', 'Hybrydowa', 'Stacjonarna'].map((mode) => (
+                  <label key={mode} className="flex items-center gap-2 text-sm mb-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedWorkingModes.includes(mode)}
+                      onChange={() => toggleSelection(selectedWorkingModes, mode, setSelectedWorkingModes)}
+                    />
+                    <span>{mode}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Rodzaj umowy */}
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Rodzaj umowy</p>
+                {['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'].map((ct) => (
+                  <label key={ct} className="flex items-center gap-2 text-sm mb-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedContractTypes.includes(ct)}
+                      onChange={() => toggleSelection(selectedContractTypes, ct, setSelectedContractTypes)}
+                    />
+                    <span>{ct}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Poziom stanowiska */}
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Poziom stanowiska</p>
+                {['Junior', 'Mid', 'Senior'].map((lvl) => (
+                  <label key={lvl} className="flex items-center gap-2 text-sm mb-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedJobLevels.includes(lvl)}
+                      onChange={() => toggleSelection(selectedJobLevels, lvl, setSelectedJobLevels)}
+                    />
+                    <span>{lvl}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Wymiar pracy */}
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Wymiar pracy</p>
+                {['Pełny etat', 'Część etatu'].map((wl) => (
+                  <label key={wl} className="flex items-center gap-2 text-sm mb-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedWorkloads.includes(wl)}
+                      onChange={() => toggleSelection(selectedWorkloads, wl, setSelectedWorkloads)}
+                    />
+                    <span>{wl}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Technologie / Specjalizacje */}
+              <div className="mb-2">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Technologie / Specjalizacje</p>
+                <input
+                  type="text"
+                  value={techInput}
+                  onChange={(e) => { setTechInput(e.target.value); }}
+                  placeholder="np. React, Node, AWS"
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">Oddziel przecinkami</p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 mt-3">
+                <Button
+                  onClick={() => {
+                    setAppliedWorkingModes(selectedWorkingModes);
+                    setAppliedContractTypes(selectedContractTypes);
+                    setAppliedJobLevels(selectedJobLevels);
+                    setAppliedWorkloads(selectedWorkloads);
+                    setAppliedTechInput(techInput);
+                    setPage(1);
+                  }}
+                  className="flex-1"
+                >
+                  Zastosuj
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedWorkingModes([]);
+                    setSelectedContractTypes([]);
+                    setSelectedJobLevels([]);
+                    setSelectedWorkloads([]);
+                    setTechInput('');
+
+                    setAppliedWorkingModes([]);
+                    setAppliedContractTypes([]);
+                    setAppliedJobLevels([]);
+                    setAppliedWorkloads([]);
+                    setAppliedTechInput('');
+                    setPage(1);
+                  }}
+                  className="w-36"
+                >
+                  Wyczyść
+                </Button>
+              </div>
+            </aside>
+
+            {/* List content */}
+            <div className="space-y-4">
+              {filteredJobOffers.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground text-lg mb-4">Brak dostępnych ofert pracy</p>
+                  <p className="text-sm text-muted-foreground">Sprawdź ponownie później lub zmień kryteria wyszukiwania</p>
                 </div>
-
-                {/* Rodzaj umowy */}
-                <div className="mb-4">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Rodzaj umowy</p>
-                  {['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'].map((ct) => (
-                    <label key={ct} className="flex items-center gap-2 text-sm mb-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedContractTypes.includes(ct)}
-                        onChange={() => toggleSelection(selectedContractTypes, ct, setSelectedContractTypes)}
-                      />
-                      <span>{ct}</span>
-                    </label>
-                  ))}
-                </div>
-
-                {/* Poziom stanowiska */}
-                <div className="mb-4">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Poziom stanowiska</p>
-                  {['Junior', 'Mid', 'Senior'].map((lvl) => (
-                    <label key={lvl} className="flex items-center gap-2 text-sm mb-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedJobLevels.includes(lvl)}
-                        onChange={() => toggleSelection(selectedJobLevels, lvl, setSelectedJobLevels)}
-                      />
-                      <span>{lvl}</span>
-                    </label>
-                  ))}
-                </div>
-
-                {/* Wymiar pracy */}
-                <div className="mb-4">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Wymiar pracy</p>
-                  {['Pełny etat', 'Część etatu'].map((wl) => (
-                    <label key={wl} className="flex items-center gap-2 text-sm mb-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedWorkloads.includes(wl)}
-                        onChange={() => toggleSelection(selectedWorkloads, wl, setSelectedWorkloads)}
-                      />
-                      <span>{wl}</span>
-                    </label>
-                  ))}
-                </div>
-
-                {/* Technologie / Specjalizacje */}
-                <div className="mb-2">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Technologie / Specjalizacje</p>
-                  <input
-                    type="text"
-                    value={techInput}
-                    onChange={(e) => { setTechInput(e.target.value); setPage(1); }}
-                    placeholder="np. React, Node, AWS"
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                  />
-                  <p className="text-[11px] text-muted-foreground mt-1">Oddziel przecinkami</p>
-                </div>
-              </aside>
-
-              {/* List content */}
-              <div className="space-y-4">
-                {filteredJobOffers.map((jobOffer) => (
+              ) : (
+                filteredJobOffers.map((jobOffer) => (
                   <Link
                     key={jobOffer.id}
                     href={`/job-offers/${jobOffer.id}`}
@@ -345,10 +388,10 @@ export default function JobOffersPage() {
                       </div>
                     </div>
                   </Link>
-                ))}
-              </div>
+                ))
+              )}
             </div>
-          )}
+          </div>
 
           {/* Paginacja */}
           {totalPages > 1 && filteredJobOffers.length > 0 && (
