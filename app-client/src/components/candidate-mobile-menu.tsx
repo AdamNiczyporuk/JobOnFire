@@ -108,7 +108,7 @@ export function CandidateMobileMenu() {
             {user && user.role === 'CANDIDATE' ? (
               <>
                 <Link
-                  href="/candidate/callendar"
+                  href="/candidate/calendar"
                   onClick={() => setIsOpen(false)}
                 >
                   <Button

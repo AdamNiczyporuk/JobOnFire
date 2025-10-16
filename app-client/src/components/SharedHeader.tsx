@@ -136,7 +136,7 @@ export function SharedHeader() {
 
               {user && user.role === 'CANDIDATE' && (
                 <Link
-                  href="/candidate/callendar"
+                  href="/candidate/calendar"
                   className="hidden sm:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-200 hover:after:w-full"
                 >
                   Kalendarz
