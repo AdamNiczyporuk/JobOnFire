@@ -23,10 +23,7 @@ router.get('/candidate', ensureAuthenticated, ensureCandidate, async (req: Reque
   try {
     const candidateProfile = await validateCandidateProfile(req, res);
     if (!candidateProfile) return;
-
-    const page = Math.max(parseInt(req.query.page as string) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), 100);
-    const offset = (page - 1) * limit;
+    
     const from = req.query.from ? new Date(req.query.from as string) : undefined;
     const to = req.query.to ? new Date(req.query.to as string) : undefined;
 
@@ -42,43 +39,30 @@ router.get('/candidate', ensureAuthenticated, ensureCandidate, async (req: Reque
       if (to) where.dateTime.lte = to;
     }
 
-    const [meetings, total] = await Promise.all([
-      prisma.meeting.findMany({
-        where,
-        orderBy: { dateTime: 'desc' },
-        include: {
-          application: {
-            include: {
-              jobOffer: {
-                select: {
-                  id: true,
-                  name: true,
-                  employerProfile: {
-                    select: {
-                      id: true,
-                      companyName: true
-                    }
+    const meetings = await prisma.meeting.findMany({
+      where,
+      orderBy: { dateTime: 'desc' },
+      include: {
+        application: {
+          include: {
+            jobOffer: {
+              select: {
+                id: true,
+                name: true,
+                employerProfile: {
+                  select: {
+                    id: true,
+                    companyName: true
                   }
                 }
               }
             }
           }
-        },
-        skip: offset,
-        take: limit
-      }),
-      prisma.meeting.count({ where })
-    ]);
-
-    res.json({
-      meetings,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+        }
       }
     });
+
+    res.json({ meetings });
   } catch (error) {
     console.error('Błąd podczas pobierania spotkań kandydata:', error);
     res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
@@ -137,10 +121,7 @@ router.get('/employer', ensureAuthenticated, ensureEmployer, async (req: Request
   try {
     const employerProfile = await validateEmployerProfile(req, res);
     if (!employerProfile) return;
-
-    const page = Math.max(parseInt(req.query.page as string) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), 100);
-    const offset = (page - 1) * limit;
+    
     const from = req.query.from ? new Date(req.query.from as string) : undefined;
     const to = req.query.to ? new Date(req.query.to as string) : undefined;
 
@@ -158,44 +139,31 @@ router.get('/employer', ensureAuthenticated, ensureEmployer, async (req: Request
       if (to) where.dateTime.lte = to;
     }
 
-    const [meetings, total] = await Promise.all([
-      prisma.meeting.findMany({
-        where,
-        orderBy: { dateTime: 'desc' },
-        include: {
-          application: {
-            include: {
-              jobOffer: {
-                select: {
-                  id: true,
-                  name: true
-                }
-              },
-              candidateProfile: {
-                select: {
-                  id: true,
-                  name: true,
-                  lastName: true
-                }
+    const meetings = await prisma.meeting.findMany({
+      where,
+      orderBy: { dateTime: 'desc' },
+      include: {
+        application: {
+          include: {
+            jobOffer: {
+              select: {
+                id: true,
+                name: true
+              }
+            },
+            candidateProfile: {
+              select: {
+                id: true,
+                name: true,
+                lastName: true
               }
             }
           }
-        },
-        skip: offset,
-        take: limit
-      }),
-      prisma.meeting.count({ where })
-    ]);
-
-    res.json({
-      meetings,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+        }
       }
     });
+
+    res.json({ meetings });
   } catch (error) {
     console.error('Błąd podczas pobierania spotkań pracodawcy:', error);
     res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
