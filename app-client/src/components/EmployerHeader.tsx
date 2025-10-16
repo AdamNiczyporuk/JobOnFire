@@ -118,6 +118,7 @@ export function EmployerHeader() {
                     { href: '/employer/job-offers', label: 'Oferty' },
                     { href: '/employer/candidates', label: 'Kandydaci' },
                     { href: '/employer/applications', label: 'Aplikacje' },
+                    { href: '/employer/calendar', label: 'Kalendarz' },
                     { href: '/about', label: 'O nas' }
                   ].map(link => {
                     const active = pathname === link.href;
@@ -155,6 +156,7 @@ export function EmployerHeader() {
                           </div>
                           
                           <div className="py-2">
+                           
                             <Link href="/employer/dashboard">
                               <button 
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
@@ -226,7 +228,17 @@ export function EmployerHeader() {
                                 Profil Firmy
                               </button>
                             </Link>
-                            
+                             <Link href="/employer/calendar">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5A2 2 0 003 7v12a2 2 0 002 2z" />
+                                </svg>
+                                Kalendarz
+                              </button>
+                            </Link>
                             <Link href="/employer/settings">
                               <button 
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
