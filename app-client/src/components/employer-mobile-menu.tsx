@@ -82,18 +82,25 @@ export function EmployerMobileMenu() {
             Mój Dashboard
           </Link>
           <Link
-            href="#"
+            href="/employer/job-offers"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
             Moje Oferty
           </Link>
           <Link
-            href="#"
+            href="/employer/candidates"
             className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
             onClick={() => setIsOpen(false)}
           >
             Kandydaci
+          </Link>
+          <Link
+            href="/employer/calendar"
+            className="text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-primary hover:translate-x-1 py-2"
+            onClick={() => setIsOpen(false)}
+          >
+            Kalendarz
           </Link>
           <Link
             href="/candidate/login"

@@ -6,7 +6,9 @@ export default function CandidateLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col items-center">
       <SharedHeader />
-      {children}
+      <div className="w-full flex-1">
+        {children}
+      </div>
     </div>
   );
 }
