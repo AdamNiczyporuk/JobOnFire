@@ -50,6 +50,9 @@ export default function EmployerApplicationDetailPage() {
   const [responseText, setResponseText] = useState('');
   const [isRespondingMode, setIsRespondingMode] = useState(false);
   const [isMeetingMode, setIsMeetingMode] = useState(false);
+  // Modal confirmations
+  const [statusConfirm, setStatusConfirm] = useState<{ show: boolean; status: ApplicationStatusUpdateRequest['status'] | null }>({ show: false, status: null });
+  const [meetingDeleteConfirm, setMeetingDeleteConfirm] = useState<{ show: boolean; meetingId: number | null }>({ show: false, meetingId: null });
   
   // Meeting form state
   const [meetingForm, setMeetingForm] = useState<MeetingCreateRequest>({
@@ -98,12 +101,9 @@ export default function EmployerApplicationDetailPage() {
   };
 
   const handleStatusUpdate = async (status: ApplicationStatusUpdateRequest['status']) => {
-    if (!confirm(`Czy na pewno chcesz zmienić status na: ${getStatusText(status)}?`)) return;
-    
     try {
       await updateApplicationStatus(applicationId, { status });
       await fetchApplicationDetail();
-      alert('Status aplikacji został zaktualizowany');
     } catch (err) {
       console.error('Błąd podczas aktualizacji statusu:', err);
       alert('Błąd podczas aktualizacji statusu');
@@ -135,12 +135,10 @@ export default function EmployerApplicationDetailPage() {
   };
 
   const handleDeleteMeeting = async (meetingId: number) => {
-    if (!confirm('Czy na pewno chcesz usunąć to spotkanie?')) return;
-    
     try {
       await deleteMeeting(meetingId);
       await fetchApplicationDetail();
-      alert('Spotkanie zostało usunięte');
+      // Nie pokazujemy alertu — UI się odświeża i karta spotkania znika
     } catch (err) {
       console.error('Błąd podczas usuwania spotkania:', err);
       alert('Błąd podczas usuwania spotkania');
@@ -249,6 +247,7 @@ export default function EmployerApplicationDetailPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
@@ -505,7 +504,7 @@ export default function EmployerApplicationDetailPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteMeeting(meeting.id)}
+                          onClick={() => setMeetingDeleteConfirm({ show: true, meetingId: meeting.id })}
                           className="text-red-600 hover:text-red-700 transition-all duration-200 hover:scale-105"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -573,12 +572,12 @@ export default function EmployerApplicationDetailPage() {
                 {/* Actions */}
                 <div className="space-y-2 pt-4 border-t">
                   <Link href={`/employer/candidates/${application.candidateProfile.id}`}>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Button variant="outline" size="sm" className="w-full justify-start transition-all duration-200 hover:scale-105">
                       <UserCheck className="w-4 h-4 mr-2" />
                       Profil kandydata
                     </Button>
                   </Link>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Button variant="outline" size="sm" className="w-full justify-start transition-all duration-200 hover:scale-105">
                     <Eye className="w-4 h-4 mr-2" />
                     Podgląd CV
                   </Button>
@@ -586,28 +585,27 @@ export default function EmployerApplicationDetailPage() {
               </div>
             </div>
 
-            {/* Status Actions */}
-            {application.status === 'PENDING' && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="font-semibold mb-4">Akcje</h3>
-                <div className="space-y-2">
-                  <Button
-                    onClick={() => handleStatusUpdate('ACCEPTED')}
-                    className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Zaakceptuj aplikację
-                  </Button>
-                  <Button
-                    onClick={() => handleStatusUpdate('REJECTED')}
-                    className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Odrzuć aplikację
-                  </Button>
-                </div>
+            {/* Status Actions - always visible so employer can change status any time */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="font-semibold mb-4">Akcje</h3>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => setStatusConfirm({ show: true, status: 'ACCEPTED' })}
+                  className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Zaakceptuj aplikację
+                </Button>
+                <Button
+                  onClick={() => setStatusConfirm({ show: true, status: 'REJECTED' })}
+                  className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Odrzuć aplikację
+                </Button>
               </div>
-            )}
+              {/* Modal handled below */}
+            </div>
 
             {/* Job Offer Info */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -624,6 +622,90 @@ export default function EmployerApplicationDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+  </div>
+  {/* Modals */}
+    {meetingDeleteConfirm.show && (
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-200">
+          <div className="flex items-center mb-4">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-medium text-gray-900">Usuń spotkanie</h3>
+            </div>
+          </div>
+          <div className="mb-6">
+            <p className="text-sm text-gray-500">Czy na pewno chcesz usunąć to spotkanie? Tej akcji nie można cofnąć.</p>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              onClick={() => setMeetingDeleteConfirm({ show: false, meetingId: null })}
+              variant="outline"
+              className="transition-all duration-200 hover:scale-105"
+            >
+              Anuluj
+            </Button>
+            <Button
+              onClick={async () => {
+                if (meetingDeleteConfirm.meetingId) {
+                  await handleDeleteMeeting(meetingDeleteConfirm.meetingId);
+                }
+                setMeetingDeleteConfirm({ show: false, meetingId: null });
+              }}
+              variant="destructive"
+              className="transition-all duration-200 hover:scale-105"
+            >
+              Usuń spotkanie
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {statusConfirm.show && (
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-200">
+          <div className="flex items-center mb-4">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-medium text-gray-900">Zmień status aplikacji</h3>
+            </div>
+          </div>
+          <div className="mb-6">
+            <p className="text-sm text-gray-500">
+              Potwierdź zmianę statusu na: <span className="font-medium">{statusConfirm.status ? getStatusText(statusConfirm.status as string) : ''}</span>
+            </p>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              onClick={() => setStatusConfirm({ show: false, status: null })}
+              variant="outline"
+              className="transition-all duration-200 hover:scale-105"
+            >
+              Anuluj
+            </Button>
+            <Button
+              onClick={async () => {
+                if (statusConfirm.status) {
+                  await handleStatusUpdate(statusConfirm.status);
+                }
+                setStatusConfirm({ show: false, status: null });
+              }}
+              className="transition-all duration-200 hover:scale-105"
+            >
+              Potwierdź
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 }

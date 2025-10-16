@@ -4,6 +4,7 @@ import { router as employerRoute } from "./employer";
 import { router as jobOfferRoute } from "./jobOffer";
 import { router as candidateRoute } from "./candidate";
 import { router as applicationRoute } from "./application";
+import { router as meetingRoute } from "./meeting";
 
 export const router = Router();
 
@@ -12,3 +13,4 @@ router.use("/employer", employerRoute);
 router.use("/job-offers", jobOfferRoute);
 router.use("/candidate", candidateRoute);
 router.use("/applications", applicationRoute);
+router.use("/meetings", meetingRoute);
