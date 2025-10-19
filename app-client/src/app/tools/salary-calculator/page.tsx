@@ -53,8 +53,34 @@ function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
+// Wyniki kalkulacji — dyskryminowana unia po polu kind
+type ResultBase = { netto: number; kosztPracodawcy: number; kind: ContractType };
+type ResultUOP = ResultBase & {
+  kind: "UOP";
+  breakdown: {
+    pracownik: { emerytalna: number; rentowa: number; chorobowa: number; zdrowotna: number; zaliczkaPIT: number; podstawaPIT: number };
+    pracodawca: { emerytalna: number; rentowa: number; wypadkowa: number; fp: number; fgsp: number };
+  };
+};
+type ResultUZ = ResultBase & {
+  kind: "UZ";
+  breakdown: {
+    pracownik: { emerytalna: number; rentowa: number; chorobowa: number; zdrowotna: number; zaliczkaPIT: number; podstawaPIT: number };
+    pracodawca: { emerytalna: number; rentowa: number; wypadkowa: number; fp: number; fgsp: number };
+  };
+};
+type ResultUOD = ResultBase & {
+  kind: "UOD";
+  breakdown: { pracownik: { zaliczkaPIT: number; podstawaPIT: number; kup: number } };
+};
+type ResultB2B = ResultBase & {
+  kind: "B2B";
+  breakdown: { b2b: { base: number; pit: number; health: number; social: number; costs: number; taxRate: number } };
+};
+type ResultUnion = ResultUOP | ResultUZ | ResultUOD | ResultB2B;
+
 // Uproszczona kalkulacja netto z brutto dla umowy o pracę
-function calcFromBrutto(brutto: number, opts: { pit2: boolean; ulgaMlodzi: boolean }) {
+function calcFromBrutto(brutto: number, opts: { pit2: boolean; ulgaMlodzi: boolean }): ResultUOP {
   const emp = RATES.employee;
   const pit = RATES.pit;
 
@@ -83,6 +109,7 @@ function calcFromBrutto(brutto: number, opts: { pit2: boolean; ulgaMlodzi: boole
   const kosztPracodawcy = round2(brutto + sumaPracodawca);
 
   return {
+    kind: "UOP",
     netto,
     kosztPracodawcy,
     breakdown: {
@@ -106,7 +133,7 @@ function calcFromBrutto(brutto: number, opts: { pit2: boolean; ulgaMlodzi: boole
 }
 
 // Umowa zlecenie: uproszczona kalkulacja
-function calcUZFromBrutto(brutto: number, opts: { kupPercent: number; chorobowa: boolean; ulgaMlodzi: boolean }) {
+function calcUZFromBrutto(brutto: number, opts: { kupPercent: number; chorobowa: boolean; ulgaMlodzi: boolean }): ResultUZ {
   const emp = RATES.employee;
   const pit = RATES.pit;
 
@@ -134,6 +161,7 @@ function calcUZFromBrutto(brutto: number, opts: { kupPercent: number; chorobowa:
   const kosztPracodawcy = round2(brutto + sumaPracod);
 
   return {
+    kind: "UZ",
     netto,
     kosztPracodawcy,
     breakdown: {
@@ -144,7 +172,7 @@ function calcUZFromBrutto(brutto: number, opts: { kupPercent: number; chorobowa:
 }
 
 // Umowa o dzieło: brak ZUS, tylko PIT z KUP 20%/50%
-function calcUODFromBrutto(brutto: number, opts: { kupPercent: number }) {
+function calcUODFromBrutto(brutto: number, opts: { kupPercent: number }): ResultUOD {
   const pitRate = RATES.pit.stawka;
   const kup = round2(opts.kupPercent * brutto);
   const podstawaPIT = Math.max(0, Math.floor(brutto - kup));
@@ -152,17 +180,17 @@ function calcUODFromBrutto(brutto: number, opts: { kupPercent: number }) {
   const netto = round2(brutto - zaliczkaPIT);
   const kosztPracodawcy = round2(brutto); // brak składek pracodawcy
   return {
+    kind: "UOD",
     netto,
     kosztPracodawcy,
     breakdown: {
       pracownik: { zaliczkaPIT, podstawaPIT, kup },
-      pracodawca: {},
     },
   };
 }
 
 // B2B: uproszczenie — przyjmujemy kwotę na fakturze (netto, bez VAT) jako "brutto" w kalkulatorze
-function calcB2BFromRevenue(revenue: number, opts: { taxForm: "SCALE_12" | "LINEAR_19"; monthlySocial: number; monthlyCosts: number }) {
+function calcB2BFromRevenue(revenue: number, opts: { taxForm: "SCALE_12" | "LINEAR_19"; monthlySocial: number; monthlyCosts: number }): ResultB2B {
   const taxRate = opts.taxForm === "LINEAR_19" ? 0.19 : 0.12;
   const healthRate = opts.taxForm === "LINEAR_19" ? 0.049 : 0.09; // uproszczenie
   const base = Math.max(0, revenue - opts.monthlySocial - opts.monthlyCosts);
@@ -171,6 +199,7 @@ function calcB2BFromRevenue(revenue: number, opts: { taxForm: "SCALE_12" | "LINE
   const netto = round2(revenue - opts.monthlySocial - health - pit);
   const kosztPracodawcy = round2(revenue); // klient płaci kwotę z faktury (bez VAT)
   return {
+    kind: "B2B",
     netto,
     kosztPracodawcy,
     breakdown: {
@@ -228,7 +257,7 @@ export default function SalaryCalculatorPage() {
     }
   }, [inputs]);
 
-  const result = useMemo(() => {
+  const result = useMemo<ResultUnion>(() => {
     switch (inputs.contract) {
       case "UOP":
         return calcFromBrutto(brutto || 0, { pit2: inputs.pit2, ulgaMlodzi: inputs.ulgaMlodzi });
@@ -398,7 +427,7 @@ export default function SalaryCalculatorPage() {
                     </div>
 
                     <div className="pt-3 border-t">
-                      {inputs.contract === "UOP" && (
+                      {result.kind === "UOP" && (
                         <>
                           <p className="text-sm font-medium mb-2">Składki pracownika</p>
                           <div className="space-y-1 text-sm">
@@ -411,7 +440,7 @@ export default function SalaryCalculatorPage() {
                         </>
                       )}
 
-                      {inputs.contract === "UZ" && (
+                      {result.kind === "UZ" && (
                         <>
                           <p className="text-sm font-medium mb-2">Obciążenia zleceniobiorcy</p>
                           <div className="space-y-1 text-sm">
@@ -424,7 +453,7 @@ export default function SalaryCalculatorPage() {
                         </>
                       )}
 
-                      {inputs.contract === "UOD" && (
+                      {result.kind === "UOD" && (
                         <>
                           <p className="text-sm font-medium mb-2">Podatek</p>
                           <div className="space-y-1 text-sm">
@@ -435,7 +464,7 @@ export default function SalaryCalculatorPage() {
                         </>
                       )}
 
-                      {inputs.contract === "B2B" && (
+                      {result.kind === "B2B" && (
                         <>
                           <p className="text-sm font-medium mb-2">Rozliczenie B2B</p>
                           <div className="space-y-1 text-sm">
@@ -449,7 +478,7 @@ export default function SalaryCalculatorPage() {
                       )}
                     </div>
 
-                    {(inputs.contract === "UOP" || inputs.contract === "UZ") && (
+                    {(result.kind === "UOP" || result.kind === "UZ") && (
                       <div className="pt-3 border-t">
                         <p className="text-sm font-medium mb-2">Składki pracodawcy</p>
                         <div className="space-y-1 text-sm">
