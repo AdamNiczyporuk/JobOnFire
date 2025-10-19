@@ -86,6 +86,7 @@ model candidateCV {
   candidateProfileId  Int
   cvUrl               String?
   name                String?
+  isDeleted           Boolean  @default(false)
 
   candidateProfile    candidateProfile          @relation(fields: [candidateProfileId], references: [id])
   applications        applicationForJobOffer[]  @relation("CandidateCV")

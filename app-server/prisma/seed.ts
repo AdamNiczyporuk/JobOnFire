@@ -47,6 +47,23 @@ type AdditionalEmployerSeed = {
 async function main(): Promise<void> {
   console.info("🌱 Seeding database with demo data...");
 
+  // Clean up old seed data before re-seeding
+  console.info("🧹 Cleaning previous seed data...");
+  await prisma.candidateAnswer.deleteMany();
+  await prisma.applicationResponse.deleteMany();
+  await prisma.meeting.deleteMany();
+  await prisma.applicationForJobOffer.deleteMany();
+  await prisma.recruitmentQuestion.deleteMany();
+  await prisma.jobOffer.deleteMany();
+  await prisma.lokalizationToEmployerProfile.deleteMany();
+  await prisma.employerProfile.deleteMany();
+  await prisma.candidateCV.deleteMany();
+  await prisma.profileLink.deleteMany();
+  await prisma.candidateProfile.deleteMany();
+  await prisma.lokalization.deleteMany();
+  await prisma.user.deleteMany({ where: { email: { endsWith: "@jobonfire.com" } } });
+  console.info("✅ Cleanup complete");
+
   const [employerPasswordHash, candidatePasswordHash] = await Promise.all([
     bcrypt.hash("Employer123!", 10),
     bcrypt.hash("Candidate123!", 10),
@@ -573,7 +590,13 @@ async function main(): Promise<void> {
     },
   });
 
-  const skills: Prisma.JsonArray = ["React", "Next.js", "TypeScript", "GraphQL", "Jest"];
+  const skills: Prisma.JsonArray = [
+    { name: "React", level: "EXPERT" },
+    { name: "Next.js", level: "EXPERT" },
+    { name: "TypeScript", level: "ADVANCED" },
+    { name: "GraphQL", level: "ADVANCED" },
+    { name: "Jest", level: "ADVANCED" },
+  ];
   const experience: Prisma.JsonArray = [
     {
       company: "CodeWave",

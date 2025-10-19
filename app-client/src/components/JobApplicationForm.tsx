@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, FileText, Plus, ArrowLeft } from 'lucide-react';
+import { AlertCircle, FileText, Plus, ArrowLeft, Sparkles } from 'lucide-react';
 import { JobOffer } from '@/types/jobOffer';
 import { CandidateCV } from '@/types/candidate';
 import { ApplicationFormData, RecruitmentQuestion, QuestionAnswer } from '@/types/application';
 import { candidateService } from '@/services/candidateService';
-import { createApplication, checkApplicationStatus } from '@/services/applicationService';
+import { createApplication, checkApplicationStatus, deleteApplication } from '@/services/applicationService';
 import { getJobOfferQuestions } from '@/services/jobOfferService';
 import { useAuth } from '@/context/authContext';
 
@@ -19,6 +20,7 @@ interface JobApplicationFormProps {
 }
 
 export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: JobApplicationFormProps) {
+  const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   
   const [formData, setFormData] = useState<ApplicationFormData>({
@@ -135,6 +137,12 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Jeśli wybrana jest opcja "utwórz nowe CV", redirect do generatora CV
+    if (formData.cvId === null && cvs.length > 0) {
+      router.push(`/tools/cv-generator?jobOfferId=${jobOffer.id}`);
+      return;
+    }
     
     if (!formData.cvId) {
       setError('Proszę wybrać CV lub utworzyć nowe');
@@ -268,6 +276,27 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
               <Button onClick={() => window.location.href = '/candidate/applications'}>
                 Zobacz moje aplikacje
               </Button>
+              {applicationId && (
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    if (!confirm('Czy na pewno chcesz usunąć tę aplikację?')) return;
+                    try {
+                      await deleteApplication(applicationId);
+                      alert('Aplikacja została usunięta.');
+                      setHasApplied(false);
+                      setApplicationId(null);
+                      // Opcjonalnie: odśwież pytania/status
+                      await loadData();
+                    } catch (e: any) {
+                      const msg = e?.response?.data?.message || 'Nie udało się usunąć aplikacji';
+                      alert(msg);
+                    }
+                  }}
+                >
+                  Usuń aplikację
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -303,70 +332,63 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
           <div className="space-y-4">
             <h3 className="text-base font-semibold">Wybierz CV</h3>
             
-            {cvs.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="pt-6">
-                  <div className="text-center py-4">
-                    <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">
-                      Nie masz jeszcze żadnego CV. Utwórz nowe CV, aby móc aplikować na tę ofertę.
-                    </p>
-                    <Button type="button" variant="outline" disabled>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Utwórz nowe CV
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {cvs.map((cv) => (
-                  <div key={cv.id} className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50">
-                    <input
-                      type="radio"
-                      value={cv.id.toString()}
-                      id={`cv-${cv.id}`}
-                      name="cvSelection"
-                      checked={formData.cvId === cv.id}
-                      onChange={(e) => handleCVSelect(e.target.value)}
-                      className="h-4 w-4"
-                    />
-                    <label htmlFor={`cv-${cv.id}`} className="flex-1 cursor-pointer">
-                      <div>
-                        <p className="font-medium">{cv.name || `CV #${cv.id}`}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {cv.cvUrl ? 'CV z pliku' : 'CV wygenerowane z profilu'}
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                ))}
-                
-                {/* Opcja utworzenia nowego CV */}
-                <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 border-dashed">
-                  <input
-                    type="radio"
-                    value="new"
-                    id="cv-new"
-                    name="cvSelection"
-                    checked={formData.cvId === null}
-                    onChange={(e) => handleCVSelect(e.target.value)}
-                    className="h-4 w-4"
-                  />
-                  <label htmlFor="cv-new" className="flex-1 cursor-pointer">
-                    <div className="flex items-center">
-                      <Plus className="w-4 h-4 mr-2" />
-                      <div>
-                        <p className="font-medium">Utwórz nowe CV dla tej oferty</p>
-                        <p className="text-sm text-muted-foreground">
-                          Wygeneruj CV dostosowane specjalnie do tej pozycji
-                        </p>
-                      </div>
+            {/* Sekcja: Zapisane CV */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Zapisane CV</h4>
+              
+              {cvs.length === 0 ? (
+                <Card className="border-dashed bg-muted/30">
+                  <CardContent className="pt-4 pb-4">
+                    <div className="text-center py-2">
+                      <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Nie masz żadnego zapisanego CV. Dodaj lub wygeneruj CV.
+                      </p>
                     </div>
-                  </label>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-2">
+                  <select
+                    value={formData.cvId?.toString() || ''}
+                    onChange={(e) => handleCVSelect(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">-- Wybierz CV z listy --</option>
+                    {cvs.map((cv) => (
+                      <option key={cv.id} value={cv.id.toString()}>
+                        {cv.name || `CV #${cv.id}`} - {cv.cvUrl ? 'CV z pliku' : 'CV wygenerowane z profilu'}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Wybierz jedno z wcześniej zapisanych CV
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Sekcja: Wygeneruj CV */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Wygeneruj CV</h4>
+              
+              <div 
+                className={`flex items-center space-x-3 p-4 border-2 border-dashed rounded-lg hover:bg-muted/50 hover:border-primary/50 transition-all cursor-pointer group ${
+                  formData.cvId === null ? 'bg-primary/5 border-primary' : ''
+                }`}
+                onClick={() => handleCVSelect('new')}
+              >
+                <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Utwórz nowe CV dla tej oferty</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Wygeneruj CV z AI dostosowane specjalnie do tej pozycji
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Wiadomość do pracodawcy */}
@@ -425,10 +447,10 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
           <div className="flex gap-4 pt-4">
             <Button
               type="submit"
-              disabled={isSubmitting || !formData.cvId}
+              disabled={isSubmitting}
               className="flex-1"
             >
-              {isSubmitting ? 'Wysyłanie...' : 'Wyślij aplikację'}
+              {isSubmitting ? 'Ładowanie...' : formData.cvId === null && cvs.length > 0 ? 'Stwórz CV' : 'Wyślij aplikację'}
             </Button>
             <Button
               type="button"

@@ -43,11 +43,26 @@ export const candidateService = {
   },
 
   /**
+   * Zapisuje wygenerowane CV na profilu kandydata
+   */
+  async saveGeneratedCV(name: string, cvJson: any): Promise<CandidateCV> {
+    const response = await api.post("/candidate/cvs", { name, cvJson });
+    return response.data.cv;
+  },
+
+  /**
    * Pobiera szczegóły konkretnego CV
    */
   async getCV(id: number): Promise<CandidateCV> {
     const response = await api.get(`/candidate/cvs/${id}`);
     return response.data.cv;
+  },
+
+  /**
+   * Usuwa (soft delete) CV kandydata
+   */
+  async deleteCV(id: number): Promise<void> {
+    await api.delete(`/candidate/cvs/${id}`);
   },
 
   /**

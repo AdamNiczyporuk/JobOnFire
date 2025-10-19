@@ -37,7 +37,9 @@ export const getCandidateProfileWithDetails = async (userId: number) => {
           registerDate: true
         }
       },
-      candidateCVs: true,
+      candidateCVs: {
+        where: { isDeleted: false } as any
+      },
       profileLinks: true,
       applications: {
         include: {

@@ -2,11 +2,32 @@ import { prisma } from '../db';
 import { Request, Response } from 'express';
 
 export async function validateCandidateProfile(req: Request, res: Response): Promise<any> {
-  if (!req.user?.candidateProfile?.id) {
-    res.status(400).json({ message: 'Profil kandydata nie istnieje' });
+  try {
+    // Jeśli profil jest już w sesji, zwróć
+    if (req.user?.candidateProfile?.id) {
+      return req.user.candidateProfile;
+    }
+
+    if (!req.user?.id) {
+      res.status(401).json({ message: 'Użytkownik nie jest zalogowany' });
+      return null;
+    }
+
+    // Spróbuj pobrać profil z bazy po userId
+    let profile = await prisma.candidateProfile.findUnique({ where: { userId: req.user.id } });
+    if (!profile) {
+      // Jeżeli profil nie istnieje, utwórz pusty i zwróć (zapobiega błędom przy świeżych kontach)
+      profile = await prisma.candidateProfile.create({ data: { userId: req.user.id } });
+    }
+
+    // Zaktualizuj sesję (opcjonalnie)
+    (req.user as any).candidateProfile = profile;
+    return profile;
+  } catch (e) {
+    console.error('validateCandidateProfile error:', e);
+    res.status(500).json({ message: 'Błąd serwera podczas walidacji profilu kandydata' });
     return null;
   }
-  return req.user.candidateProfile;
 }
 
 export async function validateJobOfferExists(jobOfferId: number, res: Response): Promise<any> {
@@ -41,9 +62,10 @@ export async function validateCandidateCV(candidateProfileId: number, cvId: numb
   const cv = await prisma.candidateCV.findFirst({
     where: {
       id: cvId,
-      candidateProfileId: candidateProfileId
+      candidateProfileId: candidateProfileId,
+      isDeleted: false
     }
-  });
+  } as any);
 
   if (!cv) {
     res.status(404).json({ message: 'CV nie zostało znalezione lub nie należy do tego kandydata' });

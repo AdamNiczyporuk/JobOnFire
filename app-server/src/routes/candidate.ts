@@ -12,8 +12,33 @@ import {
   validateSkillsData,
   validateEducationData
 } from '../utils/candidateHelpers';
+import cloudinary from '../config/cloudinary';
+import { uploadCV } from '../config/multer';
+import { Readable } from 'stream';
 
 export const router = Router();
+
+// Funkcja pomocnicza do generowania podpisanego URL z Cloudinary
+function getSignedUrl(publicId: string): string {
+  try {
+    // Używaj dokładnie takiego public_id jak zapisany (bez wymuszania formatu)
+    const cleanPublicId = publicId;
+    
+    // Generuj podpisany URL ważny przez 1 godzinę
+    const signedUrl = cloudinary.url(cleanPublicId, {
+      resource_type: 'raw',
+      type: 'upload',
+      sign_url: true,
+      secure: true,
+      expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 godzina
+    });
+    
+    return signedUrl;
+  } catch (error) {
+    console.error('Error generating signed URL:', error);
+    return '';
+  }
+}
 
 // Wszystkie trasy wymagają autoryzacji
 router.use(ensureAuthenticated);
@@ -115,7 +140,7 @@ router.get('/profile/stats', ensureCandidate, async (req: Request, res: Response
 
     const stats = {
       totalApplications: profile.applications?.length || 0,
-      totalCVs: profile.candidateCVs?.length || 0,
+      totalCVs: profile.candidateCVs?.filter(cv => !cv.isDeleted).length || 0,
       totalProfileLinks: profile.profileLinks?.length || 0,
       pendingApplications: profile.applications?.filter(app => app.status === 'PENDING').length || 0,
       acceptedApplications: profile.applications?.filter(app => app.status === 'ACCEPTED').length || 0,
@@ -132,24 +157,28 @@ router.get('/profile/stats', ensureCandidate, async (req: Request, res: Response
   }
 });
 
-// Endpoint - Pobranie wszystkich CV kandydata
-router.get('/cvs', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+/**
+ * POST /candidate/cvs/upload
+ * Upload CV jako plik PDF do Cloudinary
+ */
+router.post('/cvs/upload', ensureCandidate, uploadCV.single('cv'), async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!req.file) {
+      res.status(400).json({ message: 'Nie przesłano pliku CV' });
+      return;
+    }
+
+    // Dodatkowa weryfikacja sygnatury PDF w buforze ("%PDF")
+    const buf = req.file.buffer;
+    const isPdfSignature = buf && buf.length > 4 && buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46; // %PDF
+    if (!isPdfSignature) {
+      res.status(400).json({ message: 'Przesłany plik nie jest prawidłowym PDF.' });
+      return;
+    }
+
     const candidateProfile = await prisma.candidateProfile.findUnique({
       where: { userId: req.user!.id },
-      include: {
-        candidateCVs: {
-          select: {
-            id: true,
-            name: true,
-            cvUrl: true,
-            cvJson: true
-          },
-          orderBy: {
-            id: 'desc'
-          }
-        }
-      }
+      select: { id: true }
     });
 
     if (!candidateProfile) {
@@ -157,7 +186,140 @@ router.get('/cvs', ensureCandidate, async (req: Request, res: Response): Promise
       return;
     }
 
-    res.json({ cvs: candidateProfile.candidateCVs });
+    // Upload do Cloudinary używając stream z bufora
+    const uploadPromise = new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          // Zgodnie z dokumentacją: PDF jako raw
+          resource_type: 'raw',
+          // Organizacja w folderze
+          folder: 'cvs',
+          // Stabilne ID z rozszerzeniem .pdf, niezależne od podanej nazwy
+          public_id: `cv_${candidateProfile.id}_${Date.now()}.pdf`,
+          // Ustaw tryb dostępu na 'authenticated' dla kontroli dostępu
+          access_mode: 'authenticated',
+          // Dla porządku nazwy (nie wpływa na public_id)
+          use_filename: true,
+          unique_filename: true,
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      // Konwertuj buffer na stream i pipe do Cloudinary
+      const bufferStream = Readable.from(req.file!.buffer);
+      bufferStream.pipe(uploadStream);
+    });
+
+  const uploadResult = await uploadPromise;
+
+    console.log('Cloudinary upload result:', {
+      public_id: uploadResult.public_id,
+      secure_url: uploadResult.secure_url,
+      resource_type: uploadResult.resource_type,
+      format: uploadResult.format
+    });
+
+    // Zapisz w bazie danych public_id i URL
+    // Upewnij się, że nazwa w bazie kończy się na .pdf niezależnie od podanej nazwy
+    let normalizedName = (req.body.name || req.file.originalname || 'CV').toString().trim();
+    // usuń istniejące rozszerzenie i dodaj .pdf
+    normalizedName = normalizedName.replace(/\.[^\.]+$/, '');
+    normalizedName = normalizedName.length ? `${normalizedName}.pdf` : 'CV.pdf';
+
+    const cv = await prisma.candidateCV.create({
+      data: {
+        candidateProfileId: candidateProfile.id,
+        name: normalizedName,
+        cvUrl: uploadResult.secure_url, // Zapisujemy URL
+        cvJson: JSON.stringify({ public_id: uploadResult.public_id }) // Zapisujemy public_id dla późniejszego użycia
+      }
+    });
+
+    res.status(201).json({ 
+      message: 'CV zostało pomyślnie przesłane',
+      cv: {
+        id: cv.id,
+        name: cv.name,
+        cvUrl: cv.cvUrl
+      }
+    });
+  } catch (error) {
+    console.error('Błąd podczas przesyłania CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas przesyłania CV' });
+  }
+});
+
+/**
+ * POST /candidate/cvs
+ * Zapisanie wygenerowanego CV (JSON) na profilu kandydata
+ */
+router.post('/cvs', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, cvJson } = req.body;
+
+    if (!name || !cvJson) {
+      res.status(400).json({ message: 'Nazwa i dane CV są wymagane' });
+      return;
+    }
+
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      select: { id: true }
+    });
+
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    // Zapisz CV w bazie danych
+    const cv = await prisma.candidateCV.create({
+      data: {
+        candidateProfileId: candidateProfile.id,
+        name: name,
+        cvUrl: null, // Brak URL dla wygenerowanego CV
+        cvJson: JSON.stringify(cvJson)
+      }
+    });
+
+    res.status(201).json({ 
+      message: 'CV zostało pomyślnie zapisane na profilu',
+      cv: {
+        id: cv.id,
+        name: cv.name,
+        cvJson: cv.cvJson
+      }
+    });
+  } catch (error) {
+    console.error('Błąd podczas zapisywania CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas zapisywania CV' });
+  }
+});
+
+// Endpoint - Pobranie wszystkich CV kandydata
+router.get('/cvs', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      select: { id: true }
+    });
+
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    const cvs = await prisma.candidateCV.findMany({
+      where: { candidateProfileId: candidateProfile.id, isDeleted: false } as any,
+      select: { id: true, name: true, cvUrl: true, cvJson: true },
+      orderBy: { id: 'desc' }
+    });
+
+    // Zwracamy CV z oryginalnym URL - download będzie przez proxy endpoint
+    res.json({ cvs });
   } catch (error) {
     console.error('Błąd podczas pobierania CV:', error);
     res.status(500).json({ message: 'Błąd serwera podczas pobierania CV' });
@@ -187,7 +349,8 @@ router.get('/cvs/:id', ensureCandidate, async (req: Request, res: Response): Pro
     const cv = await prisma.candidateCV.findFirst({
       where: {
         id: cvId,
-        candidateProfileId: candidateProfile.id
+        candidateProfileId: candidateProfile.id,
+        isDeleted: false
       },
       select: {
         id: true,
@@ -195,17 +358,329 @@ router.get('/cvs/:id', ensureCandidate, async (req: Request, res: Response): Pro
         cvUrl: true,
         cvJson: true
       }
-    });
+    } as any);
 
     if (!cv) {
       res.status(404).json({ message: 'CV nie zostało znalezione' });
       return;
     }
 
+    // Zwracamy CV z oryginalnym URL - download będzie przez proxy endpoint
     res.json({ cv });
   } catch (error) {
     console.error('Błąd podczas pobierania CV:', error);
     res.status(500).json({ message: 'Błąd serwera podczas pobierania CV' });
+  }
+});
+
+/**
+ * GET /candidate/cvs/:id/preview
+ * Generuje URL do podglądu CV (bez pobierania)
+ */
+router.get('/cvs/:id/preview', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const cvId = parseInt(req.params.id);
+    
+    if (!cvId || isNaN(cvId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID CV' });
+      return;
+    }
+
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      select: { id: true }
+    });
+
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    const cv = await prisma.candidateCV.findFirst({
+      where: {
+        id: cvId,
+        candidateProfileId: candidateProfile.id,
+        isDeleted: false
+      },
+      select: {
+        id: true,
+        cvUrl: true,
+        cvJson: true,
+        name: true
+      }
+    } as any);
+
+    if (!cv) {
+      res.status(404).json({ message: 'CV nie zostało znalezione' });
+      return;
+    }
+
+    // Jeśli nie ma cvUrl ale ma cvJson - zwróć JSON do renderowania
+    if (!cv.cvUrl && cv.cvJson) {
+      try {
+        const cvData = typeof cv.cvJson === 'string' ? JSON.parse(cv.cvJson) : cv.cvJson;
+        res.json({ 
+          type: 'generated',
+          cvData: cvData,
+          name: cv.name 
+        });
+        return;
+      } catch (e) {
+        console.error('Error parsing cvJson for preview:', e);
+        res.status(500).json({ message: 'Błąd parsowania danych CV' });
+        return;
+      }
+    }
+
+    // Jeśli nie ma ani cvUrl ani cvJson
+    if (!cv.cvUrl) {
+      res.status(404).json({ message: 'CV nie ma dostępnych danych do wyświetlenia' });
+      return;
+    }
+
+    try {
+      // Wyciągnij public_id
+      let publicId: string | null = null;
+      
+      if (cv.cvJson) {
+        try {
+          const jsonData = typeof cv.cvJson === 'string' ? JSON.parse(cv.cvJson) : cv.cvJson;
+          publicId = jsonData.public_id;
+        } catch (e) {
+          console.error('Error parsing cvJson:', e);
+        }
+      }
+      
+      if (!publicId && cv.cvUrl.includes('cloudinary.com')) {
+        const urlParts = cv.cvUrl.split('/');
+        const uploadIndex = urlParts.indexOf('upload');
+        
+        if (uploadIndex !== -1) {
+          let pathParts = urlParts.slice(uploadIndex + 1);
+          if (pathParts[0] && pathParts[0].startsWith('v')) {
+            pathParts = pathParts.slice(1);
+          }
+          // Nie usuwamy rozszerzenia .pdf – część public_id dla resource_type 'raw'
+          publicId = pathParts.join('/').split('?')[0];
+        }
+      }
+
+      if (publicId) {
+        // Generuj URL do podglądu (bez wymuszania downloadu)
+        const previewUrl = cloudinary.url(publicId, {
+          resource_type: 'raw',
+          type: 'upload',
+          sign_url: true,
+          secure: true,
+          expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 godzina
+        });
+
+        // JSON mode: zwróć podpisany URL zamiast redirectu
+        if ((req.query.mode as string) === 'json') {
+          res.json({ url: previewUrl });
+          return;
+        }
+
+        res.redirect(previewUrl);
+        return;
+      }
+    } catch (error) {
+      console.error('Error generating preview URL:', error);
+    }
+
+    // Fallback
+    res.redirect(cv.cvUrl);
+  } catch (error) {
+    console.error('Błąd podczas generowania podglądu CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas generowania podglądu CV' });
+  }
+});
+
+/**
+ * GET /candidate/cvs/:id/download
+ * Proxy do pobierania CV z Cloudinary
+ */
+router.get('/cvs/:id/download', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const cvId = parseInt(req.params.id);
+    
+    if (!cvId || isNaN(cvId)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID CV' });
+      return;
+    }
+
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      select: { id: true }
+    });
+
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    const cv = await prisma.candidateCV.findFirst({
+      where: {
+        id: cvId,
+        candidateProfileId: candidateProfile.id,
+        isDeleted: false
+      },
+      select: {
+        id: true,
+        cvUrl: true,
+        cvJson: true,
+        name: true
+      }
+    } as any);
+
+    if (!cv || !cv.cvUrl) {
+      res.status(404).json({ message: 'CV nie zostało znalezione' });
+      return;
+    }
+
+    try {
+      // Wyciągnij public_id z cvJson jeśli istnieje
+      let publicId: string | null = null;
+      
+      if (cv.cvJson) {
+        try {
+          const jsonData = typeof cv.cvJson === 'string' ? JSON.parse(cv.cvJson) : cv.cvJson;
+          publicId = jsonData.public_id;
+        } catch (e) {
+          console.error('Error parsing cvJson:', e);
+        }
+      }
+      
+      // Jeśli nie ma public_id w JSON, spróbuj wyciągnąć z URL
+      if (!publicId && cv.cvUrl.includes('cloudinary.com')) {
+        const urlParts = cv.cvUrl.split('/');
+        const uploadIndex = urlParts.indexOf('upload');
+        
+        if (uploadIndex !== -1) {
+          let pathParts = urlParts.slice(uploadIndex + 1);
+          // Usuń wersję jeśli istnieje (v1234567890)
+          if (pathParts[0] && pathParts[0].startsWith('v')) {
+            pathParts = pathParts.slice(1);
+          }
+          // Nie usuwamy rozszerzenia .pdf – część public_id dla resource_type 'raw'
+          publicId = pathParts.join('/').split('?')[0];
+        }
+      }
+
+      if (publicId) {
+        console.log('Generating download URL for public_id:', publicId);
+        
+        // Generuj podpisany URL używając Cloudinary SDK
+        const suggestedName = (cv.name || 'cv').replace(/\.[^/.]+$/, '') + '.pdf';
+        const signedUrl = cloudinary.url(publicId, {
+          resource_type: 'raw',
+          type: 'upload',
+          sign_url: true,
+          secure: true,
+          flags: 'attachment',
+          attachment: suggestedName,
+          expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 godzina
+        });
+
+        console.log('Generated signed URL:', signedUrl);
+
+        // JSON mode: zwróć podpisany URL zamiast redirectu
+        if ((req.query.mode as string) === 'json') {
+          res.json({ url: signedUrl });
+          return;
+        }
+
+        // Przekieruj do podpisanego URL
+        res.redirect(signedUrl);
+        return;
+      }
+    } catch (error) {
+      console.error('Error generating signed URL:', error);
+    }
+
+    // Fallback - przekieruj do oryginalnego URL
+    console.log('Falling back to original URL:', cv.cvUrl);
+    res.redirect(cv.cvUrl);
+  } catch (error) {
+    console.error('Błąd podczas pobierania CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas pobierania CV' });
+  }
+});
+
+/**
+ * DELETE /candidate/cvs/:id
+ * Usuwa CV kandydata (z bazy danych i Cloudinary)
+ */
+router.delete('/cvs/:id', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  console.log('🗑️ DELETE /candidate/cvs/:id - Request received');
+  console.log('CV ID:', req.params.id);
+  console.log('User ID:', req.user?.id);
+  
+  try {
+    const cvId = parseInt(req.params.id);
+    
+    if (!cvId || isNaN(cvId)) {
+      console.log('❌ Invalid CV ID');
+      res.status(400).json({ message: 'Nieprawidłowe ID CV' });
+      return;
+    }
+
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      select: { id: true }
+    });
+
+    if (!candidateProfile) {
+      console.log('❌ Candidate profile not found');
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    console.log('✅ Candidate profile found:', candidateProfile.id);
+
+    const cv = await prisma.candidateCV.findFirst({
+      where: {
+        id: cvId,
+        candidateProfileId: candidateProfile.id
+      }
+    });
+
+    if (!cv) {
+      console.log('❌ CV not found or does not belong to this candidate');
+      res.status(404).json({ message: 'CV nie zostało znalezione' });
+      return;
+    }
+
+    console.log('✅ CV found:', cv);
+
+    // Sprawdź czy są aplikacje używające tego CV
+    const applicationsCount = await prisma.applicationForJobOffer.count({
+      where: { cvId: cvId }
+    });
+
+    console.log('📊 Applications using this CV:', applicationsCount);
+
+    if (applicationsCount > 0) {
+      console.log('❌ Cannot delete - CV is used in applications');
+      res.status(400).json({ 
+        message: `Nie można usunąć CV - jest używane w ${applicationsCount} aplikacji${applicationsCount === 1 ? '' : 'ach'}. Usuń najpierw powiązane aplikacje.`,
+        applicationsCount 
+      });
+      return;
+    }
+
+    // Soft delete: oznacz wpis jako usunięty (plik w Cloudinary pozostaje)
+    console.log('🔄 Performing soft delete...');
+    await prisma.candidateCV.update({
+      where: { id: cvId },
+      data: { isDeleted: true } as any
+    });
+
+    console.log('✅ CV soft deleted successfully');
+    res.json({ message: 'CV zostało oznaczone jako usunięte (plik w Cloudinary pozostaje bez zmian)' });
+  } catch (error) {
+    console.error('❌ Błąd podczas usuwania CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas usuwania CV' });
   }
 });
 
@@ -424,6 +899,7 @@ router.get('/candidates/:id', async (req: Request, res: Response): Promise<void>
             name: true,
             cvUrl: true
           },
+          where: { isDeleted: false } as any,
           orderBy: {
             id: 'desc'
           }

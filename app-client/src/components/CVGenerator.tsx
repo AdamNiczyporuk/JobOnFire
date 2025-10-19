@@ -1,7 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import CVPreview from "@/components/CVPreview";
+import { useSearchParams } from "next/navigation";
 import { candidateService } from "@/services/candidateService";
+import { getPublicJobOffer, generateCVWithAI } from "@/services/jobOfferService";
 import type { CandidateProfile } from "@/types/candidate";
+import type { JobOffer } from "@/types/jobOffer";
+import { Save, Download, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 type CVForm = {
 	fullName: string;
@@ -10,9 +16,23 @@ type CVForm = {
 	skills: string;
 	experience: string;
 	education: string;
+	email: string;
+	phoneNumber: string;
+};
+
+type JobOfferData = {
+	jobName?: string;
+	jobLevel?: string;
+	jobDescription?: string;
+	salary?: string;
+	requirements?: string;
+	responsibilities?: string;
+	whatWeOffer?: string;
+	companyName?: string;
 };
 
 export default function CVGenerator() {
+	const searchParams = useSearchParams();
 	const [form, setForm] = useState<CVForm>({
 		fullName: "",
 		position: "",
@@ -20,12 +40,20 @@ export default function CVGenerator() {
 		skills: "",
 		experience: "",
 		education: "",
+		email: "",
+		phoneNumber: "",
 	});
+
+	const [jobOfferData, setJobOfferData] = useState<JobOfferData>({});
 
 	const [loading, setLoading] = useState(false);
 	const [loadedFromProfile, setLoadedFromProfile] = useState(false);
 	const [unauth, setUnauth] = useState(false);
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
+	const [isGenerating, setIsGenerating] = useState(false);
+	const [generatedCV, setGeneratedCV] = useState<any>(null);
+	const [isSaving, setIsSaving] = useState(false);
+	const [saveSuccess, setSaveSuccess] = useState(false);
 
 	// refs for auto-resizing fields
 	const fullNameRef = useRef<HTMLTextAreaElement | null>(null);
@@ -116,27 +144,83 @@ export default function CVGenerator() {
 			setLoading(true);
 			setErrorMsg(null);
 			try {
+				// Pobierz ID oferty z query params
+				const jobOfferId = searchParams?.get("jobOfferId");
+
+				// Jeśli mamy ID oferty, pobierz dane z API
+				if (jobOfferId && mounted) {
+					try {
+						const jobOffer = await getPublicJobOffer(parseInt(jobOfferId));
+						setJobOfferData({
+							jobName: jobOffer.name || undefined,
+							jobLevel: Array.isArray(jobOffer.jobLevel) ? jobOffer.jobLevel.join(", ") : jobOffer.jobLevel,
+							jobDescription: jobOffer.description || undefined,
+							salary: jobOffer.salary || undefined,
+							requirements: Array.isArray(jobOffer.requirements) ? jobOffer.requirements.join("\n") : jobOffer.requirements,
+							responsibilities: Array.isArray(jobOffer.responsibilities) ? jobOffer.responsibilities.join("\n") : jobOffer.responsibilities,
+							whatWeOffer: Array.isArray(jobOffer.whatWeOffer) ? jobOffer.whatWeOffer.join("\n") : jobOffer.whatWeOffer,
+							companyName: jobOffer.employerProfile?.companyName || undefined,
+						});
+
+						// Prefill form with job offer data
+						if (mounted) {
+							setForm((prev) => {
+								const next: CVForm = { ...prev };
+								if (jobOffer.name) next.position = jobOffer.name;
+								const levelInfo = jobOffer.jobLevel ? (Array.isArray(jobOffer.jobLevel) ? `Poziom: ${jobOffer.jobLevel.join(", ")}` : `Poziom: ${jobOffer.jobLevel}`) : "";
+								const salaryInfo = jobOffer.salary ? `Wynagrodzenie: ${jobOffer.salary}` : "";
+								if (levelInfo || salaryInfo || jobOffer.description) {
+									next.summary = [levelInfo, salaryInfo, jobOffer.description].filter(Boolean).join("\n");
+								}
+								return next;
+							});
+						}
+					} catch (err: any) {
+						console.error("Error fetching job offer:", err);
+						setErrorMsg("Nie udało się pobrać danych oferty pracy. Uzupełnij dane ręcznie.");
+					}
+				}
+
+				// Pobranie profilu kandydata
 				const profile = await candidateService.getProfile();
 				if (!mounted || !profile) return;
 
-				// Only prefill if the fields are still empty to not override user edits
+				// Wczytaj dane z profilu, ale nie nadpisuj tego co pochodzi z oferty
 				setForm((prev) => {
-					if (
-						prev.fullName || prev.position || prev.summary || prev.skills || prev.experience || prev.education
-					) {
-						return prev;
+					const next: CVForm = { ...prev };
+					
+					// Wczytaj imię/nazwisko jeśli brak
+					if (!next.fullName) {
+						next.fullName = joinFullName(profile);
 					}
-					const next: CVForm = {
-						fullName: joinFullName(profile),
-						position: "",
-						summary: profile.description || "",
-						skills: formatSkills(profile.skills),
-						experience: formatExperience(profile.experience),
-						education: formatEducation(profile.education),
-					};
+					
+					// Wczytaj dane kontaktowe
+					if (!next.email && profile.user?.email) {
+						next.email = profile.user.email;
+					}
+					if (!next.phoneNumber && profile.phoneNumber) {
+						next.phoneNumber = profile.phoneNumber.toString();
+					}
+					
+					// Wczytaj umiejętności, doświadczenie i edukację
+					if (!next.skills) next.skills = formatSkills(profile.skills);
+					if (!next.experience) next.experience = formatExperience(profile.experience);
+					if (!next.education) next.education = formatEducation(profile.education);
+					
+					// Jeśli nie ma pozycji z oferty, wczytaj z profilu
+					if (!jobOfferId && !next.position) {
+						next.position = "";
+					}
+					
+					// Jeśli nie ma podsumowania z oferty, wczytaj z profilu
+					if (!jobOfferId && !next.summary) {
+						next.summary = profile.description || "";
+					}
+					
 					return next;
 				});
 				setLoadedFromProfile(true);
+				
 				// after prefill, ensure fields resize to content
 				setTimeout(() => {
 					adjustHeight(fullNameRef.current);
@@ -163,7 +247,7 @@ export default function CVGenerator() {
 		return () => {
 			mounted = false;
 		};
-	}, []);
+	}, [searchParams]);
 
 	// whenever the form changes, adjust heights so the UI stays in sync
 	useEffect(() => {
@@ -174,6 +258,194 @@ export default function CVGenerator() {
 		adjustHeight(experienceRef.current);
 		adjustHeight(educationRef.current);
 	}, [form.fullName, form.position, form.skills, form.summary, form.experience, form.education]);
+
+	// Load generated CV from sessionStorage on mount
+	useEffect(() => {
+		const savedCV = sessionStorage.getItem('generatedCV');
+		if (savedCV) {
+			try {
+				const parsedCV = JSON.parse(savedCV);
+				setGeneratedCV(parsedCV);
+			} catch (error) {
+				console.error('Error parsing saved CV:', error);
+				sessionStorage.removeItem('generatedCV');
+			}
+		}
+	}, []);
+
+	const handleGenerateCV = async () => {
+		try {
+			setIsGenerating(true);
+			setErrorMsg(null);
+
+			const cv = await generateCVWithAI({
+				fullName: form.fullName,
+				position: form.position,
+				summary: form.summary,
+				skills: form.skills,
+				experience: form.experience,
+				education: form.education,
+				email: form.email,
+				phoneNumber: form.phoneNumber,
+				jobOffer: Object.keys(jobOfferData).length > 0 ? jobOfferData : undefined
+			});
+
+			setGeneratedCV(cv);
+			// Save to sessionStorage
+			sessionStorage.setItem('generatedCV', JSON.stringify(cv));
+		} catch (error: any) {
+			console.error('Error generating CV:', error);
+			setErrorMsg(error.message || 'Nie udało się wygenerować CV');
+		} finally {
+			setIsGenerating(false);
+		}
+	};
+
+	// Loading view: show only a centered spinner
+	if (isGenerating) {
+		return (
+			<div className="min-h-[60vh] flex items-center justify-center">
+				<div className="flex flex-col items-center gap-3">
+					<div className="h-10 w-10 rounded-full border-2 border-gray-300 border-b-transparent animate-spin" />
+					<p className="text-sm text-muted-foreground">Generowanie CV...</p>
+				</div>
+			</div>
+		);
+	}
+
+	// Success view: show CV preview with download button below
+	if (generatedCV) {
+		const handleDownloadPDF = async () => {
+			try {
+				// Dynamiczny import @react-pdf/renderer
+				const { pdf } = await import('@react-pdf/renderer');
+				const { CVDocument } = await import('./CVDocument');
+				
+				const fileName = `CV_${(generatedCV.fullName || 'kandydat').replace(/\s+/g, '_')}.pdf`;
+				
+				// Generuj PDF z komponentu React
+				const blob = await pdf(<CVDocument cv={generatedCV} />).toBlob();
+				
+				// Utwórz link do pobrania
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = fileName;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(url);
+			} catch (error) {
+				console.error('Error generating PDF:', error);
+				alert('Nie udało się pobrać PDF. Spróbuj ponownie.');
+			}
+		};
+
+		const handleGenerateNew = () => {
+			setGeneratedCV(null);
+			sessionStorage.removeItem('generatedCV');
+			setSaveSuccess(false);
+		};
+
+		const handleSaveToProfile = async () => {
+			if (!generatedCV) return;
+			
+			try {
+				setIsSaving(true);
+				setErrorMsg(null);
+				
+				// Nazwa CV to stanowisko z wygenerowanego CV
+				const cvName = generatedCV.position || form.position || 'CV';
+				
+				await candidateService.saveGeneratedCV(cvName, generatedCV);
+				setSaveSuccess(true);
+				
+				// Opcjonalnie: wyczyść komunikat sukcesu po 3 sekundach
+				setTimeout(() => setSaveSuccess(false), 3000);
+			} catch (error: any) {
+				console.error('Error saving CV to profile:', error);
+				const errorMessage = error?.response?.data?.message || error.message || 'Nie udało się zapisać CV na profilu';
+				setErrorMsg(errorMessage);
+			} finally {
+				setIsSaving(false);
+			}
+		};
+
+		return (
+			<div className="space-y-4">
+				{/* Komunikat sukcesu */}
+				{saveSuccess && (
+					<div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+						<CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+						<p className="text-green-700 font-medium">CV zostało pomyślnie zapisane na Twoim profilu</p>
+					</div>
+				)}
+				
+				{/* Komunikat błędu */}
+				{errorMsg && (
+					<div className="bg-red-50 border border-red-200 rounded-lg p-4">
+						<p className="text-red-700">{errorMsg}</p>
+					</div>
+				)}
+				
+				<CVPreview cv={generatedCV} />
+				
+				<div className="flex flex-col gap-4 print:hidden">
+					{/* Główne akcje */}
+					<div className="flex items-center justify-center gap-3">
+						<Button variant="outline" onClick={handleGenerateNew} className="gap-2">
+							<ArrowLeft className="w-4 h-4" />
+							Wygeneruj nowe CV
+						</Button>
+						<Button onClick={handleDownloadPDF} className="gap-2">
+							<Download className="w-4 h-4" />
+							Pobierz PDF
+						</Button>
+					</div>
+					
+					{/* Sekcja zapisywania na profilu */}
+					<div className="border-t pt-4">
+						<div className="flex flex-col items-center gap-3">
+							<div className="text-center">
+								<p className="text-sm font-medium text-gray-700 mb-1">Zapisz CV na swoim profilu</p>
+								<p className="text-xs text-muted-foreground">
+									Nazwa CV: <span className="font-medium text-gray-900">{generatedCV.position || form.position || 'CV'}</span>
+								</p>
+							</div>
+							<Button 
+								variant={saveSuccess ? "outline" : "default"}
+								size="lg"
+								onClick={handleSaveToProfile}
+								disabled={isSaving || saveSuccess}
+								className={`gap-2 min-w-[200px] transition-all ${
+									saveSuccess 
+										? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-50' 
+										: ''
+								}`}
+							>
+								{isSaving ? (
+									<>
+										<div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-transparent" />
+										Zapisywanie...
+									</>
+								) : saveSuccess ? (
+									<>
+										<CheckCircle2 className="w-5 h-5" />
+										Zapisano na profilu
+									</>
+								) : (
+									<>
+										<Save className="w-5 h-5" />
+										Zapisz na profilu
+									</>
+								)}
+							</Button>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="grid gap-6 md:grid-cols-2">
@@ -199,7 +471,7 @@ export default function CVGenerator() {
 				)}
 			</div>
 			{/* Form */}
-			<div className="rounded-xl border bg-white p-6 shadow-sm">
+			<div className="rounded-xl border bg-white p-6 shadow-sm md:col-span-2">
 				<h2 className="text-lg font-semibold mb-4">Wprowadź dane</h2>
 				<div className="space-y-4">
 					<div>
@@ -226,6 +498,8 @@ export default function CVGenerator() {
 							placeholder="Frontend Developer"
 						/>
 					</div>
+
+
 					<div>
 						<label className="text-sm font-medium">Podsumowanie</label>
 						<textarea
@@ -274,60 +548,64 @@ export default function CVGenerator() {
 							placeholder="Uczelnia, kierunek, lata"
 						/>
 					</div>
-				</div>
-			</div>
 
-			{/* Preview */}
-			<div className="rounded-xl border bg-white p-6 shadow-sm">
-				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-lg font-semibold">Podgląd CV</h2>
-					<button
-						className="rounded-full bg-primary px-4 py-2 text-white text-sm hover:bg-primary/90"
-						onClick={() => window.print()}
-					>
-						Drukuj / Zapisz PDF
-					</button>
-				</div>
-
-				<div className="space-y-4">
-					<div>
-						<h3 className="text-2xl font-bold">{form.fullName || "Twoje Imię i Nazwisko"}</h3>
-						<p className="text-muted-foreground">{form.position || "Stanowisko"}</p>
-					</div>
-
-					{form.summary && (
-						<section>
-							<h4 className="font-semibold mb-1">Podsumowanie</h4>
-							<p className="text-sm leading-relaxed whitespace-pre-line">{form.summary}</p>
-						</section>
-					)}
-
-					{form.skills && (
-						<section>
-							<h4 className="font-semibold mb-1">Umiejętności</h4>
-							<div className="flex flex-wrap gap-2">
-								{form.skills.split(",").map((s) => (
-									<span key={s} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs">
-										{s.trim()}
-									</span>
-								))}
+					{/* Dane oferty pracy - read-only (przeniesione na koniec formularza) */}
+					{Object.keys(jobOfferData).length > 0 && (
+						<div className="mt-6 pt-6 border-t">
+							<h3 className="text-sm font-semibold mb-4 text-gray-700">Dane z oferty pracy</h3>
+							<div className="space-y-4 bg-slate-100 p-4 rounded-lg border border-gray-200">
+								{jobOfferData.companyName && (
+									<div>
+										<label className="text-xs font-medium text-gray-600">Pracodawca</label>
+										<p className="text-sm text-gray-900 mt-1">{jobOfferData.companyName}</p>
+									</div>
+								)}
+								
+								{jobOfferData.jobLevel && (
+									<div>
+										<label className="text-xs font-medium text-gray-600">Poziom stanowiska</label>
+										<p className="text-sm text-gray-900 mt-1">{jobOfferData.jobLevel}</p>
+									</div>
+								)}
+								
+								{jobOfferData.salary && (
+									<div>
+										<label className="text-xs font-medium text-gray-600">Wynagrodzenie</label>
+										<p className="text-sm text-gray-900 mt-1">{jobOfferData.salary}</p>
+									</div>
+								)}
+								
+								{jobOfferData.responsibilities && (
+									<div>
+										<label className="text-xs font-medium text-gray-600">Obowiązki</label>
+										<p className="text-sm text-gray-900 mt-1 whitespace-pre-line">{jobOfferData.responsibilities}</p>
+									</div>
+								)}
+								
+								{jobOfferData.requirements && (
+									<div>
+										<label className="text-xs font-medium text-gray-600">Wymagania</label>
+										<p className="text-sm text-gray-900 mt-1 whitespace-pre-line">{jobOfferData.requirements}</p>
+									</div>
+								)}
+								
+								{jobOfferData.whatWeOffer && (
+									<div>
+										<label className="text-xs font-medium text-gray-600">Co oferujemy</label>
+										<p className="text-sm text-gray-900 mt-1 whitespace-pre-line">{jobOfferData.whatWeOffer}</p>
+									</div>
+								)}
 							</div>
-						</section>
+							<p className="text-xs text-gray-500 mt-2">Te informacje są pobrane z oferty pracy i nie mogą być edytowane.</p>
+						</div>
 					)}
 
-					{form.experience && (
-						<section>
-							<h4 className="font-semibold mb-1">Doświadczenie</h4>
-							<p className="text-sm whitespace-pre-line leading-relaxed">{form.experience}</p>
-						</section>
-					)}
-
-					{form.education && (
-						<section>
-							<h4 className="font-semibold mb-1">Wykształcenie</h4>
-							<p className="text-sm whitespace-pre-line leading-relaxed">{form.education}</p>
-						</section>
-					)}
+					{/* Akcje: Generuj CV */}
+					<div className="mt-6 flex justify-center">
+						<Button onClick={handleGenerateCV} disabled={isGenerating || !form.fullName || !form.position}>
+							{isGenerating ? 'Generowanie CV...' : 'Generuj CV'}
+						</Button>
+					</div>
 				</div>
 			</div>
 		</div>
