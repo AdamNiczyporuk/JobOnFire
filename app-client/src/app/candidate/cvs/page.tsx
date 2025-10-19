@@ -8,6 +8,13 @@ import Link from "next/link";
 import { candidateService } from "@/services/candidateService";
 import type { CandidateCV } from "@/types/candidate";
 import api from "@/api";
+import dynamic from "next/dynamic";
+
+// Dynamic import dla @react-pdf/renderer (tylko client-side)
+const PDFViewer = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
+  { ssr: false }
+);
 
 export default function CandidateCVsPage() {
   const { user } = useAuth();
@@ -16,6 +23,7 @@ export default function CandidateCVsPage() {
   const [cvs, setCvs] = useState<CandidateCV[]>([]);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [cvToDelete, setCvToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [previewCV, setPreviewCV] = useState<any | null>(null); // Stan dla podglądu wygenerowanego CV
   
   const apiBase = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_API_PREFIX || '/api/v1'}`;
 
@@ -94,23 +102,20 @@ export default function CandidateCVsPage() {
 
   const handleOpenPreview = async (cvId: number) => {
     try {
-      const { data } = await api.get(`/candidate/cvs/${cvId}/preview`, { params: { mode: 'json' } });
+      const { data } = await api.get(`/candidate/cvs/${cvId}/preview`);
+      
+      // Jeśli to wygenerowane CV (bez cvUrl)
+      if (data.type === 'generated' && data.cvData) {
+        setPreviewCV(data.cvData);
+        return;
+      }
+      
+      // Jeśli to CV z URL (Cloudinary)
       const url = data?.url || `${apiBase}/candidate/cvs/${cvId}/preview`;
       window.open(url, '_blank', 'noopener');
     } catch (e) {
       console.error('Preview open failed, using fallback:', e);
       window.open(`${apiBase}/candidate/cvs/${cvId}/preview`, '_blank', 'noopener');
-    }
-  };
-
-  const handleOpenDownload = async (cvId: number) => {
-    try {
-      const { data } = await api.get(`/candidate/cvs/${cvId}/download`, { params: { mode: 'json' } });
-      const url = data?.url || `${apiBase}/candidate/cvs/${cvId}/download`;
-      window.open(url, '_blank', 'noopener');
-    } catch (e) {
-      console.error('Download open failed, using fallback:', e);
-      window.open(`${apiBase}/candidate/cvs/${cvId}/download`, '_blank', 'noopener');
     }
   };
 
@@ -136,6 +141,46 @@ export default function CandidateCVsPage() {
 
   return (
     <>
+      {/* Modal podglądu wygenerowanego CV */}
+      {previewCV && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setPreviewCV(null)}
+          />
+          
+          {/* Modal */}
+          <div className="relative bg-white rounded-lg shadow-2xl w-[95vw] h-[95vh] mx-4 flex flex-col animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">Podgląd CV</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPreviewCV(null)}
+                className="hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            </div>
+            
+            {/* PDF Viewer */}
+            <div className="flex-1 overflow-hidden">
+              <PDFViewer width="100%" height="100%" showToolbar={true}>
+                {/* Dynamic import CVDocument here */}
+                {(() => {
+                  const CVDocument = require('@/components/CVDocument').CVDocument;
+                  return <CVDocument cv={previewCV} />;
+                })()}
+              </PDFViewer>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal potwierdzenia usunięcia */}
       {cvToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -287,19 +332,6 @@ export default function CandidateCVsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {cv.cvUrl && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="hover:bg-primary hover:text-white transition-colors"
-                        onClick={() => handleOpenDownload(cv.id)}
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Pobierz
-                      </Button>
-                    )}
                     <Button
                       variant="outline"
                       size="sm"

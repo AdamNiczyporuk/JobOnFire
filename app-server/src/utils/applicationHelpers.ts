@@ -62,9 +62,10 @@ export async function validateCandidateCV(candidateProfileId: number, cvId: numb
   const cv = await prisma.candidateCV.findFirst({
     where: {
       id: cvId,
-      candidateProfileId: candidateProfileId
+      candidateProfileId: candidateProfileId,
+      isDeleted: false
     }
-  });
+  } as any);
 
   if (!cv) {
     res.status(404).json({ message: 'CV nie zostało znalezione lub nie należy do tego kandydata' });

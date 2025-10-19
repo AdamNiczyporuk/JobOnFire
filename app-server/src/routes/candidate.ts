@@ -140,7 +140,7 @@ router.get('/profile/stats', ensureCandidate, async (req: Request, res: Response
 
     const stats = {
       totalApplications: profile.applications?.length || 0,
-      totalCVs: profile.candidateCVs?.length || 0,
+      totalCVs: profile.candidateCVs?.filter(cv => !cv.isDeleted).length || 0,
       totalProfileLinks: profile.profileLinks?.length || 0,
       pendingApplications: profile.applications?.filter(app => app.status === 'PENDING').length || 0,
       acceptedApplications: profile.applications?.filter(app => app.status === 'ACCEPTED').length || 0,
@@ -410,8 +410,31 @@ router.get('/cvs/:id/preview', ensureCandidate, async (req: Request, res: Respon
       }
     } as any);
 
-    if (!cv || !cv.cvUrl) {
+    if (!cv) {
       res.status(404).json({ message: 'CV nie zostało znalezione' });
+      return;
+    }
+
+    // Jeśli nie ma cvUrl ale ma cvJson - zwróć JSON do renderowania
+    if (!cv.cvUrl && cv.cvJson) {
+      try {
+        const cvData = typeof cv.cvJson === 'string' ? JSON.parse(cv.cvJson) : cv.cvJson;
+        res.json({ 
+          type: 'generated',
+          cvData: cvData,
+          name: cv.name 
+        });
+        return;
+      } catch (e) {
+        console.error('Error parsing cvJson for preview:', e);
+        res.status(500).json({ message: 'Błąd parsowania danych CV' });
+        return;
+      }
+    }
+
+    // Jeśli nie ma ani cvUrl ani cvJson
+    if (!cv.cvUrl) {
+      res.status(404).json({ message: 'CV nie ma dostępnych danych do wyświetlenia' });
       return;
     }
 
