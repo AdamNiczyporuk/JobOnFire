@@ -75,14 +75,14 @@ function renderDescription(desc: string | string[] | undefined): React.ReactNode
   if (!desc) return null;
   if (Array.isArray(desc)) {
     return (
-      <ul className="list-disc list-inside text-sm leading-relaxed mt-1 space-y-1">
+      <ul className="list-disc list-inside text-sm leading-snug mt-0.5 space-y-0 print:text-xs print:leading-tight print:mt-0.5 print:space-y-0">
         {desc.map((item, i) => (
           <li key={i}>{item}</li>
         ))}
       </ul>
     );
   }
-  return <p className="text-sm whitespace-pre-line leading-relaxed mt-1">{desc}</p>;
+  return <p className="text-sm whitespace-pre-line leading-snug mt-0.5 print:text-xs print:leading-tight print:mt-0.5">{desc}</p>;
 }
 
 export default function CVPreview({ cv }: { cv: CVData }) {
@@ -96,19 +96,19 @@ export default function CVPreview({ cv }: { cv: CVData }) {
   const interests = cv.interests || [];
 
   return (
-    <div id="cv-print" className="mx-auto max-w-3xl bg-white text-gray-900 p-6 md:p-10 rounded-xl shadow print:shadow-none print:p-0">
+    <div id="cv-print" className="mx-auto max-w-3xl bg-white text-gray-900 p-6 md:p-8 rounded-xl shadow print:shadow-none print:p-6 print:rounded-none print:text-sm" style={{ backgroundColor: '#ffffff', color: '#111827' }}>
       {/* Header */}
-      <header className="border-b pb-4 mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">{fullName}</h1>
-        <p className="text-gray-600 mt-1">{position}</p>
+      <header className="border-b pb-2 mb-3 print:pb-2 print:mb-2.5" style={{ borderColor: '#e5e7eb' }}>
+        <h1 className="text-2xl md:text-3xl font-bold print:text-xl">{fullName}</h1>
+        <p className="text-gray-600 mt-0.5 text-sm print:text-xs print:mt-0.5" style={{ color: '#4b5563' }}>{position}</p>
         
         {/* Contact Information */}
         {contacts && (
-          <div className="mt-3 text-sm text-gray-600 space-y-1">
+          <div className="mt-1.5 text-sm text-gray-600 space-y-0 print:text-xs print:mt-1" style={{ color: '#4b5563' }}>
             {contacts.email && (
               <p>
                 <span className="font-medium">Email:</span>{" "}
-                <a href={`mailto:${contacts.email}`} className="text-blue-600 hover:underline">
+                <a href={`mailto:${contacts.email}`} className="text-blue-600 hover:underline" style={{ color: '#2563eb' }}>
                   {contacts.email}
                 </a>
               </p>
@@ -124,18 +124,22 @@ export default function CVPreview({ cv }: { cv: CVData }) {
               </p>
             )}
             {contacts.socials && contacts.socials.length > 0 && (
-              <div className="flex flex-wrap gap-3 mt-2">
-                {contacts.socials.map((social, idx) => (
-                  <a
-                    key={idx}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline text-xs"
-                  >
-                    {social.label || social.url}
-                  </a>
-                ))}
+              <div className="mt-0.5">
+                <span className="font-medium">Dodatkowe linki:</span>
+                <div className="flex flex-wrap gap-1.5 mt-0.5 print:gap-1">
+                  {contacts.socials.map((social, idx) => (
+                    <a
+                      key={idx}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-xs break-all print:text-[10px]"
+                      style={{ color: '#2563eb' }}
+                    >
+                      {social.url}
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -144,19 +148,19 @@ export default function CVPreview({ cv }: { cv: CVData }) {
 
       {/* Summary */}
       {summary && (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-2">Podsumowanie</h2>
-          <p className="leading-relaxed whitespace-pre-line">{summary}</p>
+        <section className="mb-3 print:mb-2.5">
+          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Podsumowanie</h2>
+          <p className="leading-snug whitespace-pre-line text-sm print:text-xs print:leading-tight">{summary}</p>
         </section>
       )}
 
       {/* Skills */}
       {skills.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-2">Umiejętności</h2>
-          <div className="flex flex-wrap gap-2">
+        <section className="mb-3 print:mb-2.5">
+          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Umiejętności</h2>
+          <div className="flex flex-wrap gap-1.5 print:gap-1">
             {skills.map((s, i) => (
-              <span key={`${s}-${i}`} className="rounded-full bg-gray-100 px-3 py-1 text-xs">
+              <span key={`${s}-${i}`} className="chip">
                 {s}
               </span>
             ))}
@@ -166,18 +170,18 @@ export default function CVPreview({ cv }: { cv: CVData }) {
 
       {/* Experience */}
       {experience.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-2">Doświadczenie</h2>
-          <div className="space-y-4">
+        <section className="mb-3 print:mb-2.5">
+          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Doświadczenie</h2>
+          <div className="space-y-2 print:space-y-1.5">
             {experience.map((item, idx) => (
               <div key={idx} className="">
                 {(item.position || item.company) && (
-                  <p className="font-medium">
+                  <p className="font-medium text-sm print:text-xs">
                     {item.position}
-                    {item.company ? <span className="text-gray-500"> @ {item.company}</span> : null}
+                    {item.company ? <span className="text-gray-500" style={{ color: '#6b7280' }}> @ {item.company}</span> : null}
                   </p>
                 )}
-                {item.period && <p className="text-xs text-gray-500">{item.period}</p>}
+                {item.period && <p className="text-xs text-gray-500 print:text-[10px]" style={{ color: '#6b7280' }}>{item.period}</p>}
                 {renderDescription(item.description)}
               </div>
             ))}
@@ -187,19 +191,19 @@ export default function CVPreview({ cv }: { cv: CVData }) {
 
       {/* Education */}
       {education.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-2">Wykształcenie</h2>
-          <div className="space-y-3">
+        <section className="mb-3 print:mb-2.5">
+          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Wykształcenie</h2>
+          <div className="space-y-1.5 print:space-y-1">
             {education.map((item, idx) => (
               <div key={idx}>
                 {(item.degree || item.institution) && (
-                  <p className="font-medium">
+                  <p className="font-medium text-sm print:text-xs">
                     {item.degree}
-                    {item.institution ? <span className="text-gray-500"> — {item.institution}</span> : null}
+                    {item.institution ? <span className="text-gray-500" style={{ color: '#6b7280' }}> — {item.institution}</span> : null}
                   </p>
                 )}
                 {(item.field || item.period) && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 print:text-[10px]" style={{ color: '#6b7280' }}>
                     {item.field}
                     {item.period ? (item.field ? ` • ${item.period}` : item.period) : null}
                   </p>
@@ -213,10 +217,10 @@ export default function CVPreview({ cv }: { cv: CVData }) {
       {/* Interests */}
       {interests.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-2">Zainteresowania</h2>
-          <div className="flex flex-wrap gap-2">
+          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Zainteresowania</h2>
+          <div className="flex flex-wrap gap-1.5 print:gap-1">
             {interests.map((interest, i) => (
-              <span key={`${interest}-${i}`} className="rounded-full bg-gray-100 px-3 py-1 text-xs">
+              <span key={`${interest}-${i}`} className="chip">
                 {interest}
               </span>
             ))}

@@ -130,3 +130,96 @@ body {
 .shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
+/* Reusable chip (pill) style to keep text vertically centered */
+.chip {
+  /* Grid centering tends to look most balanced with html2canvas */
+  display: inline-grid;
+  place-items: center;      /* centers both axes */
+  height: 24px;             /* fixed height for consistent look */
+  line-height: 1;           /* avoid inherited large line-height */
+  padding: 0 10px;          /* horizontal padding only */
+  border-radius: 9999px;
+  background-color: #f3f4f6; /* gray-100 in RGB */
+  font-size: 12px;          /* ~ text-xs */
+  white-space: nowrap;      /* single line */
+  vertical-align: middle;   /* align nicely in flow */
+  position: relative;       /* allow a subtle optical nudge */
+  top: -0.5px;              /* nudge text slightly upward for optical centering */
+}
+
+@media print {
+  .chip {
+    height: 19px;       /* slightly taller to balance font metrics on PDF */
+    line-height: 1;     /* rely on grid centering */
+    font-size: 10px;    /* compact in PDF */
+    padding: 0 8px;
+    top: -0.25px;       /* smaller nudge for print rendering */
+  }
+}
+
+/* Print styles for CV */
+@media print {
+  @page {
+    size: A4;
+    margin: 8mm 10mm;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Hide everything except CV */
+  body * {
+    visibility: hidden;
+  }
+
+  #cv-print,
+  #cv-print * {
+    visibility: visible;
+  }
+
+  #cv-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Force single page - prevent page breaks */
+  #cv-print section {
+    page-break-inside: avoid;
+    page-break-before: avoid;
+    page-break-after: avoid;
+  }
+
+  #cv-print header {
+    page-break-after: avoid;
+  }
+
+  #cv-print div {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure links are visible in print */
+  #cv-print a {
+    text-decoration: underline;
+    color: #2563eb !important;
+  }
+
+  /* Remove shadows and borders that don't print well */
+  #cv-print .shadow,
+  #cv-print .shadow-sm,
+  #cv-print .shadow-md {
+    box-shadow: none !important;
+  }
+}

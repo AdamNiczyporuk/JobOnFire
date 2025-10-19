@@ -51,7 +51,6 @@ export default function CVGenerator() {
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [generatedCV, setGeneratedCV] = useState<any>(null);
-	const [showJSON, setShowJSON] = useState(false);
 
 	// refs for auto-resizing fields
 	const fullNameRef = useRef<HTMLTextAreaElement | null>(null);
@@ -257,6 +256,20 @@ export default function CVGenerator() {
 		adjustHeight(educationRef.current);
 	}, [form.fullName, form.position, form.skills, form.summary, form.experience, form.education]);
 
+	// Load generated CV from sessionStorage on mount
+	useEffect(() => {
+		const savedCV = sessionStorage.getItem('generatedCV');
+		if (savedCV) {
+			try {
+				const parsedCV = JSON.parse(savedCV);
+				setGeneratedCV(parsedCV);
+			} catch (error) {
+				console.error('Error parsing saved CV:', error);
+				sessionStorage.removeItem('generatedCV');
+			}
+		}
+	}, []);
+
 	const handleGenerateCV = async () => {
 		try {
 			setIsGenerating(true);
@@ -275,37 +288,13 @@ export default function CVGenerator() {
 			});
 
 			setGeneratedCV(cv);
-			// Optionally: trigger print dialog or download
-			// window.print();
+			// Save to sessionStorage
+			sessionStorage.setItem('generatedCV', JSON.stringify(cv));
 		} catch (error: any) {
 			console.error('Error generating CV:', error);
 			setErrorMsg(error.message || 'Nie udało się wygenerować CV');
 		} finally {
 			setIsGenerating(false);
-		}
-	};
-
-	const handleCopyJSON = async () => {
-		try {
-			await navigator.clipboard.writeText(JSON.stringify(generatedCV, null, 2));
-		} catch (e) {
-			console.error('Copy failed', e);
-		}
-	};
-
-	const handleDownloadJSON = () => {
-		try {
-			const blob = new Blob([JSON.stringify(generatedCV, null, 2)], { type: 'application/json' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `cv-${(form.fullName || 'kandydat').replace(/\s+/g, '_').toLowerCase()}.json`;
-			document.body.appendChild(a);
-			a.click();
-			URL.revokeObjectURL(url);
-			a.remove();
-		} catch (e) {
-			console.error('Download failed', e);
 		}
 	};
 
@@ -321,24 +310,62 @@ export default function CVGenerator() {
 		);
 	}
 
-	// Success view: show a nice preview with option to print or view raw JSON
+	// Success view: show CV preview with download button below
 	if (generatedCV) {
-		const handlePrint = () => window.print();
+		const handleDownloadPDF = async () => {
+			const element = document.getElementById('cv-print');
+			if (!element) return;
+
+			try {
+				const html2pdf = (await import('html2pdf.js')).default;
+				const fileName = `CV_${(generatedCV.fullName || 'kandydat').replace(/\s+/g, '_')}.pdf`;
+				
+				const opt = {
+					margin: [8, 10, 8, 10] as [number, number, number, number],
+					filename: fileName,
+					image: { type: 'jpeg' as const, quality: 0.95 },
+					html2canvas: { 
+						scale: 2,
+						useCORS: true,
+						letterRendering: true,
+						backgroundColor: '#ffffff',
+						logging: false,
+						windowWidth: 794,
+						windowHeight: 1123
+					},
+					jsPDF: { 
+						unit: 'mm', 
+						format: 'a4', 
+						orientation: 'portrait' as const,
+						compress: true
+					},
+					pagebreak: { 
+						mode: ['avoid-all', 'css', 'legacy'],
+						avoid: ['section', 'header', 'div']
+					}
+				};
+
+				await html2pdf().set(opt).from(element).save();
+			} catch (error) {
+				console.error('Error generating PDF:', error);
+				alert('Nie udało się pobrać PDF. Spróbuj ponownie.');
+			}
+		};
+
+		const handleGenerateNew = () => {
+			setGeneratedCV(null);
+			sessionStorage.removeItem('generatedCV');
+		};
+
 		return (
 			<div className="space-y-4">
-				<div className="flex items-center justify-end gap-2 print:hidden">
-					<Button variant="outline" onClick={() => setShowJSON((v) => !v)}>
-						{showJSON ? 'Pokaż podgląd' : 'Pokaż JSON'}
+				<CVPreview cv={generatedCV} />
+				<div className="flex items-center justify-center gap-3 print:hidden">
+					<Button variant="outline" onClick={handleGenerateNew}>
+						← Wygeneruj nowe CV
 					</Button>
-					<Button onClick={handlePrint}>Drukuj / Zapisz PDF</Button>
+					<Button onClick={handleDownloadPDF}>Pobierz CV</Button>
 				</div>
-				{showJSON ? (
-					<div className="rounded-xl border bg-white p-4 shadow-sm">
-						<pre className="text-xs leading-relaxed whitespace-pre-wrap">{JSON.stringify(generatedCV, null, 2)}</pre>
-					</div>
-				) : (
-					<CVPreview cv={generatedCV} />
-				)}
 			</div>
 		);
 	}
