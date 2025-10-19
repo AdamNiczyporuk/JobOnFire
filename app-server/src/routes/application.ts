@@ -30,7 +30,7 @@ router.post('/', ensureAuthenticated, ensureCandidate, async (req: Request, res:
     const { message, jobOfferId, cvId, answers } = value;
 
     // Walidacja profilu kandydata
-    const candidateProfile = await validateCandidateProfile(req, res);
+  const candidateProfile = await validateCandidateProfile(req, res);
     if (!candidateProfile) return;
 
     // Walidacja czy oferta pracy istnieje i jest aktywna
@@ -141,6 +141,57 @@ router.post('/', ensureAuthenticated, ensureCandidate, async (req: Request, res:
   }
 });
 
+// DELETE /applications/:id - Usunięcie aplikacji kandydata
+router.delete('/:id', ensureAuthenticated, ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Ustal profil kandydata
+    const candidateProfile = await prisma.candidateProfile.findUnique({ where: { userId: req.user!.id } });
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'Nieprawidłowe ID aplikacji' });
+      return;
+    }
+
+    // Pobierz aplikację i upewnij się, że należy do kandydata
+    const application = await prisma.applicationForJobOffer.findFirst({
+      where: {
+        id,
+        candidateProfileId: candidateProfile.id,
+      },
+      select: { id: true, status: true }
+    });
+
+    if (!application) {
+      res.status(404).json({ message: 'Aplikacja nie została znaleziona' });
+      return;
+    }
+
+    // Pozwól usuwać tylko aplikacje w statusie PENDING (opcjonalnie można dopuścić CANCELED)
+    if (!(application.status === 'PENDING' || application.status === 'CANCELED')) {
+      res.status(400).json({ message: 'Można usunąć tylko aplikacje w trakcie (PENDING) lub anulowane (CANCELED)' });
+      return;
+    }
+
+    // Usuń powiązane dane i samą aplikację w transakcji
+    await prisma.$transaction(async (tx) => {
+      await tx.candidateAnswer.deleteMany({ where: { applicationForJobOfferId: id } });
+      await tx.meeting.deleteMany({ where: { applicationForJobOfferId: id } });
+      await tx.applicationResponse.deleteMany({ where: { applicationForJobOfferId: id } });
+      await tx.applicationForJobOffer.delete({ where: { id } });
+    });
+
+    res.json({ message: 'Aplikacja została usunięta' });
+  } catch (error) {
+    console.error('Błąd podczas usuwania aplikacji:', error);
+    res.status(500).json({ message: 'Wewnętrzny błąd serwera' });
+  }
+});
+
 // GET /applications/check/:jobOfferId - Sprawdzenie czy kandydat już aplikował na daną ofertę
 router.get('/check/:jobOfferId', ensureAuthenticated, ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -205,7 +256,10 @@ router.get('/', ensureAuthenticated, ensureCandidate, async (req: Request, res: 
 
     const [applications, total] = await Promise.all([
       prisma.applicationForJobOffer.findMany({
-        where: whereConditions,
+        where: {
+          ...whereConditions,
+          candidateCV: { isDeleted: false }
+        },
         include: {
           jobOffer: {
             include: {
@@ -224,12 +278,7 @@ router.get('/', ensureAuthenticated, ensureCandidate, async (req: Request, res: 
               }
             }
           },
-          candidateCV: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
+          candidateCV: { select: { id: true, name: true } },
           response: true
         },
         orderBy: {
@@ -239,7 +288,7 @@ router.get('/', ensureAuthenticated, ensureCandidate, async (req: Request, res: 
         take: limit
       }),
       prisma.applicationForJobOffer.count({
-        where: whereConditions
+        where: { ...whereConditions, candidateCV: { isDeleted: false } as any }
       })
     ]);
 

@@ -9,7 +9,7 @@ import { JobOffer } from '@/types/jobOffer';
 import { CandidateCV } from '@/types/candidate';
 import { ApplicationFormData, RecruitmentQuestion, QuestionAnswer } from '@/types/application';
 import { candidateService } from '@/services/candidateService';
-import { createApplication, checkApplicationStatus } from '@/services/applicationService';
+import { createApplication, checkApplicationStatus, deleteApplication } from '@/services/applicationService';
 import { getJobOfferQuestions } from '@/services/jobOfferService';
 import { useAuth } from '@/context/authContext';
 
@@ -276,6 +276,27 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
               <Button onClick={() => window.location.href = '/candidate/applications'}>
                 Zobacz moje aplikacje
               </Button>
+              {applicationId && (
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    if (!confirm('Czy na pewno chcesz usunąć tę aplikację?')) return;
+                    try {
+                      await deleteApplication(applicationId);
+                      alert('Aplikacja została usunięta.');
+                      setHasApplied(false);
+                      setApplicationId(null);
+                      // Opcjonalnie: odśwież pytania/status
+                      await loadData();
+                    } catch (e: any) {
+                      const msg = e?.response?.data?.message || 'Nie udało się usunąć aplikacji';
+                      alert(msg);
+                    }
+                  }}
+                >
+                  Usuń aplikację
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

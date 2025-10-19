@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
@@ -7,12 +7,17 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { candidateService } from "@/services/candidateService";
 import type { CandidateCV } from "@/types/candidate";
+import api from "@/api";
 
 export default function CandidateCVsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [cvs, setCvs] = useState<CandidateCV[]>([]);
+  const [deleting, setDeleting] = useState<number | null>(null);
+  const [cvToDelete, setCvToDelete] = useState<{ id: number; name: string } | null>(null);
+  
+  const apiBase = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_API_PREFIX || '/api/v1'}`;
 
   useEffect(() => {
     if (!user) {
@@ -49,6 +54,66 @@ export default function CandidateCVsPage() {
     };
   }, [user]);
 
+  const handleDeleteCV = (cvId: number, cvName: string) => {
+    // Pokaż modal potwierdzenia
+    setCvToDelete({ id: cvId, name: cvName });
+  };
+
+  const confirmDelete = async () => {
+    if (!cvToDelete) return;
+    
+    const { id: cvId, name: cvName } = cvToDelete;
+    console.log('✅ Starting deletion process for:', cvId, cvName);
+    
+    setDeleting(cvId);
+    setCvToDelete(null); // Zamknij modal
+    
+    try {
+      console.log('Calling candidateService.deleteCV...');
+      await candidateService.deleteCV(cvId);
+      console.log('Delete successful, refreshing list...');
+      
+      // Po soft delete przeładuj listę z serwera, żeby UI był zgodny z backendem
+      const refreshed = await candidateService.getCVs();
+      console.log('Refreshed CVs:', refreshed);
+      setCvs(refreshed);
+    } catch (error: any) {
+      console.error('Error deleting CV:', error);
+      console.error('Error response:', error.response);
+      const errorMessage = error.response?.data?.message || 'Nie udało się usunąć CV.';
+      alert(errorMessage);
+    } finally {
+      console.log('Resetting deleting state');
+      setDeleting(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setCvToDelete(null);
+  };
+
+  const handleOpenPreview = async (cvId: number) => {
+    try {
+      const { data } = await api.get(`/candidate/cvs/${cvId}/preview`, { params: { mode: 'json' } });
+      const url = data?.url || `${apiBase}/candidate/cvs/${cvId}/preview`;
+      window.open(url, '_blank', 'noopener');
+    } catch (e) {
+      console.error('Preview open failed, using fallback:', e);
+      window.open(`${apiBase}/candidate/cvs/${cvId}/preview`, '_blank', 'noopener');
+    }
+  };
+
+  const handleOpenDownload = async (cvId: number) => {
+    try {
+      const { data } = await api.get(`/candidate/cvs/${cvId}/download`, { params: { mode: 'json' } });
+      const url = data?.url || `${apiBase}/candidate/cvs/${cvId}/download`;
+      window.open(url, '_blank', 'noopener');
+    } catch (e) {
+      console.error('Download open failed, using fallback:', e);
+      window.open(`${apiBase}/candidate/cvs/${cvId}/download`, '_blank', 'noopener');
+    }
+  };
+
   if (!user) {
     return (
       <main className="flex-1 w-full flex flex-col items-center justify-center py-12">
@@ -70,9 +135,72 @@ export default function CandidateCVsPage() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-8">
-      {/* Nagłówek */}
-      <div className="mb-8 flex items-center justify-between">
+    <>
+      {/* Modal potwierdzenia usunięcia */}
+      {cvToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={cancelDelete}
+          />
+          
+          {/* Modal */}
+          <div className="relative bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-start gap-4">
+              {/* Ikona ostrzeżenia */}
+              <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Potwierdź usunięcie
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Czy na pewno chcesz usunąć CV <span className="font-semibold">"{cvToDelete.name}"</span>? 
+                  Ta operacja jest nieodwracalna.
+                </p>
+                
+                {/* Przyciski */}
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={cancelDelete}
+                    disabled={deleting === cvToDelete.id}
+                  >
+                    Anuluj
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={confirmDelete}
+                    disabled={deleting === cvToDelete.id}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    {deleting === cvToDelete.id ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Usuwanie...
+                      </>
+                    ) : (
+                      'Usuń CV'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-8">
+        {/* Nagłówek */}
+        <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">
             Moje CV 📄
@@ -160,24 +288,42 @@ export default function CandidateCVsPage() {
                   </div>
                   <div className="flex gap-2">
                     {cv.cvUrl && (
-                      <a href={cv.cvUrl} target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="sm" className="hover:bg-primary hover:text-white transition-colors">
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          Pobierz
-                        </Button>
-                      </a>
-                    )}
-                    <Link href={`/candidate/cv/${cv.id}`}>
-                      <Button variant="outline" size="sm" className="hover:bg-primary hover:text-white transition-colors">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="hover:bg-primary hover:text-white transition-colors"
+                        onClick={() => handleOpenDownload(cv.id)}
+                      >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Podgląd
+                        Pobierz
                       </Button>
-                    </Link>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hover:bg-primary hover:text-white transition-colors"
+                      onClick={() => handleOpenPreview(cv.id)}
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      Podgląd
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="hover:bg-red-500 hover:text-white transition-colors"
+                      onClick={() => handleDeleteCV(cv.id, cv.name || `CV #${cv.id}`)}
+                      disabled={deleting === cv.id}
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      {deleting === cv.id ? 'Usuwanie...' : 'Usuń'}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -204,5 +350,6 @@ export default function CandidateCVsPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

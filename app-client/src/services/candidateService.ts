@@ -51,6 +51,13 @@ export const candidateService = {
   },
 
   /**
+   * Usuwa (soft delete) CV kandydata
+   */
+  async deleteCV(id: number): Promise<void> {
+    await api.delete(`/candidate/cvs/${id}`);
+  },
+
+  /**
    * Pobiera listę wszystkich kandydatów z możliwością filtrowania
    */
   async getCandidatesList(filters: CandidateFilters = {}): Promise<CandidateListResponse> {
