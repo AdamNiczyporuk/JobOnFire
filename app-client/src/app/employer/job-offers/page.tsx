@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import JobOfferForm from '@/components/JobOfferForm';
 import JobOfferList from '@/components/JobOfferList';
@@ -12,7 +13,7 @@ import {
 } from '@/services/jobOfferService';
 import { JobOffer, JobOfferCreateRequest, JobOfferUpdateRequest } from '@/types/jobOffer';
 
-type ViewMode = 'list' | 'create' | 'edit' | 'view';
+type ViewMode = 'list' | 'create' | 'edit';
 
 export default function JobOffersPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -120,161 +121,14 @@ export default function JobOffersPage() {
     setViewMode('edit');
   };
 
-  // Przejście do widoku szczegółów
-  const handleViewClick = (jobOffer: JobOffer) => {
-    setSelectedJobOffer(jobOffer);
-    setViewMode('view');
-  };
+  // Przejście do widoku szczegółów przeniesione do osobnej strony /employer/job-offers/[id]
 
   // Sprawdzenie czy oferta wygasła
   const isExpired = (dateString: string) => {
     return new Date(dateString) < new Date();
   };
 
-  // Renderowanie widoku szczegółów oferty
-  const renderJobOfferDetails = () => {
-    if (!selectedJobOffer) return null;
-
-    return (
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold">{selectedJobOffer.name}</h2>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => handleEditClick(selectedJobOffer)}
-              className="transition-all duration-200 hover:scale-105"
-            >
-              Edytuj
-            </Button>
-            <Button
-              onClick={() => setViewMode('list')}
-              variant="outline"
-              className="transition-all duration-200 hover:scale-105"
-            >
-              Powrót do listy
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {/* Status i podstawowe info */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div>
-              <span className="font-medium">Status:</span>
-              <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                !selectedJobOffer.isActive 
-                  ? 'bg-gray-100 text-gray-700'
-                  : isExpired(selectedJobOffer.expireDate)
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                {!selectedJobOffer.isActive 
-                  ? 'Nieaktywna'
-                  : isExpired(selectedJobOffer.expireDate)
-                  ? 'Wygasła'
-                  : 'Aktywna'
-                }
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">Wygasa:</span>
-              <span className={`ml-2 ${isExpired(selectedJobOffer.expireDate) ? 'text-red-600 font-medium' : ''}`}>
-                {new Date(selectedJobOffer.expireDate).toLocaleDateString('pl-PL')}
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">Typ umowy:</span> {selectedJobOffer.contractType || 'Nie określono'}
-            </div>
-            <div>
-              <span className="font-medium">Wynagrodzenie:</span> {selectedJobOffer.salary || 'Nie określono'}
-            </div>
-          </div>
-
-          {/* Komunikat o wygaśnięciu */}
-          {isExpired(selectedJobOffer.expireDate) && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    Oferta wygasła
-                  </h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    <p>
-                      Ta oferta pracy wygasła {new Date(selectedJobOffer.expireDate).toLocaleDateString('pl-PL')}. 
-                      Kandydaci nie mogą już aplikować na tę pozycję. Możesz zaktualizować datę wygaśnięcia lub utworzyć nową ofertę.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Opis */}
-          {selectedJobOffer.description && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Opis</h3>
-              <p className="text-gray-700">{selectedJobOffer.description}</p>
-            </div>
-          )}
-
-          {/* Obowiązki */}
-          {selectedJobOffer.responsibilities && selectedJobOffer.responsibilities.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Obowiązki</h3>
-              <ul className="list-disc list-inside space-y-1">
-                {selectedJobOffer.responsibilities.map((resp, index) => (
-                  <li key={index} className="text-gray-700">{resp}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Wymagania */}
-          {selectedJobOffer.requirements && selectedJobOffer.requirements.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Wymagania</h3>
-              <ul className="list-disc list-inside space-y-1">
-                {selectedJobOffer.requirements.map((req, index) => (
-                  <li key={index} className="text-gray-700">{req}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Co oferujemy */}
-          {selectedJobOffer.whatWeOffer && selectedJobOffer.whatWeOffer.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Co oferujemy</h3>
-              <ul className="list-disc list-inside space-y-1">
-                {selectedJobOffer.whatWeOffer.map((offer, index) => (
-                  <li key={index} className="text-gray-700">{offer}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Tagi */}
-          {selectedJobOffer.tags && selectedJobOffer.tags.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Tagi</h3>
-              <div className="flex flex-wrap gap-2">
-                {selectedJobOffer.tags.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  // Widok szczegółów jest teraz na trasie /employer/job-offers/[id]
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -324,7 +178,7 @@ export default function JobOffersPage() {
             jobOffers={jobOffers}
             onEdit={handleEditClick}
             onDelete={handleDelete}
-            onView={handleViewClick}
+            onView={(jo) => { /* backward compat - link below */ }}
             isLoading={isLoading}
           />
 
@@ -376,7 +230,7 @@ export default function JobOffersPage() {
       )}
 
       {/* Widok szczegółów */}
-      {viewMode === 'view' && renderJobOfferDetails()}
+  {/* Widok szczegółów przeniesiony do /employer/job-offers/[id] */}
 
       {/* Modal potwierdzenia usunięcia */}
       {deleteConfirm.show && (
