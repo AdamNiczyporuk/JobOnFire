@@ -14,11 +14,12 @@ import { router } from "./routes/index";
 
 const app = express();
 
-// TODO: specify smaller subset of allowed origins (i.e. only our frontend lol)
-// Allow all cors
+// CORS configuration - kluczowe dla sesji i autoryzacji
 app.use(cors({
-  origin: env.FRONTEND_BASE_URL || 'http://localhost:5173',
-  credentials: true,
+  origin: env.FRONTEND_BASE_URL || 'http://localhost:3000',
+  credentials: true, // Pozwala na wysyłanie cookies
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 // Allow for application/json body content
 app.use(bodyParser.json());
@@ -35,6 +36,12 @@ app.use(session({
   secret: env.SESSION_SECRET as string,
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    secure: env.NODE_ENV === 'production', // HTTPS tylko w produkcji
+    httpOnly: true, // Zabezpieczenie przed XSS
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dni
+    sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax', // Dla cross-origin w produkcji
+  }
 }));
 
 // Initialize Passport.js

@@ -196,12 +196,41 @@ export const generateCVWithAI = async (cvData: {
   skills: string;
   experience: string;
   education: string;
+  email?: string;
+  phoneNumber?: string;
+  jobOffer?: {
+    jobName?: string;
+    jobLevel?: string;
+    jobDescription?: string;
+    salary?: string;
+    requirements?: string;
+    responsibilities?: string;
+    whatWeOffer?: string;
+    companyName?: string;
+  };
 }): Promise<any> => {
   try {
-    const response = await api.post('/cv-generator', cvData);
+    // Zwiększony timeout do 60 sekund dla generowania CV przez AI
+    const response = await api.post('/cv-generator', cvData, {
+      timeout: 60000, // 60 sekund
+    });
     return response.data.cv;
   } catch (error: any) {
     console.error('Error generating CV:', error);
-    throw new Error(error.response?.data?.message || 'Nie udało się wygenerować CV');
+    const status = error?.response?.status;
+    const serverMsg = error?.response?.data?.message;
+    
+    // Specjalna obsługa timeout
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Generowanie CV trwa zbyt długo. Spróbuj ponownie z krótszym opisem.');
+    }
+    
+    if (status === 401) {
+      throw new Error('Musisz być zalogowany jako kandydat, aby wygenerować CV.');
+    }
+    if (status === 403) {
+      throw new Error('Brak uprawnień do wygenerowania CV.');
+    }
+    throw new Error(serverMsg || 'Nie udało się wygenerować CV');
   }
 };

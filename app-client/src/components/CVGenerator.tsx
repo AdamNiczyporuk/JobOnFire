@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import CVPreview from "@/components/CVPreview";
 import { useSearchParams } from "next/navigation";
 import { candidateService } from "@/services/candidateService";
 import { getPublicJobOffer, generateCVWithAI } from "@/services/jobOfferService";
@@ -14,6 +15,8 @@ type CVForm = {
 	skills: string;
 	experience: string;
 	education: string;
+	email: string;
+	phoneNumber: string;
 };
 
 type JobOfferData = {
@@ -36,6 +39,8 @@ export default function CVGenerator() {
 		skills: "",
 		experience: "",
 		education: "",
+		email: "",
+		phoneNumber: "",
 	});
 
 	const [jobOfferData, setJobOfferData] = useState<JobOfferData>({});
@@ -46,6 +51,7 @@ export default function CVGenerator() {
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [generatedCV, setGeneratedCV] = useState<any>(null);
+	const [showJSON, setShowJSON] = useState(false);
 
 	// refs for auto-resizing fields
 	const fullNameRef = useRef<HTMLTextAreaElement | null>(null);
@@ -186,6 +192,14 @@ export default function CVGenerator() {
 						next.fullName = joinFullName(profile);
 					}
 					
+					// Wczytaj dane kontaktowe
+					if (!next.email && profile.user?.email) {
+						next.email = profile.user.email;
+					}
+					if (!next.phoneNumber && profile.phoneNumber) {
+						next.phoneNumber = profile.phoneNumber.toString();
+					}
+					
 					// Wczytaj umiejętności, doświadczenie i edukację
 					if (!next.skills) next.skills = formatSkills(profile.skills);
 					if (!next.experience) next.experience = formatExperience(profile.experience);
@@ -254,7 +268,10 @@ export default function CVGenerator() {
 				summary: form.summary,
 				skills: form.skills,
 				experience: form.experience,
-				education: form.education
+				education: form.education,
+				email: form.email,
+				phoneNumber: form.phoneNumber,
+				jobOffer: Object.keys(jobOfferData).length > 0 ? jobOfferData : undefined
 			});
 
 			setGeneratedCV(cv);
@@ -267,6 +284,64 @@ export default function CVGenerator() {
 			setIsGenerating(false);
 		}
 	};
+
+	const handleCopyJSON = async () => {
+		try {
+			await navigator.clipboard.writeText(JSON.stringify(generatedCV, null, 2));
+		} catch (e) {
+			console.error('Copy failed', e);
+		}
+	};
+
+	const handleDownloadJSON = () => {
+		try {
+			const blob = new Blob([JSON.stringify(generatedCV, null, 2)], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `cv-${(form.fullName || 'kandydat').replace(/\s+/g, '_').toLowerCase()}.json`;
+			document.body.appendChild(a);
+			a.click();
+			URL.revokeObjectURL(url);
+			a.remove();
+		} catch (e) {
+			console.error('Download failed', e);
+		}
+	};
+
+	// Loading view: show only a centered spinner
+	if (isGenerating) {
+		return (
+			<div className="min-h-[60vh] flex items-center justify-center">
+				<div className="flex flex-col items-center gap-3">
+					<div className="h-10 w-10 rounded-full border-2 border-gray-300 border-b-transparent animate-spin" />
+					<p className="text-sm text-muted-foreground">Generowanie CV...</p>
+				</div>
+			</div>
+		);
+	}
+
+	// Success view: show a nice preview with option to print or view raw JSON
+	if (generatedCV) {
+		const handlePrint = () => window.print();
+		return (
+			<div className="space-y-4">
+				<div className="flex items-center justify-end gap-2 print:hidden">
+					<Button variant="outline" onClick={() => setShowJSON((v) => !v)}>
+						{showJSON ? 'Pokaż podgląd' : 'Pokaż JSON'}
+					</Button>
+					<Button onClick={handlePrint}>Drukuj / Zapisz PDF</Button>
+				</div>
+				{showJSON ? (
+					<div className="rounded-xl border bg-white p-4 shadow-sm">
+						<pre className="text-xs leading-relaxed whitespace-pre-wrap">{JSON.stringify(generatedCV, null, 2)}</pre>
+					</div>
+				) : (
+					<CVPreview cv={generatedCV} />
+				)}
+			</div>
+		);
+	}
 
 	return (
 		<div className="grid gap-6 md:grid-cols-2">
