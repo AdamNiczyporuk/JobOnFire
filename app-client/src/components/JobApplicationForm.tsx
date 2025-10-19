@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, FileText, Plus, ArrowLeft } from 'lucide-react';
@@ -19,6 +20,7 @@ interface JobApplicationFormProps {
 }
 
 export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: JobApplicationFormProps) {
+  const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   
   const [formData, setFormData] = useState<ApplicationFormData>({
@@ -135,6 +137,12 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Jeśli wybrana jest opcja "utwórz nowe CV", redirect do generatora CV
+    if (formData.cvId === null && cvs.length > 0) {
+      router.push(`/tools/cv-generator?jobOfferId=${jobOffer.id}`);
+      return;
+    }
     
     if (!formData.cvId) {
       setError('Proszę wybrać CV lub utworzyć nowe');
@@ -425,10 +433,10 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
           <div className="flex gap-4 pt-4">
             <Button
               type="submit"
-              disabled={isSubmitting || !formData.cvId}
+              disabled={isSubmitting}
               className="flex-1"
             >
-              {isSubmitting ? 'Wysyłanie...' : 'Wyślij aplikację'}
+              {isSubmitting ? 'Ładowanie...' : formData.cvId === null && cvs.length > 0 ? 'Stwórz CV' : 'Wyślij aplikację'}
             </Button>
             <Button
               type="button"

@@ -185,3 +185,23 @@ export const getJobOfferQuestions = async (jobOfferId: number): Promise<{
     return [];
   }
 };
+
+/**
+ * Generuje CV za pomocą AI na serwerze
+ */
+export const generateCVWithAI = async (cvData: {
+  fullName: string;
+  position: string;
+  summary: string;
+  skills: string;
+  experience: string;
+  education: string;
+}): Promise<any> => {
+  try {
+    const response = await api.post('/cv-generator', cvData);
+    return response.data.cv;
+  } catch (error: any) {
+    console.error('Error generating CV:', error);
+    throw new Error(error.response?.data?.message || 'Nie udało się wygenerować CV');
+  }
+};

@@ -47,9 +47,10 @@ type AdditionalEmployerSeed = {
 async function main(): Promise<void> {
   console.info("🌱 Seeding database with demo data...");
 
-  // Remove previous seed data created by earlier runs to avoid duplicates
-  // Only remove records related to the demo seed (emails ending with @jobonfire.com)
-  console.info("🧹 Cleaning previous seed data created by demo seeder...");
+  // Clean up old seed data before re-seeding
+  console.info("🧹 Cleaning previous seed data...");
+  await prisma.candidateAnswer.deleteMany();
+  await prisma.applicationResponse.deleteMany();
   await prisma.meeting.deleteMany();
   await prisma.applicationForJobOffer.deleteMany();
   await prisma.recruitmentQuestion.deleteMany();
@@ -60,8 +61,8 @@ async function main(): Promise<void> {
   await prisma.profileLink.deleteMany();
   await prisma.candidateProfile.deleteMany();
   await prisma.lokalization.deleteMany();
-  // Delete only users created by the demo seed (email pattern)
   await prisma.user.deleteMany({ where: { email: { endsWith: "@jobonfire.com" } } });
+  console.info("✅ Cleanup complete");
 
   const [employerPasswordHash, candidatePasswordHash] = await Promise.all([
     bcrypt.hash("Employer123!", 10),
@@ -589,8 +590,13 @@ async function main(): Promise<void> {
     },
   });
 
-  // keep a plain string array for skills and cast to Prisma.JsonArray when writing to DB
-  const skills = ["React", "Next.js", "TypeScript", "GraphQL", "Jest"];
+  const skills: Prisma.JsonArray = [
+    { name: "React", level: "EXPERT" },
+    { name: "Next.js", level: "EXPERT" },
+    { name: "TypeScript", level: "ADVANCED" },
+    { name: "GraphQL", level: "ADVANCED" },
+    { name: "Jest", level: "ADVANCED" },
+  ];
   const experience: Prisma.JsonArray = [
     {
       company: "CodeWave",
@@ -633,7 +639,7 @@ async function main(): Promise<void> {
       birthday: new Date("1994-08-14"),
       experience,
       phoneNumber: 481112233,
-  skills: skills as unknown as Prisma.JsonArray,
+      skills,
       place: "Warszawa",
       education,
     },
@@ -645,7 +651,7 @@ async function main(): Promise<void> {
       birthday: new Date("1994-08-14"),
       experience,
       phoneNumber: 481112233,
-      skills: skills as unknown as Prisma.JsonArray,
+      skills,
       place: "Warszawa",
       education,
       userId: candidateUser.id,
