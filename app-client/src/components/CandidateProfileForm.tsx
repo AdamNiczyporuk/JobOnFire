@@ -21,6 +21,15 @@ interface CandidateProfileFormProps {
 export function CandidateProfileForm({ profile, onSuccess, onCancel }: CandidateProfileFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isValidUrl = (value: string) => {
+    if (!value) return true;
+    try {
+      const u = new URL(value);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
   
   const [formData, setFormData] = useState<CandidateProfileFormData>({
     name: profile.name || "",
@@ -37,6 +46,9 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
     ],
     education: profile.education.length > 0 ? profile.education : [
       { institution: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", isCurrent: false, description: "", location: "" }
+    ],
+    profileLinks: profile.profileLinks?.map(l => ({ id: l.id, name: l.name, url: l.url })) || [
+      { name: "LinkedIn", url: "" }
     ]
   });
 
@@ -118,6 +130,27 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
     }));
   };
 
+  // Profile Links handlers
+  const updateLink = (index: number, field: 'name' | 'url', value: string) => {
+    const links = [...(formData.profileLinks || [])];
+    links[index] = { ...links[index], [field]: value } as any;
+    setFormData(prev => ({ ...prev, profileLinks: links }));
+  };
+
+  const addLink = () => {
+    const links = [...(formData.profileLinks || [])];
+    links.push({ name: '', url: '' });
+    setFormData(prev => ({ ...prev, profileLinks: links }));
+  };
+
+  const removeLink = (index: number) => {
+    const links = [...(formData.profileLinks || [])];
+    if (links.length > 1) {
+      links.splice(index, 1);
+      setFormData(prev => ({ ...prev, profileLinks: links }));
+    }
+  };
+
   const removeEducation = (index: number) => {
     if (formData.education.length > 1) {
       setFormData(prev => ({
@@ -139,7 +172,10 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
         ...formData,
         experience: formData.experience.filter(exp => exp.company && exp.position),
         skills: formData.skills.filter(skill => skill.name),
-        education: formData.education.filter(edu => edu.institution && edu.degree)
+        education: formData.education.filter(edu => edu.institution && edu.degree),
+        profileLinks: (formData.profileLinks || [])
+          .filter(l => l.name && l.url)
+          .map(l => ({ id: l.id, name: l.name, url: l.url }))
       };
 
       const updatedProfile = await candidateService.updateProfile(filteredData);
@@ -150,6 +186,20 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const hasInvalidLinks = (formData.profileLinks || []).some(l => l.url && !isValidUrl(l.url));
+
+  const addPresetLink = (presetName: string) => {
+    const links = [...(formData.profileLinks || [])];
+    // If there is an empty slot, reuse it, else push a new preset row
+    const emptyIndex = links.findIndex(l => !l.name && !l.url);
+    if (emptyIndex >= 0) {
+      links[emptyIndex] = { ...links[emptyIndex], name: presetName } as any;
+    } else {
+      links.push({ name: presetName, url: '' });
+    }
+    setFormData(prev => ({ ...prev, profileLinks: links }));
   };
 
   return (
@@ -468,6 +518,60 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
         ))}
       </div>
 
+      {/* Linki do profili */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+          <h2 className="text-xl font-semibold">Linki do profili</h2>
+          <div className="flex items-center gap-2">
+            <Button type="button" onClick={() => addPresetLink('LinkedIn')} variant="outline" size="sm" className="transition-all duration-200 hover:scale-105">LinkedIn</Button>
+            <Button type="button" onClick={() => addPresetLink('GitHub')} variant="outline" size="sm" className="transition-all duration-200 hover:scale-105">GitHub</Button>
+            <Button type="button" onClick={() => addPresetLink('Portfolio')} variant="outline" size="sm" className="transition-all duration-200 hover:scale-105">Portfolio</Button>
+            <Button type="button" onClick={addLink} className="transition-all duration-200 hover:scale-105">Dodaj link</Button>
+          </div>
+        </div>
+        {(formData.profileLinks || []).map((link, index) => (
+          <div key={index} className="border rounded-lg p-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Nazwa</label>
+                <Input
+                  value={link.name}
+                  onChange={(e) => updateLink(index, 'name', e.target.value)}
+                  placeholder="np. LinkedIn, GitHub, Portfolio"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">URL</label>
+                <Input
+                  value={link.url}
+                  onChange={(e) => updateLink(index, 'url', e.target.value)}
+                  placeholder="https://..."
+                />
+                {link.url && !isValidUrl(link.url) && (
+                  <p className="text-xs text-red-600 mt-1">Podaj poprawny adres URL (z http:// lub https://)</p>
+                )}
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end">
+              {(formData.profileLinks || []).length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeLink(index)}
+                  className="text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-105"
+                >
+                  Usuń
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+        {hasInvalidLinks && (
+          <div className="mt-2 text-sm text-red-600">Niektóre linki mają niepoprawny adres URL. Popraw je przed zapisaniem.</div>
+        )}
+      </div>
+
       {/* Przyciski akcji */}
       <div className="flex justify-end space-x-4">
         <Button
@@ -481,7 +585,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
         </Button>
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || hasInvalidLinks}
           className="transition-all duration-200 hover:scale-105"
         >
           {isSubmitting ? "Zapisywanie..." : "Zapisz profil"}

@@ -126,6 +126,7 @@ export interface CandidateProfileFormData {
   skills: Skill[];
   place?: string;
   education: Education[];
+  profileLinks?: Array<{ id?: number; name: string; url: string }>; // editable links payload
 }
 
 // Typ dla elementu listy kandydatów (uproszczona wersja profilu)
