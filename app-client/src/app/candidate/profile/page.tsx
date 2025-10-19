@@ -97,8 +97,7 @@ export default function CandidateProfilePage() {
             </div>
             <Button 
               onClick={() => setIsEditing(!isEditing)}
-              variant={isEditing ? "outline" : "default"}
-              size="lg"
+              className="transition-all duration-200 hover:scale-105"
             >
               {isEditing ? "Anuluj" : "Edytuj profil"}
             </Button>

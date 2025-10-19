@@ -222,7 +222,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Doświadczenie zawodowe</h2>
-          <Button type="button" variant="outline" onClick={addExperience}>
+          <Button type="button" onClick={addExperience} className="transition-all duration-200 hover:scale-105">
             Dodaj doświadczenie
           </Button>
         </div>
@@ -237,7 +237,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
                   variant="outline"
                   size="sm"
                   onClick={() => removeExperience(index)}
-                  className="text-red-600 hover:bg-red-50"
+                  className="text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-105"
                 >
                   Usuń
                 </Button>
@@ -316,7 +316,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Umiejętności</h2>
-          <Button type="button" variant="outline" onClick={addSkill}>
+          <Button type="button"  onClick={addSkill} className="transition-all duration-200 hover:scale-105">
             Dodaj umiejętność
           </Button>
         </div>
@@ -331,7 +331,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
                   variant="outline"
                   size="sm"
                   onClick={() => removeSkill(index)}
-                  className="text-red-600 hover:bg-red-50"
+                  className="text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-105"
                 >
                   Usuń
                 </Button>
@@ -370,7 +370,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Wykształcenie</h2>
-          <Button type="button" variant="outline" onClick={addEducation}>
+          <Button type="button" onClick={addEducation} className="transition-all duration-200 hover:scale-105">
             Dodaj wykształcenie
           </Button>
         </div>
@@ -385,7 +385,7 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
                   variant="outline"
                   size="sm"
                   onClick={() => removeEducation(index)}
-                  className="text-red-600 hover:bg-red-50"
+                  className="text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-105"
                 >
                   Usuń
                 </Button>
@@ -475,12 +475,14 @@ export function CandidateProfileForm({ profile, onSuccess, onCancel }: Candidate
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
+          className="transition-all duration-200 hover:scale-105"
         >
           Anuluj
         </Button>
         <Button
           type="submit"
           disabled={isSubmitting}
+          className="transition-all duration-200 hover:scale-105"
         >
           {isSubmitting ? "Zapisywanie..." : "Zapisz profil"}
         </Button>
