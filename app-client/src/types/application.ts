@@ -11,6 +11,7 @@ export interface ApplicationCreateRequest {
 export interface ApplicationUpdateRequest {
   message?: string;
   status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELED';
+  cvId?: number;
 }
 
 export interface RecruitmentQuestion {

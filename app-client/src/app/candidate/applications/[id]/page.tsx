@@ -32,7 +32,14 @@ export default function CandidateApplicationDetailPage() {
   const [messageSaving, setMessageSaving] = useState(false);
   const [messageInfo, setMessageInfo] = useState<string | null>(null);
   const [cv, setCv] = useState<CandidateCV | null>(null);
+  const [cvs, setCvs] = useState<CandidateCV[]>([]);
+  const [selectedCvId, setSelectedCvId] = useState<number | null>(null);
+  const [cvSaving, setCvSaving] = useState(false);
+  const [cvInfo, setCvInfo] = useState<string | null>(null);
   const [canceling, setCanceling] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [savingAll, setSavingAll] = useState(false);
+  const [globalInfo, setGlobalInfo] = useState<string | null>(null);
 
   useEffect(() => {
     if (!Number.isNaN(applicationId)) {
@@ -60,6 +67,14 @@ export default function CandidateApplicationDetailPage() {
           // ignore CV fetch error, still show name from application if available via application.candidateCV
           setCv(null);
         }
+      }
+      // fetch candidate CVs for switching
+      try {
+        const list = await candidateService.getCVs();
+        setCvs(list);
+        setSelectedCvId(app?.cvId ?? null);
+      } catch (e) {
+        setCvs([]);
       }
       setQuestions(qres.questions || []);
       setCanEdit(!!qres.canEdit);
@@ -134,6 +149,14 @@ export default function CandidateApplicationDetailPage() {
     }));
   }, [questions, answers]);
 
+  const hasAnswerChanges = useMemo(() => {
+    return questions.some((q) => {
+      const current = (answers[q.id] ?? '').trim();
+      const original = (q.currentAnswer ?? '').trim();
+      return current !== original;
+    });
+  }, [questions, answers]);
+
   const handleSaveAnswers = async () => {
     setSaving(true);
     setSaveInfo(null);
@@ -179,6 +202,85 @@ export default function CandidateApplicationDetailPage() {
       alert('Nie udało się anulować aplikacji');
     } finally {
       setCanceling(false);
+    }
+  };
+
+  const handleSaveCv = async () => {
+    if (!application || application.status !== 'PENDING' || selectedCvId == null) return;
+    setCvSaving(true);
+    setCvInfo(null);
+    try {
+      await updateApplication(applicationId, { cvId: selectedCvId });
+      setCvInfo('CV zostało zaktualizowane');
+      await load();
+    } catch (e) {
+      console.error('Error updating CV', e);
+      setCvInfo('Nie udało się zaktualizować CV');
+    } finally {
+      setCvSaving(false);
+      setTimeout(() => setCvInfo(null), 3000);
+    }
+  };
+
+  const handleEnterEdit = () => {
+    if (!canEdit) return;
+    setEditMode(true);
+    // ensure local buffers are in sync
+    setMessage(application?.message || '');
+    const init: Record<number, string> = {};
+    (questions || []).forEach((q) => {
+      init[q.id] = q.currentAnswer || '';
+    });
+    setAnswers(init);
+    setSelectedCvId(application?.cvId ?? null);
+  };
+
+  const handleCancelEdit = () => {
+    // restore from loaded data
+    setEditMode(false);
+    setMessage(application?.message || '');
+    const init: Record<number, string> = {};
+    (questions || []).forEach((q) => {
+      init[q.id] = q.currentAnswer || '';
+    });
+    setAnswers(init);
+    setSelectedCvId(application?.cvId ?? null);
+    setGlobalInfo(null);
+  };
+
+  const handleSaveAll = async () => {
+    if (!application || !canEdit || !editMode) return;
+    setSavingAll(true);
+    setGlobalInfo(null);
+    try {
+      const promises: Promise<any>[] = [];
+
+      const body: any = {};
+      if ((message ?? '') !== (application.message ?? '')) body.message = message;
+      if (selectedCvId != null && selectedCvId !== application.cvId) body.cvId = selectedCvId;
+
+      if (Object.keys(body).length > 0) {
+        promises.push(updateApplication(applicationId, body));
+      }
+
+      if (hasAnswerChanges && questions.length > 0) {
+        promises.push(updateApplicationAnswers(applicationId, modifiedAnswers));
+      }
+
+      if (promises.length === 0) {
+        setGlobalInfo('Brak zmian do zapisania');
+      } else {
+        await Promise.all(promises);
+        setGlobalInfo('Zmiany zostały zapisane');
+        await load();
+        setEditMode(false);
+      }
+    } catch (e) {
+      console.error('Error saving changes', e);
+      setGlobalInfo('Nie udało się zapisać zmian');
+    } finally {
+      setSavingAll(false);
+      setTimeout(() => setGlobalInfo(null), 3000);
     }
   };
 
@@ -249,9 +351,20 @@ export default function CandidateApplicationDetailPage() {
                   </div>
                 </div>
               </div>
-              <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusBadgeClass(application.status)}`}>
-                {getStatusIcon(application.status)}
-                {getStatusText(application.status)}
+              <div className="flex items-center gap-3">
+                <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusBadgeClass(application.status)}`}>
+                  {getStatusIcon(application.status)}
+                  {getStatusText(application.status)}
+                </div>
+                {canEdit && !editMode && (
+                  <Button onClick={handleEnterEdit} className="transition-all duration-200 hover:scale-105">Edytuj</Button>
+                )}
+                {canEdit && editMode && (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={handleSaveAll} disabled={savingAll} className="transition-all duration-200 hover:scale-105">Zapisz zmiany</Button>
+                    <Button variant="outline" onClick={handleCancelEdit} className="transition-all duration-200 hover:scale-105">Anuluj</Button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -260,6 +373,9 @@ export default function CandidateApplicationDetailPage() {
                 Zobacz szczegóły oferty
               </Link>
             </div>
+            {globalInfo && (
+              <p className={`mt-3 text-sm ${globalInfo.includes('Nie udało') ? 'text-red-600' : globalInfo.includes('Brak') ? 'text-muted-foreground' : 'text-green-600'}`}>{globalInfo}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -270,7 +386,7 @@ export default function CandidateApplicationDetailPage() {
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" /> Twoja wiadomość do pracodawcy
                 </h2>
-                {canEdit ? (
+                {canEdit && editMode ? (
                   <>
                     <textarea
                       className="w-full min-h-[120px] px-3 py-2 border rounded-md text-sm"
@@ -279,18 +395,6 @@ export default function CandidateApplicationDetailPage() {
                       maxLength={2000}
                       placeholder="Napisz krótką wiadomość do pracodawcy..."
                     />
-                    <div className="flex justify-end mt-3 gap-2">
-                      <Button
-                        onClick={handleSaveMessage}
-                        disabled={messageSaving}
-                        className="transition-all duration-200 hover:scale-105"
-                      >
-                        Zapisz wiadomość
-                      </Button>
-                    </div>
-                    {messageInfo && (
-                      <p className={`mt-3 text-sm ${messageInfo.includes('Nie udało') ? 'text-red-600' : 'text-green-600'}`}>{messageInfo}</p>
-                    )}
                   </>
                 ) : (
                   <div className="text-sm text-muted-foreground whitespace-pre-wrap">
@@ -311,7 +415,7 @@ export default function CandidateApplicationDetailPage() {
                     {questions.map((q) => (
                       <div key={q.id} className="border rounded p-4">
                         <p className="font-medium mb-2">{q.question || 'Pytanie'}</p>
-                        {canEdit ? (
+                        {canEdit && editMode ? (
                           <textarea
                             value={answers[q.id] ?? ''}
                             onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
@@ -326,22 +430,6 @@ export default function CandidateApplicationDetailPage() {
                       </div>
                     ))}
                   </div>
-                )}
-
-                {canEdit && questions.length > 0 && (
-                  <div className="flex gap-2 justify-end mt-4">
-                    <Button
-                      onClick={handleSaveAnswers}
-                      disabled={saving}
-                      className="transition-all duration-200 hover:scale-105"
-                    >
-                      Zapisz odpowiedzi
-                    </Button>
-                  </div>
-                )}
-
-                {saveInfo && (
-                  <p className={`mt-3 text-sm ${saveInfo.includes('Nie udało') ? 'text-red-600' : 'text-green-600'}`}>{saveInfo}</p>
                 )}
               </div>
             </div>
@@ -368,6 +456,24 @@ export default function CandidateApplicationDetailPage() {
                     <p className="text-muted-foreground mt-1">Brak linku do pliku CV</p>
                   )}
                 </div>
+
+                {application.status === 'PENDING' && editMode && cvs.length > 0 && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-2">Zmień CV dla tej aplikacji</label>
+                    <select
+                      value={selectedCvId ?? ''}
+                      onChange={(e) => setSelectedCvId(e.target.value ? parseInt(e.target.value) : null)}
+                      className="w-full border rounded-md px-3 py-2 text-sm"
+                    >
+                      <option value="">Wybierz CV</option>
+                      {cvs.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name || `CV ${item.id}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               {/* Meetings info */}
@@ -405,7 +511,7 @@ export default function CandidateApplicationDetailPage() {
                 <Button
                   variant="destructive"
                   onClick={handleCancelApplication}
-                  disabled={application.status !== 'PENDING' || canceling}
+                  disabled={application.status !== 'PENDING' || canceling || editMode}
                   className="transition-all duration-200 hover:scale-105 inline-flex items-center gap-2"
                   title={application.status !== 'PENDING' ? 'Można anulować tylko aplikacje w statusie Oczekuje' : undefined}
                 >

@@ -14,5 +14,6 @@ export const applicationCreateValidation = Joi.object({
 
 export const applicationUpdateValidation = Joi.object({
   message: Joi.string().max(2000).allow('').optional(),
-  status: Joi.string().valid('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED').optional()
+  status: Joi.string().valid('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED').optional(),
+  cvId: Joi.number().integer().positive().optional()
 });

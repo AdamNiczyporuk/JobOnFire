@@ -113,7 +113,8 @@ router.post('/', ensureAuthenticated, ensureCandidate, async (req: Request, res:
         candidateCV: {
           select: {
             id: true,
-            name: true
+            name: true,
+            cvUrl: true
           }
         },
         answers: {
@@ -429,7 +430,7 @@ router.get('/:id', ensureAuthenticated, ensureCandidate, async (req: Request, re
   }
 });
 
-// PUT /applications/:id - Aktualizacja aplikacji (kandydat może tylko anulować)
+// PUT /applications/:id - Aktualizacja aplikacji (kandydat może anulować, zaktualizować wiadomość i CV gdy PENDING)
 router.put('/:id', ensureAuthenticated, ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
     const candidateProfile = await validateCandidateProfile(req, res);
@@ -454,23 +455,30 @@ router.put('/:id', ensureAuthenticated, ensureCandidate, async (req: Request, re
     const application = await validateApplicationExists(applicationId, candidateProfile.id, res);
     if (!application) return;
 
-    // Kandydat może tylko anulować własną aplikację i tylko jeśli ma status PENDING
+    // Dla statusu: kandydat może tylko anulować; dla message/cvId: tylko jeśli aplikacja jest PENDING
     if (value.status && value.status !== 'CANCELED') {
       res.status(403).json({ message: 'Kandydaci mogą tylko anulować swoje aplikacje' });
       return;
     }
 
-    if (application.status !== 'PENDING') {
-      res.status(400).json({ message: 'Można anulować tylko aplikacje o statusie PENDING' });
+    if ((value.message !== undefined || value.cvId !== undefined) && application.status !== 'PENDING') {
+      res.status(400).json({ message: 'Można edytować wiadomość i CV tylko dla aplikacji o statusie PENDING' });
       return;
+    }
+
+    // Jeżeli podano cvId, sprawdź, czy CV należy do kandydata
+    if (value.cvId !== undefined) {
+      const cv = await validateCandidateCV(candidateProfile.id, value.cvId, res);
+      if (!cv) return;
     }
 
     // Aktualizacja aplikacji
     const updatedApplication = await prisma.applicationForJobOffer.update({
       where: { id: applicationId },
       data: {
-        status: value.status || application.status,
-        message: value.message !== undefined ? value.message : application.message
+        status: value.status ?? application.status,
+        message: value.message !== undefined ? value.message : application.message,
+        cvId: value.cvId !== undefined ? value.cvId : application.cvId
       },
       include: {
         jobOffer: {
