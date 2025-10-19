@@ -162,7 +162,7 @@ export default function CandidateProfilePage() {
                   {profile.skills.map((skill, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-gray-900">{skill.name}</span>
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
                         {skill.level === 'BEGINNER' && 'Początkujący'}
                         {skill.level === 'INTERMEDIATE' && 'Średniozaawansowany'}
                         {skill.level === 'ADVANCED' && 'Zaawansowany'}
@@ -191,7 +191,7 @@ export default function CandidateProfilePage() {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+                          className="group inline-flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors"
                         >
                           {/* Ikony inline (bez dodatkowych zależności) */}
                           <span className="inline-flex h-5 w-5 items-center justify-center">
@@ -229,11 +229,11 @@ export default function CandidateProfilePage() {
               {profile.experience.length > 0 ? (
                 <div className="space-y-6">
                   {profile.experience.map((exp, index) => (
-                    <div key={index} className="relative pl-6 pb-6 border-l-2 border-blue-200 last:pb-0">
-                      <div className="absolute left-[-9px] top-0 w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <div key={index} className="relative pl-6 pb-6 border-l-2 border-red-200 last:pb-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 bg-red-500 rounded-full"></div>
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h3 className="font-semibold text-lg text-gray-900 mb-1">{exp.position}</h3>
-                        <p className="text-blue-600 font-medium mb-2">{exp.company}</p>
+                        <p className="text-red-600 font-medium mb-2">{exp.company}</p>
                         <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
                           <span className="flex items-center">
                             📅 {exp.startDate} - {exp.isCurrent ? "obecnie" : exp.endDate || "nie podano"}
