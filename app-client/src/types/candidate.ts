@@ -79,6 +79,10 @@ export interface Application {
   candidateProfileId: number;
   jobOfferId: number;
   cvId: number;
+  candidateCV?: {
+    id: number;
+    name?: string | null;
+  };
   jobOffer: {
     id: number;
     name: string;

@@ -37,9 +37,14 @@ export default function JobOfferDetailsPage() {
       setLoading(true);
       const response = await getPublicJobOffer(jobOfferId);
       setJobOffer(response);
-    } catch (err) {
-      setError('Nie udało się pobrać szczegółów oferty pracy');
-      console.error('Error fetching job offer:', err);
+    } catch (err: any) {
+      // Jeśli oferta wygasła lub została wyłączona, backend zwraca 404
+      if (err?.response?.status === 404) {
+        setError('Ta oferta pracy wygasła lub została wyłączona przez pracodawcę.');
+      } else {
+        setError('Nie udało się pobrać szczegółów oferty pracy. Spróbuj ponownie później.');
+      }
+      // Ograniczamy hałas w konsoli dla oczekiwanego przypadku 404
     } finally {
       setLoading(false);
     }
