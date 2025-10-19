@@ -7,6 +7,7 @@ import { candidateService } from "@/services/candidateService";
 import { getPublicJobOffer, generateCVWithAI } from "@/services/jobOfferService";
 import type { CandidateProfile } from "@/types/candidate";
 import type { JobOffer } from "@/types/jobOffer";
+import { Save, Download, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 type CVForm = {
 	fullName: string;
@@ -51,6 +52,8 @@ export default function CVGenerator() {
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [generatedCV, setGeneratedCV] = useState<any>(null);
+	const [isSaving, setIsSaving] = useState(false);
+	const [saveSuccess, setSaveSuccess] = useState(false);
 
 	// refs for auto-resizing fields
 	const fullNameRef = useRef<HTMLTextAreaElement | null>(null);
@@ -313,39 +316,25 @@ export default function CVGenerator() {
 	// Success view: show CV preview with download button below
 	if (generatedCV) {
 		const handleDownloadPDF = async () => {
-			const element = document.getElementById('cv-print');
-			if (!element) return;
-
 			try {
-				const html2pdf = (await import('html2pdf.js')).default;
+				// Dynamiczny import @react-pdf/renderer
+				const { pdf } = await import('@react-pdf/renderer');
+				const { CVDocument } = await import('./CVDocument');
+				
 				const fileName = `CV_${(generatedCV.fullName || 'kandydat').replace(/\s+/g, '_')}.pdf`;
 				
-				const opt = {
-					margin: [8, 10, 8, 10] as [number, number, number, number],
-					filename: fileName,
-					image: { type: 'jpeg' as const, quality: 0.95 },
-					html2canvas: { 
-						scale: 2,
-						useCORS: true,
-						letterRendering: true,
-						backgroundColor: '#ffffff',
-						logging: false,
-						windowWidth: 794,
-						windowHeight: 1123
-					},
-					jsPDF: { 
-						unit: 'mm', 
-						format: 'a4', 
-						orientation: 'portrait' as const,
-						compress: true
-					},
-					pagebreak: { 
-						mode: ['avoid-all', 'css', 'legacy'],
-						avoid: ['section', 'header', 'div']
-					}
-				};
-
-				await html2pdf().set(opt).from(element).save();
+				// Generuj PDF z komponentu React
+				const blob = await pdf(<CVDocument cv={generatedCV} />).toBlob();
+				
+				// Utwórz link do pobrania
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = fileName;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(url);
 			} catch (error) {
 				console.error('Error generating PDF:', error);
 				alert('Nie udało się pobrać PDF. Spróbuj ponownie.');
@@ -355,16 +344,104 @@ export default function CVGenerator() {
 		const handleGenerateNew = () => {
 			setGeneratedCV(null);
 			sessionStorage.removeItem('generatedCV');
+			setSaveSuccess(false);
+		};
+
+		const handleSaveToProfile = async () => {
+			if (!generatedCV) return;
+			
+			try {
+				setIsSaving(true);
+				setErrorMsg(null);
+				
+				// Nazwa CV to stanowisko z wygenerowanego CV
+				const cvName = generatedCV.position || form.position || 'CV';
+				
+				await candidateService.saveGeneratedCV(cvName, generatedCV);
+				setSaveSuccess(true);
+				
+				// Opcjonalnie: wyczyść komunikat sukcesu po 3 sekundach
+				setTimeout(() => setSaveSuccess(false), 3000);
+			} catch (error: any) {
+				console.error('Error saving CV to profile:', error);
+				const errorMessage = error?.response?.data?.message || error.message || 'Nie udało się zapisać CV na profilu';
+				setErrorMsg(errorMessage);
+			} finally {
+				setIsSaving(false);
+			}
 		};
 
 		return (
 			<div className="space-y-4">
+				{/* Komunikat sukcesu */}
+				{saveSuccess && (
+					<div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+						<CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+						<p className="text-green-700 font-medium">CV zostało pomyślnie zapisane na Twoim profilu</p>
+					</div>
+				)}
+				
+				{/* Komunikat błędu */}
+				{errorMsg && (
+					<div className="bg-red-50 border border-red-200 rounded-lg p-4">
+						<p className="text-red-700">{errorMsg}</p>
+					</div>
+				)}
+				
 				<CVPreview cv={generatedCV} />
-				<div className="flex items-center justify-center gap-3 print:hidden">
-					<Button variant="outline" onClick={handleGenerateNew}>
-						← Wygeneruj nowe CV
-					</Button>
-					<Button onClick={handleDownloadPDF}>Pobierz CV</Button>
+				
+				<div className="flex flex-col gap-4 print:hidden">
+					{/* Główne akcje */}
+					<div className="flex items-center justify-center gap-3">
+						<Button variant="outline" onClick={handleGenerateNew} className="gap-2">
+							<ArrowLeft className="w-4 h-4" />
+							Wygeneruj nowe CV
+						</Button>
+						<Button onClick={handleDownloadPDF} className="gap-2">
+							<Download className="w-4 h-4" />
+							Pobierz PDF
+						</Button>
+					</div>
+					
+					{/* Sekcja zapisywania na profilu */}
+					<div className="border-t pt-4">
+						<div className="flex flex-col items-center gap-3">
+							<div className="text-center">
+								<p className="text-sm font-medium text-gray-700 mb-1">Zapisz CV na swoim profilu</p>
+								<p className="text-xs text-muted-foreground">
+									Nazwa CV: <span className="font-medium text-gray-900">{generatedCV.position || form.position || 'CV'}</span>
+								</p>
+							</div>
+							<Button 
+								variant={saveSuccess ? "outline" : "default"}
+								size="lg"
+								onClick={handleSaveToProfile}
+								disabled={isSaving || saveSuccess}
+								className={`gap-2 min-w-[200px] transition-all ${
+									saveSuccess 
+										? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-50' 
+										: ''
+								}`}
+							>
+								{isSaving ? (
+									<>
+										<div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-transparent" />
+										Zapisywanie...
+									</>
+								) : saveSuccess ? (
+									<>
+										<CheckCircle2 className="w-5 h-5" />
+										Zapisano na profilu
+									</>
+								) : (
+									<>
+										<Save className="w-5 h-5" />
+										Zapisz na profilu
+									</>
+								)}
+							</Button>
+						</div>
+					</div>
 				</div>
 			</div>
 		);

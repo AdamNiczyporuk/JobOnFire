@@ -43,6 +43,14 @@ export const candidateService = {
   },
 
   /**
+   * Zapisuje wygenerowane CV na profilu kandydata
+   */
+  async saveGeneratedCV(name: string, cvJson: any): Promise<CandidateCV> {
+    const response = await api.post("/candidate/cvs", { name, cvJson });
+    return response.data.cv;
+  },
+
+  /**
    * Pobiera szczegóły konkretnego CV
    */
   async getCV(id: number): Promise<CandidateCV> {

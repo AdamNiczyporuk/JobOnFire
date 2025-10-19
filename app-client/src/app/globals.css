@@ -133,28 +133,29 @@ body {
 
 /* Reusable chip (pill) style to keep text vertically centered */
 .chip {
-  /* Grid centering tends to look most balanced with html2canvas */
-  display: inline-grid;
-  place-items: center;      /* centers both axes */
-  height: 24px;             /* fixed height for consistent look */
-  line-height: 1;           /* avoid inherited large line-height */
-  padding: 0 10px;          /* horizontal padding only */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  line-height: 24px;
+  padding: 0 10px;
   border-radius: 9999px;
-  background-color: #f3f4f6; /* gray-100 in RGB */
-  font-size: 12px;          /* ~ text-xs */
-  white-space: nowrap;      /* single line */
-  vertical-align: middle;   /* align nicely in flow */
-  position: relative;       /* allow a subtle optical nudge */
-  top: -0.5px;              /* nudge text slightly upward for optical centering */
+  background-color: #f3f4f6;
+  font-size: 12px;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: center;
 }
 
 @media print {
   .chip {
-    height: 19px;       /* slightly taller to balance font metrics on PDF */
-    line-height: 1;     /* rely on grid centering */
-    font-size: 10px;    /* compact in PDF */
-    padding: 0 8px;
-    top: -0.25px;       /* smaller nudge for print rendering */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 18px;
+    line-height: 18px;
+    font-size: 9px;
+    padding: 0 7px;
   }
 }
 
@@ -162,7 +163,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 8mm 10mm;
+    margin: 5mm;
   }
 
   body {
@@ -186,6 +187,8 @@ body {
     top: 0;
     width: 100%;
     max-width: 100%;
+    max-height: 287mm;
+    overflow: hidden;
     margin: 0;
     padding: 0;
     box-shadow: none !important;

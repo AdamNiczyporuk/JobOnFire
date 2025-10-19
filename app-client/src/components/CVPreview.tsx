@@ -75,14 +75,29 @@ function renderDescription(desc: string | string[] | undefined): React.ReactNode
   if (!desc) return null;
   if (Array.isArray(desc)) {
     return (
-      <ul className="list-disc list-inside text-sm leading-snug mt-0.5 space-y-0 print:text-xs print:leading-tight print:mt-0.5 print:space-y-0">
+      <ul style={{
+        listStyleType: 'disc',
+        listStylePosition: 'inside',
+        marginTop: '3px',
+        marginBottom: '0'
+      }}>
         {desc.map((item, i) => (
-          <li key={i}>{item}</li>
+          <li key={i} style={{
+            fontSize: '9px',
+            lineHeight: '1.5',
+            marginBottom: '2px'
+          }}>{item}</li>
         ))}
       </ul>
     );
   }
-  return <p className="text-sm whitespace-pre-line leading-snug mt-0.5 print:text-xs print:leading-tight print:mt-0.5">{desc}</p>;
+  return <p style={{
+    fontSize: '9px',
+    whiteSpace: 'pre-line',
+    lineHeight: '1.5',
+    marginTop: '2px',
+    marginBottom: '0'
+  }}>{desc}</p>;
 }
 
 export default function CVPreview({ cv }: { cv: CVData }) {
@@ -96,45 +111,89 @@ export default function CVPreview({ cv }: { cv: CVData }) {
   const interests = cv.interests || [];
 
   return (
-    <div id="cv-print" className="mx-auto max-w-3xl bg-white text-gray-900 p-6 md:p-8 rounded-xl shadow print:shadow-none print:p-6 print:rounded-none print:text-sm" style={{ backgroundColor: '#ffffff', color: '#111827' }}>
+    <div 
+      id="cv-print" 
+      className="mx-auto max-w-3xl bg-white text-gray-900 rounded-xl shadow print:shadow-none print:rounded-none" 
+      style={{ 
+        backgroundColor: '#ffffff', 
+        color: '#111827',
+        padding: '40px',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}
+    >
       {/* Header */}
-      <header className="border-b pb-2 mb-3 print:pb-2 print:mb-2.5" style={{ borderColor: '#e5e7eb' }}>
-        <h1 className="text-2xl md:text-3xl font-bold print:text-xl">{fullName}</h1>
-        <p className="text-gray-600 mt-0.5 text-sm print:text-xs print:mt-0.5" style={{ color: '#4b5563' }}>{position}</p>
+      <header className="border-b" style={{ 
+        borderColor: '#e5e7eb',
+        paddingBottom: '10px',
+        marginBottom: '12px'
+      }}>
+        <h1 style={{ 
+          fontSize: '22px', 
+          fontWeight: 700,
+          marginBottom: '4px',
+          color: '#111827'
+        }}>{fullName}</h1>
+        <p style={{ 
+          marginTop: '3px',
+          fontSize: '13px',
+          color: '#4b5563',
+          marginBottom: '8px'
+        }}>{position}</p>
         
         {/* Contact Information */}
         {contacts && (
-          <div className="mt-1.5 text-sm text-gray-600 space-y-0 print:text-xs print:mt-1" style={{ color: '#4b5563' }}>
+          <div style={{ marginTop: '4px' }}>
             {contacts.email && (
-              <p>
-                <span className="font-medium">Email:</span>{" "}
-                <a href={`mailto:${contacts.email}`} className="text-blue-600 hover:underline" style={{ color: '#2563eb' }}>
+              <p style={{ 
+                fontSize: '9px',
+                color: '#4b5563',
+                marginBottom: '2px',
+                lineHeight: '1.4'
+              }}>
+                <span style={{ fontWeight: 700 }}>Email:</span>{" "}
+                <a href={`mailto:${contacts.email}`} className="hover:underline" style={{ color: '#4b5563' }}>
                   {contacts.email}
                 </a>
               </p>
             )}
             {contacts.phone && (
-              <p>
-                <span className="font-medium">Telefon:</span> {contacts.phone}
+              <p style={{ 
+                fontSize: '9px',
+                color: '#4b5563',
+                marginBottom: '2px',
+                lineHeight: '1.4'
+              }}>
+                <span style={{ fontWeight: 700 }}>Telefon:</span> {contacts.phone}
               </p>
             )}
             {contacts.location && (
-              <p>
-                <span className="font-medium">Lokalizacja:</span> {contacts.location}
+              <p style={{ 
+                fontSize: '9px',
+                color: '#4b5563',
+                marginBottom: '2px',
+                lineHeight: '1.4'
+              }}>
+                <span style={{ fontWeight: 700 }}>Lokalizacja:</span> {contacts.location}
               </p>
             )}
             {contacts.socials && contacts.socials.length > 0 && (
-              <div className="mt-0.5">
-                <span className="font-medium">Dodatkowe linki:</span>
-                <div className="flex flex-wrap gap-1.5 mt-0.5 print:gap-1">
+              <div style={{ marginTop: '2px' }}>
+                <span style={{ fontWeight: 700, fontSize: '9px', color: '#4b5563' }}>Dodatkowe linki:</span>
+                <div style={{ marginTop: '2px' }}>
                   {contacts.socials.map((social, idx) => (
                     <a
                       key={idx}
                       href={social.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-xs break-all print:text-[10px]"
-                      style={{ color: '#2563eb' }}
+                      className="hover:underline"
+                      style={{ 
+                        color: '#4b5563',
+                        fontSize: '9px',
+                        display: 'block',
+                        marginBottom: '2px',
+                        lineHeight: '1.4'
+                      }}
                     >
                       {social.url}
                     </a>
@@ -148,19 +207,50 @@ export default function CVPreview({ cv }: { cv: CVData }) {
 
       {/* Summary */}
       {summary && (
-        <section className="mb-3 print:mb-2.5">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Podsumowanie</h2>
-          <p className="leading-snug whitespace-pre-line text-sm print:text-xs print:leading-tight">{summary}</p>
+        <section style={{ marginBottom: '12px' }}>
+          <h2 style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            color: '#374151',
+            textTransform: 'uppercase',
+            marginBottom: '5px',
+            letterSpacing: '0.5px'
+          }}>Podsumowanie</h2>
+          <p style={{
+            fontSize: '10px',
+            lineHeight: '1.5',
+            color: '#111827',
+            whiteSpace: 'pre-line'
+          }}>{summary}</p>
         </section>
       )}
 
       {/* Skills */}
       {skills.length > 0 && (
-        <section className="mb-3 print:mb-2.5">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Umiejętności</h2>
-          <div className="flex flex-wrap gap-1.5 print:gap-1">
+        <section style={{ marginBottom: '12px' }}>
+          <h2 style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            color: '#374151',
+            textTransform: 'uppercase',
+            marginBottom: '5px',
+            letterSpacing: '0.5px'
+          }}>Umiejętności</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
             {skills.map((s, i) => (
-              <span key={`${s}-${i}`} className="chip">
+              <span key={`${s}-${i}`} style={{
+                backgroundColor: '#f3f4f6',
+                borderRadius: '12px',
+                paddingLeft: '10px',
+                paddingRight: '10px',
+                paddingTop: '5px',
+                paddingBottom: '5px',
+                fontSize: '9px',
+                color: '#111827',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
                 {s}
               </span>
             ))}
@@ -170,18 +260,39 @@ export default function CVPreview({ cv }: { cv: CVData }) {
 
       {/* Experience */}
       {experience.length > 0 && (
-        <section className="mb-3 print:mb-2.5">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Doświadczenie</h2>
-          <div className="space-y-2 print:space-y-1.5">
+        <section style={{ marginBottom: '12px' }}>
+          <h2 style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            color: '#374151',
+            textTransform: 'uppercase',
+            marginBottom: '5px',
+            letterSpacing: '0.5px'
+          }}>Doświadczenie</h2>
+          <div>
             {experience.map((item, idx) => (
-              <div key={idx} className="">
+              <div key={idx} style={{ marginBottom: '8px' }}>
                 {(item.position || item.company) && (
-                  <p className="font-medium text-sm print:text-xs">
+                  <p style={{
+                    fontWeight: 700,
+                    fontSize: '10px',
+                    marginBottom: '2px',
+                    color: '#111827',
+                    lineHeight: '1.4'
+                  }}>
                     {item.position}
-                    {item.company ? <span className="text-gray-500" style={{ color: '#6b7280' }}> @ {item.company}</span> : null}
+                    {item.company ? <span style={{ color: '#6b7280', fontWeight: 400 }}> @ {item.company}</span> : null}
                   </p>
                 )}
-                {item.period && <p className="text-xs text-gray-500 print:text-[10px]" style={{ color: '#6b7280' }}>{item.period}</p>}
+                {item.period && (
+                  <p style={{
+                    fontSize: '9px',
+                    color: '#6b7280',
+                    marginBottom: '3px',
+                    marginTop: '1px',
+                    lineHeight: '1.4'
+                  }}>{item.period}</p>
+                )}
                 {renderDescription(item.description)}
               </div>
             ))}
@@ -191,19 +302,37 @@ export default function CVPreview({ cv }: { cv: CVData }) {
 
       {/* Education */}
       {education.length > 0 && (
-        <section className="mb-3 print:mb-2.5">
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Wykształcenie</h2>
-          <div className="space-y-1.5 print:space-y-1">
+        <section style={{ marginBottom: '12px' }}>
+          <h2 style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            color: '#374151',
+            textTransform: 'uppercase',
+            marginBottom: '5px',
+            letterSpacing: '0.5px'
+          }}>Wykształcenie</h2>
+          <div>
             {education.map((item, idx) => (
-              <div key={idx}>
+              <div key={idx} style={{ marginBottom: '6px' }}>
                 {(item.degree || item.institution) && (
-                  <p className="font-medium text-sm print:text-xs">
+                  <p style={{
+                    fontWeight: 700,
+                    fontSize: '10px',
+                    marginBottom: '2px',
+                    color: '#111827',
+                    lineHeight: '1.4'
+                  }}>
                     {item.degree}
-                    {item.institution ? <span className="text-gray-500" style={{ color: '#6b7280' }}> — {item.institution}</span> : null}
+                    {item.institution ? <span style={{ color: '#6b7280', fontWeight: 400 }}> — {item.institution}</span> : null}
                   </p>
                 )}
                 {(item.field || item.period) && (
-                  <p className="text-xs text-gray-500 print:text-[10px]" style={{ color: '#6b7280' }}>
+                  <p style={{
+                    fontSize: '9px',
+                    color: '#6b7280',
+                    marginTop: '1px',
+                    lineHeight: '1.4'
+                  }}>
                     {item.field}
                     {item.period ? (item.field ? ` • ${item.period}` : item.period) : null}
                   </p>
@@ -217,10 +346,29 @@ export default function CVPreview({ cv }: { cv: CVData }) {
       {/* Interests */}
       {interests.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold tracking-wide text-gray-700 uppercase mb-1 print:text-xs print:mb-0.5" style={{ color: '#374151' }}>Zainteresowania</h2>
-          <div className="flex flex-wrap gap-1.5 print:gap-1">
+          <h2 style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            color: '#374151',
+            textTransform: 'uppercase',
+            marginBottom: '5px',
+            letterSpacing: '0.5px'
+          }}>Zainteresowania</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
             {interests.map((interest, i) => (
-              <span key={`${interest}-${i}`} className="chip">
+              <span key={`${interest}-${i}`} style={{
+                backgroundColor: '#f3f4f6',
+                borderRadius: '12px',
+                paddingLeft: '10px',
+                paddingRight: '10px',
+                paddingTop: '5px',
+                paddingBottom: '5px',
+                fontSize: '9px',
+                color: '#111827',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
                 {interest}
               </span>
             ))}

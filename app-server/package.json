@@ -15,6 +15,7 @@
   "packageManager": "pnpm@10.4.1",
   "dependencies": {
     "@prisma/client": "6.6.0",
+    "@react-pdf/renderer": "^4.3.1",
     "@types/passport": "^1.0.17",
     "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",

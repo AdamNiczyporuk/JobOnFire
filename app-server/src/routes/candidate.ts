@@ -252,6 +252,53 @@ router.post('/cvs/upload', ensureCandidate, uploadCV.single('cv'), async (req: R
   }
 });
 
+/**
+ * POST /candidate/cvs
+ * Zapisanie wygenerowanego CV (JSON) na profilu kandydata
+ */
+router.post('/cvs', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, cvJson } = req.body;
+
+    if (!name || !cvJson) {
+      res.status(400).json({ message: 'Nazwa i dane CV są wymagane' });
+      return;
+    }
+
+    const candidateProfile = await prisma.candidateProfile.findUnique({
+      where: { userId: req.user!.id },
+      select: { id: true }
+    });
+
+    if (!candidateProfile) {
+      res.status(404).json({ message: 'Profil kandydata nie został znaleziony' });
+      return;
+    }
+
+    // Zapisz CV w bazie danych
+    const cv = await prisma.candidateCV.create({
+      data: {
+        candidateProfileId: candidateProfile.id,
+        name: name,
+        cvUrl: null, // Brak URL dla wygenerowanego CV
+        cvJson: JSON.stringify(cvJson)
+      }
+    });
+
+    res.status(201).json({ 
+      message: 'CV zostało pomyślnie zapisane na profilu',
+      cv: {
+        id: cv.id,
+        name: cv.name,
+        cvJson: cv.cvJson
+      }
+    });
+  } catch (error) {
+    console.error('Błąd podczas zapisywania CV:', error);
+    res.status(500).json({ message: 'Błąd serwera podczas zapisywania CV' });
+  }
+});
+
 // Endpoint - Pobranie wszystkich CV kandydata
 router.get('/cvs', ensureCandidate, async (req: Request, res: Response): Promise<void> => {
   try {
