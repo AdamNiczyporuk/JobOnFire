@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SmartHeader } from "@/components/SmartHeader";
 import JobApplicationForm from "@/components/JobApplicationForm";
 import { getPublicJobOffer } from "@/services/jobOfferService";
+import { checkApplicationStatus } from "@/services/applicationService";
 import { JobOffer } from "@/types/jobOffer";
 import { MapPin, Building, Calendar, DollarSign, Clock, Users, ArrowLeft } from "lucide-react";
 
@@ -19,6 +20,8 @@ export default function JobOfferDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const [applicationId, setApplicationId] = useState<number | null>(null);
 
   const jobOfferId = parseInt(params.id as string);
 
@@ -30,6 +33,8 @@ export default function JobOfferDetailsPage() {
     }
 
     fetchJobOffer();
+    // Po załadowaniu oferty sprawdzimy, czy kandydat już aplikował (jeśli jest zalogowany)
+    checkApplied();
   }, [jobOfferId]);
 
   const fetchJobOffer = async () => {
@@ -37,11 +42,28 @@ export default function JobOfferDetailsPage() {
       setLoading(true);
       const response = await getPublicJobOffer(jobOfferId);
       setJobOffer(response);
-    } catch (err) {
-      setError('Nie udało się pobrać szczegółów oferty pracy');
-      console.error('Error fetching job offer:', err);
+    } catch (err: any) {
+      // Jeśli oferta wygasła lub została wyłączona, backend zwraca 404
+      if (err?.response?.status === 404) {
+        setError('Ta oferta pracy wygasła lub została wyłączona przez pracodawcę.');
+      } else {
+        setError('Nie udało się pobrać szczegółów oferty pracy. Spróbuj ponownie później.');
+      }
+      // Ograniczamy hałas w konsoli dla oczekiwanego przypadku 404
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkApplied = async () => {
+    try {
+      const res = await checkApplicationStatus(jobOfferId);
+      setHasApplied(!!res.hasApplied);
+      setApplicationId(res.applicationId);
+    } catch (err: any) {
+      // Brak autoryzacji lub brak profilu kandydata -> traktuj jako niezaaplikowano
+      setHasApplied(false);
+      setApplicationId(null);
     }
   };
 
@@ -61,6 +83,9 @@ export default function JobOfferDetailsPage() {
     setShowApplicationForm(false);
     // Można dodać toast notification sukcesu
     alert('Aplikacja została wysłana pomyślnie!');
+    // Oznacz jako zaaplikowano i spróbuj pobrać ID aplikacji
+    setHasApplied(true);
+    checkApplied();
   };
 
   const handleApplicationCancel = () => {
@@ -311,6 +336,17 @@ export default function JobOfferDetailsPage() {
                         Aplikuj zewnętrznie
                       </Button>
                     </Link>
+                  ) : hasApplied ? (
+                    <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md p-3">
+                      Już zaaplikowano na tę ofertę.
+                      {applicationId ? (
+                        <div className="mt-2">
+                          <Link href={`/candidate/applications/${applicationId}`} className="underline underline-offset-2 text-green-700 hover:text-green-800">
+                            Zobacz swoją aplikację
+                          </Link>
+                        </div>
+                      ) : null}
+                    </div>
                   ) : (
                     <Button size="lg" className="w-full" onClick={handleApplyClick}>
                       Aplikuj teraz

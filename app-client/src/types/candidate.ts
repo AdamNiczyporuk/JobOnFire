@@ -79,6 +79,10 @@ export interface Application {
   candidateProfileId: number;
   jobOfferId: number;
   cvId: number;
+  candidateCV?: {
+    id: number;
+    name?: string | null;
+  };
   jobOffer: {
     id: number;
     name: string;
@@ -126,6 +130,7 @@ export interface CandidateProfileFormData {
   skills: Skill[];
   place?: string;
   education: Education[];
+  profileLinks?: Array<{ id?: number; name: string; url: string }>; // editable links payload
 }
 
 // Typ dla elementu listy kandydatów (uproszczona wersja profilu)

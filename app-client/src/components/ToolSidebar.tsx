@@ -24,6 +24,30 @@ export default function ToolSidebar() {
 				</Link>
 
 				<Link
+					href="/tools/salary-calculator"
+					className="group block rounded-xl border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+				>
+					<div className="flex items-center gap-4">
+						<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+								<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+								<line x1="7" y1="7" x2="7" y2="7" />
+								<line x1="11" y1="7" x2="11" y2="7" />
+								<line x1="15" y1="7" x2="15" y2="7" />
+								<line x1="7" y1="11" x2="7" y2="11" />
+								<line x1="11" y1="11" x2="11" y2="11" />
+								<line x1="15" y1="11" x2="15" y2="11" />
+								<rect x="6" y="15" width="12" height="4" />
+							</svg>
+						</div>
+						<div>
+							<p className="font-semibold leading-tight">Kalkulator wynagrodzeń</p>
+							<p className="text-xs text-muted-foreground">Brutto ↔ Netto, koszt pracodawcy</p>
+						</div>
+					</div>
+				</Link>
+
+				<Link
 					href="/tools/cv-generator"
 					className="group block rounded-xl border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
 				>

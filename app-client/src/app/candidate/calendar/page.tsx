@@ -197,10 +197,10 @@ export default function CandidateCalendarPage() {
                       </div>
                       <div className="flex gap-2">
                         <Link href={`/employer/job-offers/${m.application.jobOffer.id}`}>
-                          <Button size="sm" variant="outline" className="transition-all duration-200 hover:scale-105">Szczegóły oferty</Button>
+                          <Button size="sm" className="transition-all duration-200 hover:scale-105">Oferta</Button>
                         </Link>
                         <Link href={`/candidate/applications`}>
-                          <Button size="sm" variant="outline" className="transition-all duration-200 hover:scale-105">Moje aplikacje</Button>
+                          <Button size="sm" className="transition-all duration-200 hover:scale-105">Aplikacja</Button>
                         </Link>
                       </div>
                     </div>

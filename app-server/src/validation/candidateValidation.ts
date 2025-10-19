@@ -100,11 +100,25 @@ export const candidateProfileValidation = Joi.object({
   }),
   education: Joi.array().items(educationSchema).allow(null).messages({
     'array.base': 'Wykształcenie musi być tablicą'
+  }),
+  profileLinks: Joi.array().items(
+    Joi.object({
+      id: Joi.number().optional(),
+      name: Joi.string().required().messages({
+        'string.empty': 'Nazwa linku jest wymagana',
+      }),
+      url: Joi.string().uri().required().messages({
+        'string.uri': 'URL musi być poprawnym adresem',
+        'string.empty': 'URL jest wymagany'
+      })
+    })
+  ).allow(null).messages({
+    'array.base': 'Linki muszą być tablicą'
   })
 });
 
 // Walidacja dla aktualizacji profilu kandydata (wszystkie pola opcjonalne)
 export const candidateProfileUpdateValidation = candidateProfileValidation.fork(
-  ['name', 'lastName', 'description', 'birthday', 'experience', 'phoneNumber', 'skills', 'place', 'education'],
+  ['name', 'lastName', 'description', 'birthday', 'experience', 'phoneNumber', 'skills', 'place', 'education', 'profileLinks'],
   (schema) => schema.optional()
 );

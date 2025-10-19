@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { JobOffer } from '@/types/jobOffer';
 
@@ -189,14 +190,16 @@ export default function JobOfferList({
 
             {/* Actions */}
             <div className="flex flex-col gap-2 ml-4">
-              <Button
-                onClick={() => onView(jobOffer)}
-                variant="outline"
-                size="sm"
-                className="transition-all duration-200 hover:scale-105"
-              >
-                Zobacz
-              </Button>
+              <Link href={`/employer/job-offers/${jobOffer.id}`}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="transition-all duration-200 hover:scale-105"
+                >
+                  Zobacz
+                </Button>
+              </Link>
               
               <Button
                 onClick={() => onEdit(jobOffer)}

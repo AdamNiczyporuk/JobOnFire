@@ -71,11 +71,16 @@ export const upsertCandidateProfile = async (userId: number, profileData: any) =
     where: { userId }
   });
 
+  // If profileLinks provided, we need to upsert related rows.
+  // Prisma doesn't support nested upsertMany; we'll handle by replacing the set if provided.
+
+  const { profileLinks, ...rest } = profileData;
+
   if (existingProfile) {
     // Aktualizuj istniejący profil
-    return await prisma.candidateProfile.update({
+    const updated = await prisma.candidateProfile.update({
       where: { userId },
-      data: profileData,
+      data: rest,
       include: {
         user: {
           select: {
@@ -87,13 +92,29 @@ export const upsertCandidateProfile = async (userId: number, profileData: any) =
         }
       }
     });
+
+    if (Array.isArray(profileLinks)) {
+      // Remove existing links and recreate from provided list (simple and reliable)
+      await prisma.profileLink.deleteMany({ where: { candidateProfileId: updated.id } });
+      if (profileLinks.length > 0) {
+        await prisma.profileLink.createMany({
+          data: profileLinks.map((l: any) => ({
+            candidateProfileId: updated.id,
+            name: l.name,
+            url: l.url,
+          }))
+        });
+      }
+    }
+
+    return await prisma.candidateProfile.findUnique({
+      where: { id: updated.id },
+      include: { user: { select: { id: true, username: true, email: true, role: true } }, profileLinks: true }
+    });
   } else {
     // Utwórz nowy profil
-    return await prisma.candidateProfile.create({
-      data: {
-        ...profileData,
-        userId
-      },
+    const created = await prisma.candidateProfile.create({
+      data: { ...rest, userId },
       include: {
         user: {
           select: {
@@ -104,6 +125,21 @@ export const upsertCandidateProfile = async (userId: number, profileData: any) =
           }
         }
       }
+    });
+
+    if (Array.isArray(profileLinks) && profileLinks.length > 0) {
+      await prisma.profileLink.createMany({
+        data: profileLinks.map((l: any) => ({
+          candidateProfileId: created.id,
+          name: l.name,
+          url: l.url,
+        }))
+      });
+    }
+
+    return await prisma.candidateProfile.findUnique({
+      where: { id: created.id },
+      include: { user: { select: { id: true, username: true, email: true, role: true } }, profileLinks: true }
     });
   }
 };
