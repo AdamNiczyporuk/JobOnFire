@@ -238,8 +238,8 @@ export default function EmployerApplicationDetailPage() {
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-600 text-lg mb-4">{error || 'Aplikacja nie została znaleziona'}</p>
-          <Button onClick={() => router.push('/employer/applications')}>
-            Powrót do aplikacji
+          <Button onClick={() => router.back()}>
+            Powrót
           </Button>
         </div>
       </div>
@@ -255,7 +255,7 @@ export default function EmployerApplicationDetailPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push('/employer/applications')}
+            onClick={() => router.back()}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />

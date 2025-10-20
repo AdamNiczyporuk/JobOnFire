@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getJobOffer } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
+import { ArrowLeft } from "lucide-react";
 
 export default function EmployerJobOfferDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const idParam = params?.id as string | undefined;
   const jobOfferId = idParam ? parseInt(idParam) : NaN;
 
@@ -78,24 +80,15 @@ export default function EmployerJobOfferDetailsPage() {
         <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
           {/* Back link */}
           <div className="mb-6">
-            <Link
-              href="/employer/job-offers"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4 h-4"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-              Powrót do listy
-            </Link>
+              <ArrowLeft className="w-4 h-4" />
+              Powrót
+            </Button>
           </div>
 
           <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg border">

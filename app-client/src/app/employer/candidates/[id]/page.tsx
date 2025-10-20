@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { candidateService } from "@/services/candidateService";
@@ -22,6 +22,7 @@ import {
 
 export default function CandidateDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const candidateId = parseInt(params.id as string);
   
   const [candidate, setCandidate] = useState<CandidateDetailedProfile | null>(null);
@@ -162,13 +163,15 @@ export default function CandidateDetailPage() {
         <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
           {/* Header */}
           <div className="mb-8">
-            <Link 
-              href="/employer/candidates"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2 mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
-              Powrót do listy kandydatów
-            </Link>
+              Powrót
+            </Button>
             
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">

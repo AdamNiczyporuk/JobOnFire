@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import JobOfferForm from "@/components/JobOfferForm";
 import { getJobOffer, updateJobOffer } from "@/services/jobOfferService";
 import { JobOffer, JobOfferUpdateRequest } from "@/types/jobOffer";
@@ -54,7 +54,7 @@ export default function EmployerJobOfferEditPage() {
   };
 
   const handleCancel = () => {
-    router.push(`/employer/job-offers/${jobOfferId}`);
+    router.back();
   };
 
   if (loading) {
@@ -81,9 +81,15 @@ export default function EmployerJobOfferEditPage() {
           <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Edytuj ofertę</h1>
-              <Link href={`/employer/job-offers/${jobOfferId}`} className="inline-flex">
-                <Button variant="outline">Powrót</Button>
-              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.back()}
+                className="inline-flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Powrót
+              </Button>
             </div>
             <div className="text-center">
               <p className="text-red-500 mb-4">{error}</p>
@@ -99,9 +105,15 @@ export default function EmployerJobOfferEditPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Edytuj ofertę pracy</h1>
-        <Link href={`/employer/job-offers/${jobOfferId}`} className="inline-flex">
-          <Button variant="outline" className="transition-all duration-200 hover:scale-105">Powrót</Button>
-        </Link>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Powrót
+        </Button>
       </div>
 
       <JobOfferForm

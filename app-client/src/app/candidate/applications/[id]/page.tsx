@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getApplication, getApplicationQuestions, updateApplication, updateApplicationAnswers } from "@/services/applicationService";
 import { candidateService } from "@/services/candidateService";
@@ -17,6 +17,7 @@ type QuestionItem = {
 
 export default function CandidateApplicationDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const idParam = params?.id as string | undefined;
   const applicationId = idParam ? parseInt(idParam) : NaN;
 
@@ -325,9 +326,15 @@ export default function CandidateApplicationDetailPage() {
         <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
           {/* Back */}
           <div className="mb-6">
-            <Link href="/candidate/applications" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="w-4 h-4" /> Powrót do listy
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Powrót
+            </Button>
           </div>
 
           {/* Header */}

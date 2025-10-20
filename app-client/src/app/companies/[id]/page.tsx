@@ -118,13 +118,15 @@ export default function CompanyPublicPage() {
           ) : (
             <div className="space-y-8">
               <div className="flex items-center justify-between">
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => router.back()}
-                  className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="inline-flex items-center gap-2"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Wróć
-                </button>
+                  <ArrowLeft className="w-4 h-4" />
+                  Powrót
+                </Button>
               </div>
               {/* Header firmy */}
               <Card className="relative py-3">

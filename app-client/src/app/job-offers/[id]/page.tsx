@@ -130,7 +130,7 @@ export default function JobOfferDetailsPage() {
               <p className="text-red-500 mb-4">{error || 'Oferta pracy nie została znaleziona'}</p>
               <div className="flex gap-4 justify-center">
                 <Button variant="outline" onClick={() => router.back()}>
-                  Wróć
+                  Powrót
                 </Button>
                 <Link href="/job-offers">
                   <Button>Zobacz inne oferty</Button>
@@ -151,15 +151,15 @@ export default function JobOfferDetailsPage() {
         <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
           {/* Breadcrumb i powrót */}
           <div className="mb-6">
-            <div className="flex items-center justify-between">
-                <button
-                  onClick={() => router.back()}
-                  className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Wróć
-                </button>
-              </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Powrót
+            </Button>
           </div>
 
           {/* Formularz aplikacji lub szczegóły oferty */}
