@@ -143,7 +143,7 @@ export default function JobOffersPage() {
       <div className="flex min-h-screen flex-col items-center">
         <SmartHeader />
         <main className="flex-1 w-full">
-          <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-16">
+          <div className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12 md:py-16">
             <div className="mb-12 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Oferty pracy</h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -167,7 +167,7 @@ export default function JobOffersPage() {
       <div className="flex min-h-screen flex-col items-center">
         <SmartHeader />
         <main className="flex-1 w-full">
-          <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-16">
+          <div className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12 md:py-16">
             <div className="mb-12 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Oferty pracy</h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -191,7 +191,7 @@ export default function JobOffersPage() {
       <SmartHeader />
       
       <main className="flex-1 w-full">
-        <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-16">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12 md:py-16">
           <div className="mb-12 text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Oferty pracy</h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto mb-8">
@@ -199,19 +199,19 @@ export default function JobOffersPage() {
             </p>
             
             {/* Wyszukiwarka */}
-            <form onSubmit={handleSearch} className="max-w-md mx-auto">
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Wyszukaj oferty pracy..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full pl-11 pr-24 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base"
                 />
                 <Button 
                   type="submit" 
-                  size="sm" 
+                  size="default" 
                   className="absolute right-1 top-1/2 transform -translate-y-1/2"
                 >
                   Szukaj
@@ -220,86 +220,90 @@ export default function JobOffersPage() {
             </form>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
             {/* Sidebar filters - always visible */}
-            <aside className="rounded-lg border bg-white p-4 h-fit"> 
-              <h3 className="text-sm font-semibold mb-3">Filtry</h3>
+            <aside className="rounded-lg border bg-white p-6 h-fit shadow-sm"> 
+              <h3 className="text-base font-semibold mb-4">Filtry</h3>
 
               {/* Tryb pracy */}
-              <div className="mb-4">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Tryb pracy</p>
+              <div className="mb-5">
+                <p className="text-sm font-medium text-gray-700 mb-2.5">Tryb pracy</p>
                 {['Zdalna', 'Hybrydowa', 'Stacjonarna'].map((mode) => (
-                  <label key={mode} className="flex items-center gap-2 text-sm mb-1">
+                  <label key={mode} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={selectedWorkingModes.includes(mode)}
                       onChange={() => toggleSelection(selectedWorkingModes, mode, setSelectedWorkingModes)}
+                      className="w-4 h-4 cursor-pointer accent-red-600 border-gray-300 rounded transition-all"
                     />
-                    <span>{mode}</span>
+                    <span className="group-hover:text-red-600 transition-colors duration-200">{mode}</span>
                   </label>
                 ))}
               </div>
 
               {/* Rodzaj umowy */}
-              <div className="mb-4">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Rodzaj umowy</p>
+              <div className="mb-5">
+                <p className="text-sm font-medium text-gray-700 mb-2.5">Rodzaj umowy</p>
                 {['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'].map((ct) => (
-                  <label key={ct} className="flex items-center gap-2 text-sm mb-1">
+                  <label key={ct} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={selectedContractTypes.includes(ct)}
                       onChange={() => toggleSelection(selectedContractTypes, ct, setSelectedContractTypes)}
+                      className="w-4 h-4 cursor-pointer accent-red-600 border-gray-300 rounded transition-all"
                     />
-                    <span>{ct}</span>
+                    <span className="group-hover:text-red-600 transition-colors duration-200">{ct}</span>
                   </label>
                 ))}
               </div>
 
               {/* Poziom stanowiska */}
-              <div className="mb-4">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Poziom stanowiska</p>
+              <div className="mb-5">
+                <p className="text-sm font-medium text-gray-700 mb-2.5">Poziom stanowiska</p>
                 {['Junior', 'Mid', 'Senior'].map((lvl) => (
-                  <label key={lvl} className="flex items-center gap-2 text-sm mb-1">
+                  <label key={lvl} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={selectedJobLevels.includes(lvl)}
                       onChange={() => toggleSelection(selectedJobLevels, lvl, setSelectedJobLevels)}
+                      className="w-4 h-4 cursor-pointer accent-red-600 border-gray-300 rounded transition-all"
                     />
-                    <span>{lvl}</span>
+                    <span className="group-hover:text-red-600 transition-colors duration-200">{lvl}</span>
                   </label>
                 ))}
               </div>
 
               {/* Wymiar pracy */}
-              <div className="mb-4">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Wymiar pracy</p>
+              <div className="mb-5">
+                <p className="text-sm font-medium text-gray-700 mb-2.5">Wymiar pracy</p>
                 {['Pełny etat', 'Część etatu'].map((wl) => (
-                  <label key={wl} className="flex items-center gap-2 text-sm mb-1">
+                  <label key={wl} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={selectedWorkloads.includes(wl)}
                       onChange={() => toggleSelection(selectedWorkloads, wl, setSelectedWorkloads)}
+                      className="w-4 h-4 cursor-pointer accent-red-600 border-gray-300 rounded transition-all"
                     />
-                    <span>{wl}</span>
+                    <span className="group-hover:text-red-600 transition-colors duration-200">{wl}</span>
                   </label>
                 ))}
               </div>
 
               {/* Technologie / Specjalizacje */}
-              <div className="mb-2">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Technologie / Specjalizacje</p>
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-700 mb-2.5">Technologie / Specjalizacje</p>
                 <input
                   type="text"
                   value={techInput}
                   onChange={(e) => { setTechInput(e.target.value); }}
                   placeholder="np. React, Node, AWS"
-                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none transition-all duration-200"
                 />
-                <p className="text-[11px] text-muted-foreground mt-1">Oddziel przecinkami</p>
+                <p className="text-xs text-muted-foreground mt-1.5">Oddziel przecinkami</p>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2 mt-5">
                 <Button
                   onClick={() => {
                     setAppliedWorkingModes(selectedWorkingModes);
@@ -309,7 +313,8 @@ export default function JobOffersPage() {
                     setAppliedTechInput(techInput);
                     setPage(1);
                   }}
-                  className="flex-1"
+                  className="flex-1 transition-all duration-200 hover:scale-105"
+                  size="default"
                 >
                   Zastosuj
                 </Button>
@@ -329,7 +334,8 @@ export default function JobOffersPage() {
                     setAppliedTechInput('');
                     setPage(1);
                   }}
-                  className="w-36"
+                  className="flex-1 transition-all duration-200 hover:scale-105"
+                  size="default"
                 >
                   Wyczyść
                 </Button>
@@ -337,9 +343,9 @@ export default function JobOffersPage() {
             </aside>
 
             {/* List content */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {filteredJobOffers.length === 0 ? (
-                <div className="text-center py-12">
+                <div className="text-center py-16">
                   <p className="text-muted-foreground text-lg mb-4">Brak dostępnych ofert pracy</p>
                   <p className="text-sm text-muted-foreground">Sprawdź ponownie później lub zmień kryteria wyszukiwania</p>
                 </div>
@@ -348,43 +354,57 @@ export default function JobOffersPage() {
                   <Link
                     key={jobOffer.id}
                     href={`/job-offers/${jobOffer.id}`}
-                    className="block rounded-lg border bg-white p-3 shadow-sm transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                    className="block rounded-lg border bg-white p-6 shadow-sm transition-all duration-200 hover:bg-accent/30 hover:shadow-lg hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                   >
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-semibold mb-1 line-clamp-2">
-                          {jobOffer.name}
-                        </h3>
-                        {jobOffer.employerProfile?.companyName && jobOffer.employerProfile?.id && (
-                          <p className="text-muted-foreground mb-0.5 font-medium text-sm truncate">
-                            <Link href={`/companies/${jobOffer.employerProfile.id}`} className="hover:text-primary underline-offset-2 hover:underline">
-                              {jobOffer.employerProfile.companyName}
-                            </Link>
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground mb-2 truncate">
-                          {formatLocation(jobOffer)} • {formatSalary(jobOffer.salary)}
-                        </p>
-                        {jobOffer.description && (
-                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                            {jobOffer.description}
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-1.5 items-start">
-                          {formatTags(jobOffer.tags).map((tag, index) => (
-                            <span
-                              key={index}
-                              className="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                          {jobOffer.tags && jobOffer.tags.length > 2 && (
-                            <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                              +{jobOffer.tags.length - 2} więcej
-                            </span>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-xl font-semibold mb-2 line-clamp-2">
+                            {jobOffer.name}
+                          </h3>
+                          {jobOffer.employerProfile?.companyName && jobOffer.employerProfile?.id && (
+                            <p className="text-muted-foreground mb-1 font-medium text-base">
+                              <Link href={`/companies/${jobOffer.employerProfile.id}`} className="hover:text-primary underline-offset-2 hover:underline">
+                                {jobOffer.employerProfile.companyName}
+                              </Link>
+                            </p>
                           )}
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground mb-3">
+                            <span className="flex items-center">
+                              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                              </svg>
+                              {formatLocation(jobOffer)}
+                            </span>
+                            <span className="flex items-center">
+                              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {formatSalary(jobOffer.salary)}
+                            </span>
+                          </div>
                         </div>
+                      </div>
+                      {jobOffer.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {jobOffer.description}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2 items-start">
+                        {formatTags(jobOffer.tags).map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {jobOffer.tags && jobOffer.tags.length > 2 && (
+                          <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                            +{jobOffer.tags.length - 2} więcej
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>
@@ -395,11 +415,12 @@ export default function JobOffersPage() {
 
           {/* Paginacja */}
           {totalPages > 1 && filteredJobOffers.length > 0 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
+            <div className="flex justify-center items-center gap-3 mt-10">
               <Button
                 variant="outline"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
+                size="default"
               >
                 Poprzednia
               </Button>
@@ -417,7 +438,8 @@ export default function JobOffersPage() {
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
                       onClick={() => setPage(pageNum)}
-                      className="w-10"
+                      className="w-11 h-11"
+                      size="default"
                     >
                       {pageNum}
                     </Button>
@@ -429,6 +451,7 @@ export default function JobOffersPage() {
                 variant="outline"
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                size="default"
               >
                 Następna
               </Button>
@@ -439,7 +462,7 @@ export default function JobOffersPage() {
 
       {/* Footer */}
       <footer className="w-full border-t bg-white">
-        <div className="w-full max-w-5xl mx-auto flex flex-col gap-8 px-4 py-10 md:px-6 lg:flex-row lg:gap-12">
+        <div className="w-full max-w-7xl mx-auto flex flex-col gap-8 px-4 md:px-8 lg:px-12 py-10 lg:flex-row lg:gap-12">
           <div className="flex flex-col gap-4 lg:w-1/3">
             <Link href="/" className="flex gap-2 items-center text-xl font-bold group cursor-pointer">
               <svg

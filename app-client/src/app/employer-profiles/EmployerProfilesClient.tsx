@@ -287,7 +287,7 @@ export default function EmployerProfilesClient() {
                 <Card key={employer.id} className="flex h-full flex-col shadow-sm">
                   <CardHeader className="pb-4">
                     <div className="flex items-start gap-4">
-                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shadow-sm">
                         {employer.companyImageUrl ? (
                           <Image
                             src={employer.companyImageUrl}
@@ -297,9 +297,7 @@ export default function EmployerProfilesClient() {
                             className="object-cover"
                           />
                         ) : (
-                          <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-muted-foreground">
-                            {employer.companyName.charAt(0)}
-                          </span>
+                          <Building2 className="h-8 w-8 text-primary" />
                         )}
                       </div>
                       <div className="flex-1">
