@@ -3,49 +3,9 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-type AdditionalEmployerSeed = {
-  user: {
-    email: string;
-    username: string;
-  };
-  profile: {
-    companyName: string;
-    companyImageUrl?: string;
-    industry: string[];
-    description?: string;
-    contractTypes: string[];
-    contactPhone?: string;
-    contactEmail?: string;
-    benefits: string[];
-  };
-  locations: Array<{
-    city: string;
-    state?: string;
-    street?: string;
-    postalCode?: string;
-    latitude?: number;
-    longtitude?: number;
-  }>;
-  offers: Array<{
-    name: string;
-    description: string;
-    jobLevel: string[];
-    contractType: string;
-    salary?: string;
-    workingMode: string[];
-    workload?: string;
-    responsibilities: string[];
-    requirements: string[];
-    whatWeOffer: string[];
-    applicationUrl?: string | null;
-    tags: string[];
-    expireInDays: number;
-    locationIndex?: number;
-  }>;
-};
-
 async function main(): Promise<void> {
-  console.info("🌱 Seeding database with demo data...");
+  console.info("🌱 Seeding database with extensive demo data...");
+  console.info("👥 Creating: 2 Employers + 2 Candidates with full interactions");
 
   // Clean up old seed data before re-seeding
   console.info("🧹 Cleaning previous seed data...");
@@ -59,702 +19,789 @@ async function main(): Promise<void> {
   await prisma.employerProfile.deleteMany();
   await prisma.candidateCV.deleteMany();
   await prisma.profileLink.deleteMany();
+  await prisma.externalJobOffer.deleteMany();
   await prisma.candidateProfile.deleteMany();
+  await prisma.additionalCredentials.deleteMany();
   await prisma.lokalization.deleteMany();
   await prisma.user.deleteMany({ where: { email: { endsWith: "@jobonfire.com" } } });
-  console.info("✅ Cleanup complete");
+  console.info("✅ Cleanup complete\n");
 
-  const [employerPasswordHash, candidatePasswordHash] = await Promise.all([
-    bcrypt.hash("Employer123!", 10),
-    bcrypt.hash("Candidate123!", 10),
-  ]);
+  const passwordHash = await bcrypt.hash("Demo123!", 10);
 
-  const employerUser = await prisma.user.upsert({
-    where: { email: "employer@jobonfire.com" },
-    update: {
+  // ============================================
+  // EMPLOYER 1: FireTech Software
+  // ============================================
+  console.info("👔 Creating Employer 1: FireTech Software...");
+  
+  const employer1User = await prisma.user.create({
+    data: {
       username: "firetech",
-      isDeleted: false,
-    },
-    create: {
-      username: "firetech",
-      email: "employer@jobonfire.com",
-      passwordHash: employerPasswordHash,
+      email: "employer1@jobonfire.com",
+      passwordHash,
       role: UserRole.EMPLOYER,
       registerDate: new Date(),
       isDeleted: false,
     },
   });
 
-  const industry: Prisma.JsonArray = ["Software", "IT Services"];
-  const contractTypes: Prisma.JsonArray = ["Umowa o pracę", "B2B"];
-  const benefits: Prisma.JsonArray = [
-    "Prywatna opieka medyczna",
-    "Budżet szkoleniowy",
-    "Praca hybrydowa",
-    "Karta sportowa",
-  ];
-
-  const employerProfile = await prisma.employerProfile.upsert({
-    where: { userId: employerUser.id },
-    update: {
+  const employer1Profile = await prisma.employerProfile.create({
+    data: {
       companyName: "FireTech Software",
       companyImageUrl: "https://cdn.jobonfire.dev/logos/firetech.png",
-      industry,
-      description:
-        "Nowoczesny software house budujący aplikacje webowe i mobilne dla branży fintech, e-commerce oraz HR.",
-      contractType: contractTypes,
+      industry: ["Software", "IT Services"] as Prisma.JsonArray,
+      description: "Nowoczesny software house budujący aplikacje webowe i mobilne dla branży fintech, e-commerce oraz HR.",
+      contractType: ["Umowa o pracę", "B2B"] as Prisma.JsonArray,
       contactPhone: "+48 511 223 344",
       contactEmail: "hr@firetech.pl",
-      benefits,
-    },
-    create: {
-      companyName: "FireTech Software",
-      companyImageUrl: "https://cdn.jobonfire.dev/logos/firetech.png",
-      industry,
-      description:
-        "Nowoczesny software house budujący aplikacje webowe i mobilne dla branży fintech, e-commerce oraz HR.",
-      contractType: contractTypes,
-      contactPhone: "+48 511 223 344",
-      contactEmail: "hr@firetech.pl",
-      benefits,
-      userId: employerUser.id,
+      benefits: ["Prywatna opieka medyczna", "Budżet szkoleniowy", "Praca hybrydowa", "Karta sportowa"] as Prisma.JsonArray,
+      userId: employer1User.id,
     },
   });
 
-  let warsawOffice = await prisma.lokalization.findFirst({
-    where: {
+  // Locations for Employer 1
+  const warsawOffice = await prisma.lokalization.create({
+    data: {
       city: "Warszawa",
       state: "Mazowieckie",
       street: "Prosta 51",
       postalCode: "00-838",
+      latitude: 52.2318,
+      longtitude: 20.9965,
     },
   });
 
-  if (!warsawOffice) {
-    warsawOffice = await prisma.lokalization.create({
-      data: {
-        city: "Warszawa",
-        state: "Mazowieckie",
-        street: "Prosta 51",
-        postalCode: "00-838",
-        latitude: 52.2318,
-        longtitude: 20.9965,
-      },
-    });
-  }
-
-  await prisma.lokalizationToEmployerProfile.upsert({
-    where: {
-      employerProfileId_lokalizationId: {
-        employerProfileId: employerProfile.id,
-        lokalizationId: warsawOffice.id,
-      },
-    },
-    update: {},
-    create: {
-      employerProfileId: employerProfile.id,
+  await prisma.lokalizationToEmployerProfile.create({
+    data: {
+      employerProfileId: employer1Profile.id,
       lokalizationId: warsawOffice.id,
     },
   });
 
-  const jobLevels: Prisma.JsonArray = ["Mid", "Senior"];
-  const workingModes: Prisma.JsonArray = ["Hybrydowa", "Zdalna"];
-  const responsibilities: Prisma.JsonArray = [
-    "Rozwój i utrzymanie aplikacji frontendowych w oparciu o Next.js i TypeScript",
-    "Ścisła współpraca z zespołem UX/UI oraz backend",
-    "Dbanie o jakość kodu i pokrycie testami automatycznymi",
-    "Optymalizacja wydajnościowo-SEO istniejących modułów",
-  ];
-  const requirements: Prisma.JsonArray = [
-    "Min. 3 lata doświadczenia komercyjnego w React/Next.js",
-    "Bardzo dobra znajomość TypeScript",
-    "Umiejętność pracy z REST API i GraphQL",
-    "Doświadczenie z testami (Jest, React Testing Library)",
-    "Znajomość narzędzi CI/CD (GitHub Actions, Docker)",
-  ];
-  const offerWhatWeProvide: Prisma.JsonArray = [
-    "Wynagrodzenie 18 000 - 24 000 PLN netto + VAT",
-    "Budżet szkoleniowy 5 000 PLN rocznie",
-    "Nowoczesne biuro w centrum Warszawy",
-    "Elastyczne godziny pracy oraz możliwość pracy zdalnej",
-  ];
-  const offerTags: Prisma.JsonArray = ["React", "Next.js", "TypeScript", "CI/CD", "GraphQL"];
-
-  let frontendOffer = await prisma.jobOffer.findFirst({
-    where: {
+  // Job Offers for Employer 1
+  const frontendOffer = await prisma.jobOffer.create({
+    data: {
       name: "Frontend Developer (React/Next.js)",
-      employerProfileId: employerProfile.id,
+      description: "Dołącz do zespołu FireTech Software i rozwijaj rozwiązania webowe dla klientów z całego świata.",
+      jobLevel: ["Mid", "Senior"] as Prisma.JsonArray,
+      contractType: "B2B",
+      salary: "18 000 - 24 000 PLN netto (B2B)",
+      createDate: new Date(),
+      expireDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      workingMode: ["Hybrydowa", "Zdalna"] as Prisma.JsonArray,
+      workload: "Pełny etat",
+      responsibilities: [
+        "Rozwój i utrzymanie aplikacji frontendowych w oparciu o Next.js i TypeScript",
+        "Ścisła współpraca z zespołem UX/UI oraz backend",
+        "Dbanie o jakość kodu i pokrycie testami automatycznymi",
+        "Optymalizacja wydajnościowo-SEO istniejących modułów",
+      ] as Prisma.JsonArray,
+      requirements: [
+        "Min. 3 lata doświadczenia komercyjnego w React/Next.js",
+        "Bardzo dobra znajomość TypeScript",
+        "Umiejętność pracy z REST API i GraphQL",
+        "Doświadczenie z testami (Jest, React Testing Library)",
+      ] as Prisma.JsonArray,
+      whatWeOffer: [
+        "Wynagrodzenie 18 000 - 24 000 PLN netto + VAT",
+        "Budżet szkoleniowy 5 000 PLN rocznie",
+        "Nowoczesne biuro w centrum Warszawy",
+        "Elastyczne godziny pracy oraz możliwość pracy zdalnej",
+      ] as Prisma.JsonArray,
+      applicationUrl: null,
+      tags: ["React", "Next.js", "TypeScript", "CI/CD", "GraphQL"] as Prisma.JsonArray,
+      isActive: true,
+      lokalizationId: warsawOffice.id,
+      employerProfileId: employer1Profile.id,
     },
   });
 
-  if (!frontendOffer) {
-    frontendOffer = await prisma.jobOffer.create({
-      data: {
-        name: "Frontend Developer (React/Next.js)",
-        description:
-          "Dołącz do zespołu FireTech Software i rozwijaj rozwiązania webowe dla klientów z całego świata. Szukamy osoby, która kocha czysty kod, automatyzację i śledzenie najnowszych trendów frontendowych.",
-        jobLevel: jobLevels,
-        contractType: "B2B",
-        salary: "18 000 - 24 000 PLN netto (B2B)",
-        createDate: new Date(),
-        expireDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
-        workingMode: workingModes,
-        workload: "Pełny etat",
-        responsibilities,
-        requirements,
-        whatWeOffer: offerWhatWeProvide,
-        applicationUrl: null,
-        tags: offerTags,
-        isActive: true,
-        lokalizationId: warsawOffice.id,
-        employerProfileId: employerProfile.id,
-      },
-    });
-  } else {
-    frontendOffer = await prisma.jobOffer.update({
-      where: { id: frontendOffer.id },
-      data: {
-        description:
-          "Dołącz do zespołu FireTech Software i rozwijaj rozwiązania webowe dla klientów z całego świata. Szukamy osoby, która kocha czysty kod, automatyzację i śledzenie najnowszych trendów frontendowych.",
-        jobLevel: jobLevels,
-        workingMode: workingModes,
-        responsibilities,
-        requirements,
-        whatWeOffer: offerWhatWeProvide,
-        tags: offerTags,
-        salary: "18 000 - 24 000 PLN netto (B2B)",
-        isActive: true,
-        expireDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
-      },
-    });
-  }
+  const backendOffer = await prisma.jobOffer.create({
+    data: {
+      name: "Backend Developer (Node.js)",
+      description: "Szukamy backend developera do pracy nad systemami dla branży fintech.",
+      jobLevel: ["Senior"] as Prisma.JsonArray,
+      contractType: "B2B",
+      salary: "20 000 - 26 000 PLN netto (B2B)",
+      createDate: new Date(),
+      expireDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      workingMode: ["Zdalna"] as Prisma.JsonArray,
+      workload: "Pełny etat",
+      responsibilities: [
+        "Projektowanie i implementacja REST API",
+        "Integracja z systemami płatności",
+        "Optymalizacja wydajności bazy danych",
+      ] as Prisma.JsonArray,
+      requirements: [
+        "Min. 5 lat doświadczenia w Node.js",
+        "Znajomość PostgreSQL i Redis",
+        "Doświadczenie z mikrousługami",
+      ] as Prisma.JsonArray,
+      whatWeOffer: [
+        "100% praca zdalna",
+        "Nowoczesny stack technologiczny",
+        "Budżet na konferencje",
+      ] as Prisma.JsonArray,
+      applicationUrl: null,
+      tags: ["Node.js", "PostgreSQL", "Microservices", "REST API"] as Prisma.JsonArray,
+      isActive: true,
+      lokalizationId: warsawOffice.id,
+      employerProfileId: employer1Profile.id,
+    },
+  });
 
-  const questionTexts = [
-    "Opisz swoje największe wyzwanie projektowe związane z wydajnością frontendu.",
-    "Jakie narzędzia wykorzystujesz do monitorowania jakości i stabilności aplikacji React?",
-  ];
-
-  for (const text of questionTexts) {
-    const existingQuestion = await prisma.recruitmentQuestion.findFirst({
-      where: {
+  // Recruitment questions for Frontend offer
+  await prisma.recruitmentQuestion.createMany({
+    data: [
+      {
         jobOfferId: frontendOffer.id,
-        question: text,
+        question: "Opisz swoje największe wyzwanie projektowe związane z wydajnością frontendu.",
       },
-    });
-
-
-  const additionalEmployers: AdditionalEmployerSeed[] = [
-    {
-      user: {
-        email: "employer.analytics@jobonfire.com",
-        username: "dataforge",
+      {
+        jobOfferId: frontendOffer.id,
+        question: "Jakie narzędzia wykorzystujesz do monitorowania jakości aplikacji React?",
       },
-      profile: {
-        companyName: "DataForge Analytics",
-        companyImageUrl: "https://cdn.jobonfire.dev/logos/dataforge.png",
-        industry: ["Analityka danych", "Cloud"],
-        description:
-          "Tworzymy rozwiązania analityczne w oparciu o Azure i ekosystem danych. Wspieramy klientów w budowie hurtowni danych i platform BI.",
-        contractTypes: ["Umowa o pracę", "B2B"],
-        contactPhone: "+48 600 112 233",
-        contactEmail: "kariera@dataforge.pl",
-        benefits: [
-          "Budżet konferencyjny",
-          "Elastyczne godziny pracy",
-          "Ubezpieczenie na życie",
-          "Program mentorski",
-        ],
+    ],
+  });
+
+  // Recruitment questions for Backend offer
+  await prisma.recruitmentQuestion.createMany({
+    data: [
+      {
+        jobOfferId: backendOffer.id,
+        question: "Jakie wzorce projektowe stosujesz przy tworzeniu mikrousług?",
       },
-      locations: [
-        {
-          city: "Kraków",
-          state: "Małopolskie",
-          street: "Lubicz 17G",
-          postalCode: "31-503",
-          latitude: 50.0665,
-          longtitude: 19.9601,
-        },
-      ],
-      offers: [
-        {
-          name: "Data Engineer (Azure)",
-          description:
-            "Poszukujemy Data Engineera do zespołu projektującego i wdrażającego rozwiązania danych na platformie Azure.",
-          jobLevel: ["Mid", "Senior"],
-          contractType: "B2B",
-          salary: "20 000 - 26 000 PLN netto (B2B)",
-          workingMode: ["Hybrydowa"],
-          workload: "Pełny etat",
-          responsibilities: [
-            "Projektowanie i implementacja pipeline'ów danych w Azure Data Factory i Databricks",
-            "Modelowanie hurtowni danych i optymalizacja zapytań SQL",
-            "Automatyzacja procesów CI/CD dla rozwiązań danych",
-          ],
-          requirements: [
-            "Min. 3 lata doświadczenia w projektach danych",
-            "Bardzo dobra znajomość Azure Data Platform",
-            "Umiejętność programowania w Python lub Scala",
-            "Praktyczna znajomość narzędzi CI/CD",
-          ],
-          whatWeOffer: [
-            "Praca z międzynarodowymi klientami",
-            "Budżet szkoleniowy 6 000 PLN rocznie",
-            "Możliwość pracy z najnowszym stackiem Azure",
-          ],
-          applicationUrl: null,
-          tags: ["Azure", "Data Lake", "PySpark", "SQL"],
-          expireInDays: 60,
-        },
-        {
-          name: "BI Developer (Power BI)",
-          description:
-            "Szukamy osoby, która pomoże nam budować interaktywne raporty i dashboardy Power BI dla klientów z branży retail.",
-          jobLevel: ["Mid"],
-          contractType: "Umowa o pracę",
-          salary: "16 000 - 19 000 PLN brutto",
-          workingMode: ["Hybrydowa"],
-          workload: "Pełny etat",
-          responsibilities: [
-            "Projektowanie modeli danych w Power BI",
-            "Tworzenie raportów i dashboardów",
-            "Optymalizacja istniejących rozwiązań i wsparcie użytkowników biznesowych",
-          ],
-          requirements: [
-            "Doświadczenie w pracy z Power BI i DAX",
-            "Bardzo dobra znajomość SQL",
-            "Znajomość procesów ETL",
-          ],
-          whatWeOffer: [
-            "Stabilna współpraca i jasna ścieżka rozwoju",
-            "Prywatna opieka medyczna i karta sportowa",
-            "Zespół ekspertów gotowych dzielić się wiedzą",
-          ],
-          applicationUrl: null,
-          tags: ["Power BI", "DAX", "SQL"],
-          expireInDays: 45,
-        },
-      ],
-    },
-    {
-      user: {
-        email: "employer.cloud@jobonfire.com",
-        username: "cloudops",
+      {
+        jobOfferId: backendOffer.id,
+        question: "Opisz swoje doświadczenie z optymalizacją zapytań SQL.",
       },
-      profile: {
-        companyName: "CloudOps Solutions",
-        companyImageUrl: "https://cdn.jobonfire.dev/logos/cloudops.png",
-        industry: ["DevOps", "Infrastruktura"],
-        description:
-          "Specjalizujemy się w automatyzacji infrastruktury i zapewnianiu niezawodności systemów krytycznych w architekturze chmurowej.",
-        contractTypes: ["B2B"],
-        contactPhone: "+48 722 443 990",
-        contactEmail: "jobs@cloudops.solutions",
-        benefits: [
-          "Sprzęt do wyboru",
-          "Pakiet medyczny",
-          "Hackathony wewnętrzne",
-          "Budżet certyfikacyjny AWS/GCP",
-        ],
-      },
-      locations: [
-        {
-          city: "Wrocław",
-          state: "Dolnośląskie",
-          street: "Plac Grunwaldzki 23",
-          postalCode: "50-377",
-          latitude: 51.1101,
-          longtitude: 17.0603,
-        },
-        {
-          city: "Gdańsk",
-          state: "Pomorskie",
-          street: "Marynarki Polskiej 96",
-          postalCode: "80-557",
-          latitude: 54.3953,
-          longtitude: 18.6400,
-        },
-      ],
-      offers: [
-        {
-          name: "DevOps Engineer (AWS)",
-          description:
-            "Dołącz do zespołu odpowiedzialnego za tworzenie i utrzymanie infrastruktury AWS dla klientów z branży e-commerce.",
-          jobLevel: ["Senior"],
-          contractType: "B2B",
-          salary: "24 000 - 30 000 PLN netto (B2B)",
-          workingMode: ["Zdalna"],
-          workload: "Pełny etat",
-          responsibilities: [
-            "Projektowanie i wdrażanie infrastruktury jako kod (Terraform)",
-            "Automatyzacja procesów CI/CD oraz monitoringu",
-            "Współpraca z zespołami developerskimi w zakresie dobrych praktyk DevOps",
-          ],
-          requirements: [
-            "Bardzo dobra znajomość AWS",
-            "Doświadczenie z Kubernetes i Terraform",
-            "Znajomość narzędzi observability (Prometheus, Grafana)",
-          ],
-          whatWeOffer: [
-            "W 100% zdalna współpraca",
-            "Elastyczne godziny i brak nadgodzin",
-            "Budżet na certyfikacje AWS",
-          ],
-          applicationUrl: null,
-          tags: ["AWS", "Terraform", "Kubernetes"],
-          expireInDays: 50,
-          locationIndex: 0,
-        },
-        {
-          name: "Site Reliability Engineer",
-          description:
-            "SRE odpowiedzialny za niezawodność platform SaaS o globalnym zasięgu. Praca z kulturą bliską zespołom produktowym.",
-          jobLevel: ["Mid", "Senior"],
-          contractType: "B2B",
-          salary: "22 000 - 28 000 PLN netto (B2B)",
-          workingMode: ["Zdalna", "Hybrydowa"],
-          workload: "Pełny etat",
-          responsibilities: [
-            "Projektowanie procesów SLO/SLA oraz automatyzacji runbooków",
-            "Budowa narzędzi poprawiających obserwowalność",
-            "Analiza incydentów i ciągłe doskonalenie platformy",
-          ],
-          requirements: [
-            "Doświadczenie w rolach SRE/DevOps",
-            "Znajomość języka Python lub Go",
-            "Praktyka w pracy z narzędziami observability",
-          ],
-          whatWeOffer: [
-            "Dwutygodniowe sprinty R&D",
-            "Pakiet benefitów dopasowany indywidualnie",
-            "Wyjazdy integracyjne w Europie",
-          ],
-          applicationUrl: null,
-          tags: ["SRE", "Observability", "Python"],
-          expireInDays: 55,
-          locationIndex: 1,
-        },
-      ],
-    },
-  ];
+    ],
+  });
 
-  for (const employerData of additionalEmployers) {
-    const employerUserSeed = await prisma.user.upsert({
-      where: { email: employerData.user.email },
-      update: {
-        username: employerData.user.username,
-        passwordHash: employerPasswordHash,
-        isDeleted: false,
-      },
-      create: {
-        username: employerData.user.username,
-        email: employerData.user.email,
-        passwordHash: employerPasswordHash,
-        role: UserRole.EMPLOYER,
-        registerDate: new Date(),
-        isDeleted: false,
-      },
-    });
+  console.info("✅ Employer 1 created with 2 job offers\n");
 
-    const employerProfileSeed = await prisma.employerProfile.upsert({
-      where: { userId: employerUserSeed.id },
-      update: {
-        companyName: employerData.profile.companyName,
-        companyImageUrl: employerData.profile.companyImageUrl,
-        industry: employerData.profile.industry as Prisma.JsonArray,
-        description: employerData.profile.description,
-        contractType: employerData.profile.contractTypes as Prisma.JsonArray,
-        contactPhone: employerData.profile.contactPhone,
-        contactEmail: employerData.profile.contactEmail,
-        benefits: employerData.profile.benefits as Prisma.JsonArray,
-      },
-      create: {
-        companyName: employerData.profile.companyName,
-        companyImageUrl: employerData.profile.companyImageUrl,
-        industry: employerData.profile.industry as Prisma.JsonArray,
-        description: employerData.profile.description,
-        contractType: employerData.profile.contractTypes as Prisma.JsonArray,
-        contactPhone: employerData.profile.contactPhone,
-        contactEmail: employerData.profile.contactEmail,
-        benefits: employerData.profile.benefits as Prisma.JsonArray,
-        userId: employerUserSeed.id,
-      },
-    });
+  // ============================================
+  // EMPLOYER 2: DataForge Analytics
+  // ============================================
+  console.info("👔 Creating Employer 2: DataForge Analytics...");
 
-    const locationIds: number[] = [];
-    for (const location of employerData.locations) {
-      let locationRecord = await prisma.lokalization.findFirst({
-        where: {
-          city: location.city,
-          state: location.state,
-          street: location.street,
-          postalCode: location.postalCode,
-        },
-      });
-
-      if (!locationRecord) {
-        locationRecord = await prisma.lokalization.create({
-          data: {
-            city: location.city,
-            state: location.state,
-            street: location.street,
-            postalCode: location.postalCode,
-            latitude: location.latitude,
-            longtitude: location.longtitude,
-          },
-        });
-      }
-
-      locationIds.push(locationRecord.id);
-
-      await prisma.lokalizationToEmployerProfile.upsert({
-        where: {
-          employerProfileId_lokalizationId: {
-            employerProfileId: employerProfileSeed.id,
-            lokalizationId: locationRecord.id,
-          },
-        },
-        update: {},
-        create: {
-          employerProfileId: employerProfileSeed.id,
-          lokalizationId: locationRecord.id,
-        },
-      });
-    }
-
-    for (const offer of employerData.offers) {
-      const targetLocationId = locationIds[offer.locationIndex ?? 0] ?? null;
-      const existingOffer = await prisma.jobOffer.findFirst({
-        where: {
-          employerProfileId: employerProfileSeed.id,
-          name: offer.name,
-        },
-      });
-
-      const offerData = {
-        description: offer.description,
-        jobLevel: offer.jobLevel as Prisma.JsonArray,
-        contractType: offer.contractType,
-        salary: offer.salary ?? null,
-        workingMode: offer.workingMode as Prisma.JsonArray,
-        workload: offer.workload ?? null,
-        responsibilities: offer.responsibilities as Prisma.JsonArray,
-        requirements: offer.requirements as Prisma.JsonArray,
-        whatWeOffer: offer.whatWeOffer as Prisma.JsonArray,
-        applicationUrl: offer.applicationUrl ?? null,
-        tags: offer.tags as Prisma.JsonArray,
-        isActive: true,
-        expireDate: new Date(Date.now() + offer.expireInDays * 24 * 60 * 60 * 1000),
-        lokalizationId: targetLocationId,
-      };
-
-      if (!existingOffer) {
-        await prisma.jobOffer.create({
-          data: {
-            name: offer.name,
-            createDate: new Date(),
-            employerProfileId: employerProfileSeed.id,
-            ...offerData,
-          },
-        });
-      } else {
-        await prisma.jobOffer.update({
-          where: { id: existingOffer.id },
-          data: offerData,
-        });
-      }
-    }
-  }
-    if (!existingQuestion) {
-      await prisma.recruitmentQuestion.create({
-        data: {
-          jobOfferId: frontendOffer.id,
-          question: text,
-        },
-      });
-    }
-  }
-
-  const candidateUser = await prisma.user.upsert({
-    where: { email: "candidate@jobonfire.com" },
-    update: {
-      username: "frontendhero",
+  const employer2User = await prisma.user.create({
+    data: {
+      username: "dataforge",
+      email: "employer2@jobonfire.com",
+      passwordHash,
+      role: UserRole.EMPLOYER,
+      registerDate: new Date(),
       isDeleted: false,
     },
-    create: {
+  });
+
+  const employer2Profile = await prisma.employerProfile.create({
+    data: {
+      companyName: "DataForge Analytics",
+      companyImageUrl: "https://cdn.jobonfire.dev/logos/dataforge.png",
+      industry: ["Analityka danych", "Cloud"] as Prisma.JsonArray,
+      description: "Tworzymy rozwiązania analityczne w oparciu o Azure i ekosystem danych.",
+      contractType: ["Umowa o pracę", "B2B"] as Prisma.JsonArray,
+      contactPhone: "+48 600 112 233",
+      contactEmail: "kariera@dataforge.pl",
+      benefits: ["Budżet konferencyjny", "Elastyczne godziny pracy", "Ubezpieczenie na życie", "Program mentorski"] as Prisma.JsonArray,
+      userId: employer2User.id,
+    },
+  });
+
+  const krakowOffice = await prisma.lokalization.create({
+    data: {
+      city: "Kraków",
+      state: "Małopolskie",
+      street: "Lubicz 17G",
+      postalCode: "31-503",
+      latitude: 50.0665,
+      longtitude: 19.9601,
+    },
+  });
+
+  await prisma.lokalizationToEmployerProfile.create({
+    data: {
+      employerProfileId: employer2Profile.id,
+      lokalizationId: krakowOffice.id,
+    },
+  });
+
+  const dataEngineerOffer = await prisma.jobOffer.create({
+    data: {
+      name: "Data Engineer (Azure)",
+      description: "Poszukujemy Data Engineera do zespołu projektującego rozwiązania danych na platformie Azure.",
+      jobLevel: ["Mid", "Senior"] as Prisma.JsonArray,
+      contractType: "B2B",
+      salary: "20 000 - 26 000 PLN netto (B2B)",
+      createDate: new Date(),
+      expireDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      workingMode: ["Hybrydowa"] as Prisma.JsonArray,
+      workload: "Pełny etat",
+      responsibilities: [
+        "Projektowanie i implementacja pipeline'ów danych w Azure Data Factory",
+        "Modelowanie hurtowni danych",
+        "Automatyzacja procesów CI/CD",
+      ] as Prisma.JsonArray,
+      requirements: [
+        "Min. 3 lata doświadczenia w projektach danych",
+        "Bardzo dobra znajomość Azure Data Platform",
+        "Umiejętność programowania w Python lub Scala",
+      ] as Prisma.JsonArray,
+      whatWeOffer: [
+        "Praca z międzynarodowymi klientami",
+        "Budżet szkoleniowy 6 000 PLN rocznie",
+        "Możliwość pracy z najnowszym stackiem Azure",
+      ] as Prisma.JsonArray,
+      applicationUrl: null,
+      tags: ["Azure", "Data Lake", "PySpark", "SQL"] as Prisma.JsonArray,
+      isActive: true,
+      lokalizationId: krakowOffice.id,
+      employerProfileId: employer2Profile.id,
+    },
+  });
+
+  const biDeveloperOffer = await prisma.jobOffer.create({
+    data: {
+      name: "BI Developer (Power BI)",
+      description: "Szukamy osoby do budowy interaktywnych raportów Power BI dla klientów z branży retail.",
+      jobLevel: ["Mid"] as Prisma.JsonArray,
+      contractType: "Umowa o pracę",
+      salary: "16 000 - 19 000 PLN brutto",
+      createDate: new Date(),
+      expireDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      workingMode: ["Hybrydowa"] as Prisma.JsonArray,
+      workload: "Pełny etat",
+      responsibilities: [
+        "Projektowanie modeli danych w Power BI",
+        "Tworzenie raportów i dashboardów",
+        "Optymalizacja rozwiązań i wsparcie użytkowników",
+      ] as Prisma.JsonArray,
+      requirements: [
+        "Doświadczenie w pracy z Power BI i DAX",
+        "Bardzo dobra znajomość SQL",
+        "Znajomość procesów ETL",
+      ] as Prisma.JsonArray,
+      whatWeOffer: [
+        "Stabilna współpraca",
+        "Prywatna opieka medyczna",
+        "Zespół ekspertów",
+      ] as Prisma.JsonArray,
+      applicationUrl: null,
+      tags: ["Power BI", "DAX", "SQL"] as Prisma.JsonArray,
+      isActive: true,
+      lokalizationId: krakowOffice.id,
+      employerProfileId: employer2Profile.id,
+    },
+  });
+
+  // Recruitment questions for Data Engineer
+  await prisma.recruitmentQuestion.createMany({
+    data: [
+      {
+        jobOfferId: dataEngineerOffer.id,
+        question: "Opisz swoje doświadczenie z Azure Data Factory.",
+      },
+      {
+        jobOfferId: dataEngineerOffer.id,
+        question: "Jak podchodzisz do optymalizacji pipeline'ów danych?",
+      },
+    ],
+  });
+
+  console.info("✅ Employer 2 created with 2 job offers\n");
+
+  // ============================================
+  // CANDIDATE 1: Anna Nowak
+  // ============================================
+  console.info("👤 Creating Candidate 1: Anna Nowak...");
+
+  const candidate1User = await prisma.user.create({
+    data: {
       username: "frontendhero",
-      email: "candidate@jobonfire.com",
-      passwordHash: candidatePasswordHash,
+      email: "candidate1@jobonfire.com",
+      passwordHash,
       role: UserRole.CANDIDATE,
       registerDate: new Date(),
       isDeleted: false,
     },
   });
 
-  const skills: Prisma.JsonArray = [
-    { name: "React", level: "EXPERT" },
-    { name: "Next.js", level: "EXPERT" },
-    { name: "TypeScript", level: "ADVANCED" },
-    { name: "GraphQL", level: "ADVANCED" },
-    { name: "Jest", level: "ADVANCED" },
-  ];
-  const experience: Prisma.JsonArray = [
-    {
-      company: "CodeWave",
-      position: "Frontend Developer",
-      from: "2021-02-01",
-      to: "2023-07-31",
-      responsibilities: [
-        "Implementacja modułów w React i Next.js",
-        "Współpraca z zespołem backendowym przy projektowaniu API",
-        "Tworzenie testów jednostkowych i integracyjnych",
-      ],
+  // Google OAuth credentials for candidate 1
+  await prisma.additionalCredentials.create({
+    data: {
+      userId: candidate1User.id,
+      provider: "google",
+      value: "google-oauth-id-anna-123",
     },
-    {
-      company: "BrightApps",
-      position: "Junior Frontend Developer",
-      from: "2019-05-01",
-      to: "2021-01-31",
-      responsibilities: [
-        "Budowa komponentów UI",
-        "Optymalizacja wydajności komponentów",
-      ],
-    },
-  ];
-  const education: Prisma.JsonArray = [
-    {
-      school: "Politechnika Warszawska",
-      field: "Informatyka",
-      degree: "Magister",
-      graduationYear: 2019,
-    },
-  ];
+  });
 
-  const candidateProfile = await prisma.candidateProfile.upsert({
-    where: { userId: candidateUser.id },
-    update: {
+  const candidate1Profile = await prisma.candidateProfile.create({
+    data: {
       name: "Anna",
       lastName: "Nowak",
-      description:
-        "Frontend Developer z 5-letnim doświadczeniem w budowaniu aplikacji webowych. Specjalizuję się w ekosystemie React i stale poszukuję przestrzeni do automatyzacji i usprawniania procesów.",
+      description: "Frontend Developer z 5-letnim doświadczeniem w budowaniu aplikacji webowych. Specjalizuję się w ekosystemie React.",
       birthday: new Date("1994-08-14"),
-      experience,
+      experience: [
+        {
+          company: "CodeWave",
+          position: "Frontend Developer",
+          startDate: "2021-02-01",
+          endDate: "2023-07-31",
+          isCurrent: false,
+          description: "Implementacja modułów w React i Next.js, współpraca z zespołem backendowym.",
+          location: "Warszawa",
+        },
+        {
+          company: "BrightApps",
+          position: "Junior Frontend Developer",
+          startDate: "2019-05-01",
+          endDate: "2021-01-31",
+          isCurrent: false,
+          description: "Budowa komponentów UI, optymalizacja wydajności.",
+          location: "Kraków",
+        },
+      ] as Prisma.JsonArray,
       phoneNumber: 481112233,
-      skills,
+      skills: [
+        { name: "React", level: "EXPERT" },
+        { name: "Next.js", level: "EXPERT" },
+        { name: "TypeScript", level: "ADVANCED" },
+        { name: "GraphQL", level: "ADVANCED" },
+        { name: "Jest", level: "ADVANCED" },
+      ] as Prisma.JsonArray,
       place: "Warszawa",
-      education,
-    },
-    create: {
-      name: "Anna",
-      lastName: "Nowak",
-      description:
-        "Frontend Developer z 5-letnim doświadczeniem w budowaniu aplikacji webowych. Specjalizuję się w ekosystemie React i stale poszukuję przestrzeni do automatyzacji i usprawniania procesów.",
-      birthday: new Date("1994-08-14"),
-      experience,
-      phoneNumber: 481112233,
-      skills,
-      place: "Warszawa",
-      education,
-      userId: candidateUser.id,
-    },
-  });
-
-  const cvJson = JSON.stringify({
-    summary:
-      "Doświadczona frontend developerka, która łączy świetne oko do detalu z zamiłowaniem do automatyzacji i testów.",
-    skills,
-    experience,
-    education,
-  });
-
-  let candidateCv = await prisma.candidateCV.findFirst({
-    where: {
-      candidateProfileId: candidateProfile.id,
-      name: "Frontend CV",
+      education: [
+        {
+          institution: "Politechnika Warszawska",
+          degree: "Magister",
+          fieldOfStudy: "Informatyka",
+          startDate: "2014-10-01",
+          endDate: "2019-06-30",
+          isCurrent: false,
+          description: "Specjalizacja: Inżynieria Oprogramowania",
+          location: "Warszawa",
+        },
+      ] as Prisma.JsonArray,
+      userId: candidate1User.id,
     },
   });
 
-  if (!candidateCv) {
-    candidateCv = await prisma.candidateCV.create({
-      data: {
-        name: "Frontend CV",
-        cvJson,
-        candidateProfileId: candidateProfile.id,
-      },
-    });
-  } else {
-    candidateCv = await prisma.candidateCV.update({
-      where: { id: candidateCv.id },
-      data: {
-        cvJson,
-      },
-    });
-  }
-
-  const existingProfileLink = await prisma.profileLink.findFirst({
-    where: {
-      candidateProfileId: candidateProfile.id,
-      url: "https://github.com/frontendhero",
-    },
-  });
-
-  if (!existingProfileLink) {
-    await prisma.profileLink.create({
-      data: {
+  // Profile links for candidate 1
+  await prisma.profileLink.createMany({
+    data: [
+      {
         name: "GitHub",
         url: "https://github.com/frontendhero",
-        candidateProfileId: candidateProfile.id,
+        candidateProfileId: candidate1Profile.id,
       },
-    });
-  }
+      {
+        name: "LinkedIn",
+        url: "https://linkedin.com/in/anna-nowak-frontend",
+        candidateProfileId: candidate1Profile.id,
+      },
+      {
+        name: "Portfolio",
+        url: "https://anna-nowak.dev",
+        candidateProfileId: candidate1Profile.id,
+      },
+    ],
+  });
 
-  const existingApplication = await prisma.applicationForJobOffer.findFirst({
-    where: {
-      candidateProfileId: candidateProfile.id,
-      jobOfferId: frontendOffer.id,
+  // External job offers tracked by candidate 1
+  await prisma.externalJobOffer.createMany({
+    data: [
+      {
+        url: "https://justjoin.it/offers/react-developer-123",
+        site: "JustJoinIT",
+        name: "React Developer",
+        company: "TechCorp",
+        candidateProfileId: candidate1Profile.id,
+      },
+      {
+        url: "https://nofluffjobs.com/pl/job/senior-frontend",
+        site: "NoFluffJobs",
+        name: "Senior Frontend Engineer",
+        company: "StartupXYZ",
+        candidateProfileId: candidate1Profile.id,
+      },
+    ],
+  });
+
+  // CVs for candidate 1
+  const candidate1CV1 = await prisma.candidateCV.create({
+    data: {
+      name: "Frontend CV - FireTech",
+      cvJson: JSON.stringify({
+        fullName: "Anna Nowak",
+        position: "Frontend Developer",
+        summary: "Doświadczona frontend developerka specjalizująca się w React i Next.js.",
+        skills: ["React", "Next.js", "TypeScript", "GraphQL", "Jest"],
+        experience: ["CodeWave - Frontend Developer", "BrightApps - Junior Frontend Developer"],
+        education: ["Politechnika Warszawska - Informatyka, Magister"],
+      }),
+      candidateProfileId: candidate1Profile.id,
+      isDeleted: false,
     },
   });
 
-  if (!existingApplication) {
-    const application = await prisma.applicationForJobOffer.create({
-      data: {
-        message:
-          "Cześć! Mam duże doświadczenie w Next.js i budowaniu skalowalnych frontendów. Chętnie opowiem więcej podczas rozmowy.",
-        status: ApplicationStatus.PENDING,
-        candidateProfileId: candidateProfile.id,
-        jobOfferId: frontendOffer.id,
-        cvId: candidateCv.id,
+  const candidate1CV2 = await prisma.candidateCV.create({
+    data: {
+      name: "Uniwersalne CV",
+      cvJson: JSON.stringify({
+        fullName: "Anna Nowak",
+        position: "Full Stack Developer",
+        summary: "Wszechstronna developerka z doświadczeniem frontend i podstawami backend.",
+        skills: ["React", "Next.js", "TypeScript", "Node.js", "PostgreSQL"],
+        experience: ["CodeWave", "BrightApps"],
+        education: ["Politechnika Warszawska - Informatyka"],
+      }),
+      candidateProfileId: candidate1Profile.id,
+      isDeleted: false,
+    },
+  });
+
+  console.info("✅ Candidate 1 created with 2 CVs and profile links\n");
+
+  // ============================================
+  // CANDIDATE 2: Piotr Kowalski
+  // ============================================
+  console.info("👤 Creating Candidate 2: Piotr Kowalski...");
+
+  const candidate2User = await prisma.user.create({
+    data: {
+      username: "dataengineer",
+      email: "candidate2@jobonfire.com",
+      passwordHash,
+      role: UserRole.CANDIDATE,
+      registerDate: new Date(),
+      isDeleted: false,
+    },
+  });
+
+  const candidate2Profile = await prisma.candidateProfile.create({
+    data: {
+      name: "Piotr",
+      lastName: "Kowalski",
+      description: "Data Engineer z 4-letnim doświadczeniem w projektach Azure i AWS. Pasjonat automatyzacji i big data.",
+      birthday: new Date("1992-03-22"),
+      experience: [
+        {
+          company: "CloudData Solutions",
+          position: "Data Engineer",
+          startDate: "2021-01-01",
+          endDate: null,
+          isCurrent: true,
+          description: "Projektowanie pipeline'ów ETL na Azure, integracja z Power BI.",
+          location: "Kraków",
+        },
+        {
+          company: "Analytics Pro",
+          position: "Junior Data Analyst",
+          startDate: "2019-06-01",
+          endDate: "2020-12-31",
+          isCurrent: false,
+          description: "Analiza danych biznesowych, tworzenie raportów SQL.",
+          location: "Warszawa",
+        },
+      ] as Prisma.JsonArray,
+      phoneNumber: 485556677,
+      skills: [
+        { name: "Azure", level: "EXPERT" },
+        { name: "Python", level: "EXPERT" },
+        { name: "SQL", level: "ADVANCED" },
+        { name: "PySpark", level: "ADVANCED" },
+        { name: "Power BI", level: "INTERMEDIATE" },
+        { name: "Databricks", level: "ADVANCED" },
+      ] as Prisma.JsonArray,
+      place: "Kraków",
+      education: [
+        {
+          institution: "AGH Kraków",
+          degree: "Inżynier",
+          fieldOfStudy: "Informatyka i Ekonometria",
+          startDate: "2015-10-01",
+          endDate: "2019-06-30",
+          isCurrent: false,
+          description: null,
+          location: "Kraków",
+        },
+      ] as Prisma.JsonArray,
+      userId: candidate2User.id,
+    },
+  });
+
+  // Profile links for candidate 2
+  await prisma.profileLink.createMany({
+    data: [
+      {
+        name: "GitHub",
+        url: "https://github.com/piotrkowalski",
+        candidateProfileId: candidate2Profile.id,
       },
-      include: { jobOffer: true },
+      {
+        name: "LinkedIn",
+        url: "https://linkedin.com/in/piotr-kowalski-data",
+        candidateProfileId: candidate2Profile.id,
+      },
+    ],
+  });
+
+  // CVs for candidate 2
+  const candidate2CV1 = await prisma.candidateCV.create({
+    data: {
+      name: "Data Engineer CV",
+      cvJson: JSON.stringify({
+        fullName: "Piotr Kowalski",
+        position: "Data Engineer",
+        summary: "Doświadczony data engineer z focus na Azure i automatyzację.",
+        skills: ["Azure", "Python", "SQL", "PySpark", "Databricks"],
+        experience: ["CloudData Solutions - Data Engineer", "Analytics Pro - Junior Data Analyst"],
+        education: ["AGH Kraków - Informatyka i Ekonometria"],
+      }),
+      candidateProfileId: candidate2Profile.id,
+      isDeleted: false,
+    },
+  });
+
+  const candidate2CV2 = await prisma.candidateCV.create({
+    data: {
+      name: "BI Developer CV",
+      cvJson: JSON.stringify({
+        fullName: "Piotr Kowalski",
+        position: "BI Developer",
+        summary: "Specjalista od danych z doświadczeniem w Power BI i SQL.",
+        skills: ["Power BI", "SQL", "DAX", "Python"],
+        experience: ["CloudData Solutions", "Analytics Pro"],
+        education: ["AGH Kraków"],
+      }),
+      candidateProfileId: candidate2Profile.id,
+      isDeleted: false,
+    },
+  });
+
+  console.info("✅ Candidate 2 created with 2 CVs\n");
+
+  // ============================================
+  // APPLICATIONS - Candidate 1 (Anna)
+  // ============================================
+  console.info("📝 Creating applications for Candidate 1...");
+
+  // Application 1: Anna -> FireTech Frontend (PENDING)
+  const app1 = await prisma.applicationForJobOffer.create({
+    data: {
+      message: "Cześć! Mam duże doświadczenie w Next.js i budowaniu skalowalnych frontendów. Chętnie opowiem więcej podczas rozmowy.",
+      status: ApplicationStatus.PENDING,
+      candidateProfileId: candidate1Profile.id,
+      jobOfferId: frontendOffer.id,
+      cvId: candidate1CV1.id,
+      createDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    },
+  });
+
+  // Get recruitment questions for frontend offer
+  const frontendQuestions = await prisma.recruitmentQuestion.findMany({
+    where: { jobOfferId: frontendOffer.id },
+  });
+
+  // Answer to recruitment questions
+  if (frontendQuestions.length > 0) {
+    await prisma.candidateAnswer.create({
+      data: {
+        applicationForJobOfferId: app1.id,
+        recruitmentQuestionId: frontendQuestions[0].id,
+        answer: "Największym wyzwaniem było zoptymalizowanie renderowania listy 10000+ elementów. Użyłam React Window i memoizacji.",
+      },
     });
 
-    const firstQuestion = await prisma.recruitmentQuestion.findFirst({
-      where: { jobOfferId: frontendOffer.id },
-    });
-
-    if (firstQuestion) {
+    if (frontendQuestions.length > 1) {
       await prisma.candidateAnswer.create({
         data: {
-          applicationForJobOfferId: application.id,
-          recruitmentQuestionId: firstQuestion.id,
-          answer:
-            "Przeprowadziłam audyt bundle'a, wprowadziłam code splitting i memoizację komponentów. Efekt to -40% czasu ładowania.",
+          applicationForJobOfferId: app1.id,
+          recruitmentQuestionId: frontendQuestions[1].id,
+          answer: "Używam kombinacji ESLint, Prettier, Lighthouse CI i Sentry do monitorowania jakości.",
         },
       });
     }
+  }
 
-    await prisma.meeting.create({
+  // Meeting for this application
+  await prisma.meeting.create({
+    data: {
+      applicationForJobOfferId: app1.id,
+      dateTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      type: MeetingType.ONLINE,
+      contributors: "Anna Nowak, Piotr Kowalski (Recruiter), Jan Nowak (Tech Lead)",
+      onlineMeetingUrl: "https://meet.jobonfire.com/frontend-interview-anna",
+      message: "Wstępna rozmowa techniczna – sprawdzenie dopasowania i doświadczenia. Przygotuj się na live coding.",
+    },
+  });
+
+  // Application 2: Anna -> DataForge BI Developer (REJECTED)
+  const app2 = await prisma.applicationForJobOffer.create({
+    data: {
+      message: "Zainteresowana pozycją BI Developer. Chociaż specjalizuję się w frontendzie, chciałabym rozwijać się w kierunku data viz.",
+      status: ApplicationStatus.REJECTED,
+      candidateProfileId: candidate1Profile.id,
+      jobOfferId: biDeveloperOffer.id,
+      cvId: candidate1CV2.id,
+      createDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    },
+  });
+
+  await prisma.applicationResponse.create({
+    data: {
+      applicationForJobOfferId: app2.id,
+      response: "Dziękujemy za aplikację. Niestety poszukujemy osoby z większym doświadczeniem w Power BI i analizie danych.",
+    },
+  });
+
+  console.info("✅ 2 applications created for Candidate 1\n");
+
+  // ============================================
+  // APPLICATIONS - Candidate 2 (Piotr)
+  // ============================================
+  console.info("📝 Creating applications for Candidate 2...");
+
+  // Application 3: Piotr -> DataForge Data Engineer (ACCEPTED)
+  const app3 = await prisma.applicationForJobOffer.create({
+    data: {
+      message: "Witam! Pracuję obecnie jako Data Engineer z Azure. Mam doświadczenie z Data Factory, Databricks i PySpark. Chętnie dołączę do Waszego zespołu.",
+      status: ApplicationStatus.ACCEPTED,
+      candidateProfileId: candidate2Profile.id,
+      jobOfferId: dataEngineerOffer.id,
+      cvId: candidate2CV1.id,
+      createDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
+    },
+  });
+
+  const dataEngineerQuestions = await prisma.recruitmentQuestion.findMany({
+    where: { jobOfferId: dataEngineerOffer.id },
+  });
+
+  if (dataEngineerQuestions.length > 0) {
+    await prisma.candidateAnswer.create({
       data: {
-        applicationForJobOfferId: application.id,
-        dateTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        applicationForJobOfferId: app3.id,
+        recruitmentQuestionId: dataEngineerQuestions[0].id,
+        answer: "Pracuję z ADF od 2 lat. Stworzyłem ponad 30 pipeline'ów dla różnych źródeł danych - od SQL Server po REST API.",
+      },
+    });
+
+    if (dataEngineerQuestions.length > 1) {
+      await prisma.candidateAnswer.create({
+        data: {
+          applicationForJobOfferId: app3.id,
+          recruitmentQuestionId: dataEngineerQuestions[1].id,
+          answer: "Skupiam się na partycjonowaniu danych, incremental load, oraz monitoringu kosztów i czasu wykonania.",
+        },
+      });
+    }
+  }
+
+  await prisma.applicationResponse.create({
+    data: {
+      applicationForJobOfferId: app3.id,
+      response: "Gratulacje! Twoja aplikacja została zaakceptowana. Skontaktujemy się w sprawie dalszych kroków.",
+    },
+  });
+
+  // Meetings for accepted application
+  await prisma.meeting.createMany({
+    data: [
+      {
+        applicationForJobOfferId: app3.id,
+        dateTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
         type: MeetingType.ONLINE,
-        contributors: "Anna Nowak, Piotr Kowalski",
-        onlineMeetingUrl: "https://meet.jobonfire.com/frontend-interview",
-        message: "Wstępna rozmowa techniczna – sprawdzenie dopasowania i doświadczenia.",
+        contributors: "Piotr Kowalski, Marek Nowak (HR)",
+        onlineMeetingUrl: "https://meet.dataforge.pl/interview-piotr-1",
+        message: "Pierwsza rozmowa - omówienie doświadczenia i oczekiwań.",
+      },
+      {
+        applicationForJobOfferId: app3.id,
+        dateTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+        type: MeetingType.OFFLINE,
+        contributors: "Piotr Kowalski, Team Lead, Senior Data Engineer",
+        onlineMeetingUrl: null,
+        message: "Spotkanie w biurze - omówienie warunków współpracy i poznanie zespołu.",
+      },
+    ],
+  });
+
+  // Application 4: Piotr -> FireTech Backend (PENDING)
+  const app4 = await prisma.applicationForJobOffer.create({
+    data: {
+      message: "Interesuję się również rozwojem w kierunku backend. Mam doświadczenie z Node.js i PostgreSQL z projektów osobistych.",
+      status: ApplicationStatus.PENDING,
+      candidateProfileId: candidate2Profile.id,
+      jobOfferId: backendOffer.id,
+      cvId: candidate2CV1.id,
+      createDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+  });
+
+  const backendQuestions = await prisma.recruitmentQuestion.findMany({
+    where: { jobOfferId: backendOffer.id },
+  });
+
+  if (backendQuestions.length > 0) {
+    await prisma.candidateAnswer.create({
+      data: {
+        applicationForJobOfferId: app4.id,
+        recruitmentQuestionId: backendQuestions[0].id,
+        answer: "Stosuję CQRS, Event Sourcing oraz Repository Pattern. W projektach osobistych używam również Clean Architecture.",
       },
     });
   }
 
-  console.info("✅ Seeding finished successfully.");
+  // Application 5: Piotr -> FireTech Frontend (CANCELED by candidate)
+  await prisma.applicationForJobOffer.create({
+    data: {
+      message: "Chciałbym spróbować swoich sił również w frontendzie, mam podstawy React.",
+      status: ApplicationStatus.CANCELED,
+      candidateProfileId: candidate2Profile.id,
+      jobOfferId: frontendOffer.id,
+      cvId: candidate2CV1.id,
+      createDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago
+    },
+  });
+
+  console.info("✅ 3 applications created for Candidate 2\n");
+
+  // ============================================
+  // SUMMARY
+  // ============================================
+  console.info("=" .repeat(60));
+  console.info("✅ SEEDING COMPLETED SUCCESSFULLY!");
+  console.info("=" .repeat(60));
+  console.info("\n📊 Summary:");
+  console.info("  👔 Employers: 2");
+  console.info("     - FireTech Software (2 job offers)");
+  console.info("     - DataForge Analytics (2 job offers)");
+  console.info("  👤 Candidates: 2");
+  console.info("     - Anna Nowak (2 CVs, 2 applications)");
+  console.info("     - Piotr Kowalski (2 CVs, 3 applications)");
+  console.info("  📍 Locations: 2 (Warszawa, Kraków)");
+  console.info("  💼 Job Offers: 4");
+  console.info("  📝 Applications: 5");
+  console.info("     - PENDING: 2");
+  console.info("     - ACCEPTED: 1");
+  console.info("     - REJECTED: 1");
+  console.info("     - CANCELED: 1");
+  console.info("  📅 Meetings: 3");
+  console.info("  🔗 Profile Links: 5");
+  console.info("  📄 External Job Offers: 2");
+  console.info("  ❓ Recruitment Questions: 6");
+  console.info("  💬 Candidate Answers: 6");
+  console.info("  📧 Application Responses: 2");
+  console.info("\n🔐 Login credentials (all users):");
+  console.info("  Password: Demo123!");
+  console.info("  Emails:");
+  console.info("    - employer1@jobonfire.com (FireTech)");
+  console.info("    - employer2@jobonfire.com (DataForge)");
+  console.info("    - candidate1@jobonfire.com (Anna Nowak)");
+  console.info("    - candidate2@jobonfire.com (Piotr Kowalski)");
+  console.info("=" .repeat(60));
 }
 
 main()

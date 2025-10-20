@@ -124,39 +124,85 @@ export default function CandidateDashboard() {
       </div>
 
       {/* Szybkie akcje - na górze */}
-      <div className="mb-8 bg-gradient-to-r from-primary/10 to-blue-50 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Szybkie akcje</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/candidate/cvs" className="w-full">
-            <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="default">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      <div className="mb-8 bg-gradient-to-r from-primary/10 to-blue-50 rounded-lg p-6 shadow-sm">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Szybkie akcje
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <Link href="/candidate/profile" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-primary/90 group-hover:-translate-y-1" variant="default">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Przeglądaj CV
+              Mój Profil
             </Button>
           </Link>
-          <Link href="/tools/cv-generator" className="w-full">
-            <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+          <Link href="/candidate/applications" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Aplikacje
+            </Button>
+          </Link>
+
+          <Link href="/candidate/calendar" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3M4 11h16M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Kalendarz
+            </Button>
+          </Link>
+
+          <Link href="/tools/cv-generator" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Wygeneruj CV
             </Button>
           </Link>
-          <Link href="/job-offers" className="w-full">
-            <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+
+          <Link href="/candidate/saved-jobs" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-125" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              Szukaj ofert
+              Zapisane
             </Button>
           </Link>
-          <Link href="/candidate/profile?edit=1" className="w-full">
-            <Button className="w-full transition-all duration-200 hover:scale-105 hover:shadow-lg" variant="outline">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Edytuj profil
+
+          <Link href="/candidate/settings" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Ustawienia
+            </Button>
+          </Link>
+
+          <Link href="/job-offers" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Oferty pracy
+            </Button>
+          </Link>
+
+          <Link href="/tools" className="w-full group">
+            <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
+              <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Narzędzia
             </Button>
           </Link>
         </div>
@@ -164,53 +210,96 @@ export default function CandidateDashboard() {
 
       {/* Statystyki */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {cards.map((c) => (
-          <div key={c.label} className="bg-white rounded-lg border p-6 text-center hover:shadow-md transition-shadow">
-            <div className={`text-2xl font-bold ${c.color}`}>{loadingData ? "…" : c.value}</div>
-            <div className="text-sm text-muted-foreground">{c.label}</div>
+        {cards.map((c, idx) => (
+          <div 
+            key={c.label} 
+            className="bg-white rounded-lg border p-6 text-center hover:shadow-lg hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+            style={{ animationDelay: `${idx * 100}ms` }}
+          >
+            <div className={`text-3xl font-bold ${c.color} transition-transform duration-300 group-hover:scale-110`}>
+              {loadingData ? (
+                <div className="h-9 w-16 bg-gray-200 animate-pulse rounded mx-auto"></div>
+              ) : (
+                c.value
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground mt-2">{c.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Ostatnie aplikacje */}
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-white rounded-lg border p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Ostatnie aplikacje</h2>
-            <Button variant="outline" size="sm">
-              Zobacz wszystkie
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {loadingData && (!recentApplications || recentApplications.length === 0) ? (
-              <div className="text-sm text-muted-foreground">Ładowanie…</div>
-            ) : recentApplications.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Brak aplikacji.</div>
-            ) : recentApplications.map((app) => (
-              <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="flex-1">
-                  <h3 className="font-medium">{app.position}</h3>
-                  <p className="text-sm text-muted-foreground">{app.company}</p>
-                </div>
-                <div className={`px-2 py-1 rounded-full text-xs font-medium ${app.statusColor}`}>
-                  {app.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Rekomendowane oferty (placeholder – brak danych z backendu) */}
-        <div className="bg-white rounded-lg border p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Rekomendowane dla Ciebie</h2>
-            <Link href="/job-offers">
-              <Button variant="outline" size="sm">
-                Zobacz więcej
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Ostatnie aplikacje
+            </h2>
+            <Link href="/candidate/applications">
+              <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md hover:border-primary">
+                Zobacz wszystkie
               </Button>
             </Link>
           </div>
-          <div className="text-sm text-muted-foreground">Brak rekomendacji. Wróć później.</div>
+          <div className="space-y-3">
+            {loadingData && (!recentApplications || recentApplications.length === 0) ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 border rounded-lg animate-pulse">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : recentApplications.length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-sm text-muted-foreground mb-4">Nie masz jeszcze żadnych aplikacji</p>
+                <Link href="/job-offers">
+                  <Button variant="default" className="transition-all duration-300 hover:scale-105">
+                    Przeglądaj oferty pracy
+                  </Button>
+                </Link>
+              </div>
+            ) : recentApplications.map((app, idx) => (
+              <Link 
+                key={app.id} 
+                href={`/candidate/applications/${app.id}`}
+                className="block"
+                style={{ animationDelay: `${idx * 50}ms` }}
+              >
+                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-primary/5 hover:border-primary/50 transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer group">
+                  <div className="flex-1">
+                    <h3 className="font-medium group-hover:text-primary transition-colors duration-300">{app.position}</h3>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      {app.company}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${app.statusColor}`}>
+                      {app.status}
+                    </div>
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>

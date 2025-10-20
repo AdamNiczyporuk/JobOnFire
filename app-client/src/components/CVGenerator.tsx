@@ -5,7 +5,8 @@ import CVPreview from "@/components/CVPreview";
 import { useSearchParams } from "next/navigation";
 import { candidateService } from "@/services/candidateService";
 import { getPublicJobOffer, generateCVWithAI } from "@/services/jobOfferService";
-import type { CandidateProfile } from "@/types/candidate";
+import { getCandidateApplications } from "@/services/applicationService";
+import type { CandidateProfile, Application } from "@/types/candidate";
 import type { JobOffer } from "@/types/jobOffer";
 import { Save, Download, ArrowLeft, CheckCircle2 } from "lucide-react";
 
@@ -31,8 +32,14 @@ type JobOfferData = {
 	companyName?: string;
 };
 
+type DataSource = "manual" | "application";
+
 export default function CVGenerator() {
 	const searchParams = useSearchParams();
+	const [dataSource, setDataSource] = useState<DataSource>("manual");
+	const [applications, setApplications] = useState<Application[]>([]);
+	const [loadingApplications, setLoadingApplications] = useState(false);
+	const [selectedApplicationId, setSelectedApplicationId] = useState<number | undefined>();
 	const [form, setForm] = useState<CVForm>({
 		fullName: "",
 		position: "",
@@ -136,6 +143,33 @@ export default function CVGenerator() {
 			return `${title}${fieldStr}${loc}${period ? ` (${period})` : ""}${desc}`.trim();
 		});
 		return lines.filter(Boolean).join("\n\n");
+	};
+
+	useEffect(() => {
+		if (dataSource === "application") {
+			loadApplications();
+		}
+	}, [dataSource]);
+
+	const loadApplications = async () => {
+		setLoadingApplications(true);
+		setErrorMsg(null);
+		try {
+			const response = await getCandidateApplications({ limit: 100 });
+			// Filtruj tylko aplikacje ze statusem PENDING
+			const pendingApps = response.applications.filter(
+				app => app.status === 'PENDING'
+			);
+			setApplications(pendingApps);
+			if (pendingApps.length > 0) {
+				setSelectedApplicationId(pendingApps[0].id);
+			}
+		} catch (err: any) {
+			console.error("Error loading applications:", err);
+			setErrorMsg(err.message || err.response?.data?.message || "Nie udało się załadować aplikacji.");
+		} finally {
+			setLoadingApplications(false);
+		}
 	};
 
 	useEffect(() => {
@@ -278,6 +312,29 @@ export default function CVGenerator() {
 			setIsGenerating(true);
 			setErrorMsg(null);
 
+			// Jeśli źródłem danych jest aplikacja, pobierz pełne dane oferty
+			let jobOfferDataToSend = jobOfferData;
+			if (dataSource === "application" && selectedApplicationId) {
+				const selectedApp = applications.find(app => app.id === selectedApplicationId);
+				if (selectedApp) {
+					try {
+						const fullJobOffer = await getPublicJobOffer(selectedApp.jobOfferId);
+						jobOfferDataToSend = {
+							jobName: fullJobOffer.name || undefined,
+							jobLevel: Array.isArray(fullJobOffer.jobLevel) ? fullJobOffer.jobLevel.join(", ") : fullJobOffer.jobLevel,
+							jobDescription: fullJobOffer.description || undefined,
+							salary: fullJobOffer.salary || undefined,
+							requirements: Array.isArray(fullJobOffer.requirements) ? fullJobOffer.requirements.join("\n") : fullJobOffer.requirements,
+							responsibilities: Array.isArray(fullJobOffer.responsibilities) ? fullJobOffer.responsibilities.join("\n") : fullJobOffer.responsibilities,
+							whatWeOffer: Array.isArray(fullJobOffer.whatWeOffer) ? fullJobOffer.whatWeOffer.join("\n") : fullJobOffer.whatWeOffer,
+							companyName: fullJobOffer.employerProfile?.companyName || undefined,
+						};
+					} catch (err) {
+						console.error("Error fetching full job offer:", err);
+					}
+				}
+			}
+
 			const cv = await generateCVWithAI({
 				fullName: form.fullName,
 				position: form.position,
@@ -287,7 +344,7 @@ export default function CVGenerator() {
 				education: form.education,
 				email: form.email,
 				phoneNumber: form.phoneNumber,
-				jobOffer: Object.keys(jobOfferData).length > 0 ? jobOfferData : undefined
+				jobOffer: Object.keys(jobOfferDataToSend).length > 0 ? jobOfferDataToSend : undefined
 			});
 
 			setGeneratedCV(cv);
@@ -470,6 +527,74 @@ export default function CVGenerator() {
 					</div>
 				)}
 			</div>
+			
+			{/* Wybór źródła danych */}
+			<div className="rounded-xl border bg-white p-6 shadow-sm md:col-span-2">
+				<h2 className="text-lg font-semibold mb-4">Wybierz źródło danych</h2>
+				<div className="flex gap-3">
+					<Button
+						variant={dataSource === "manual" ? "default" : "outline"}
+						onClick={() => setDataSource("manual")}
+						className="flex-1"
+					>
+						Ręczne wprowadzanie
+					</Button>
+					<Button
+						variant={dataSource === "application" ? "default" : "outline"}
+						onClick={() => setDataSource("application")}
+						className="flex-1"
+					>
+						Moje aplikacje
+					</Button>
+				</div>
+				
+				{/* Lista aplikacji */}
+				{dataSource === "application" && (
+					<div className="mt-4">
+						{loadingApplications ? (
+							<div className="text-center py-4">
+								<div className="h-6 w-6 rounded-full border-2 border-gray-300 border-t-primary animate-spin mx-auto mb-2" />
+								<p className="text-sm text-muted-foreground">Ładowanie aplikacji...</p>
+							</div>
+						) : applications.length === 0 ? (
+							<div className="text-center py-4 text-sm text-muted-foreground">
+								Brak aplikacji ze statusem "oczekujące". Aplikuj na oferty, aby móc generować CV dla konkretnych stanowisk.
+							</div>
+						) : (
+							<div>
+								<label className="text-sm font-medium block mb-2">Wybierz aplikację</label>
+								<select
+									value={selectedApplicationId || ""}
+									onChange={(e) => {
+										const id = parseInt(e.target.value);
+										setSelectedApplicationId(id);
+										// Automatycznie załaduj dane z wybranej aplikacji
+										const selectedApp = applications.find(app => app.id === id);
+										if (selectedApp) {
+											setJobOfferData({
+												jobName: selectedApp.jobOffer.name,
+												companyName: selectedApp.jobOffer.employerProfile.companyName,
+											});
+											setForm(prev => ({
+												...prev,
+												position: selectedApp.jobOffer.name,
+											}));
+										}
+									}}
+									className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40"
+								>
+									{applications.map((app) => (
+										<option key={app.id} value={app.id}>
+											{app.jobOffer.name} - {app.jobOffer.employerProfile.companyName}
+										</option>
+									))}
+								</select>
+							</div>
+						)}
+					</div>
+				)}
+			</div>
+			
 			{/* Form */}
 			<div className="rounded-xl border bg-white p-6 shadow-sm md:col-span-2">
 				<h2 className="text-lg font-semibold mb-4">Wprowadź dane</h2>
