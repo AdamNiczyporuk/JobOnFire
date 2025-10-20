@@ -214,7 +214,7 @@ export default function JobOfferList({
                 onClick={() => onDelete(jobOffer.id)}
                 variant="outline"
                 size="sm"
-                className="transition-all duration-200 hover:scale-105"
+                className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-500 transition-all duration-200 hover:scale-105"
               >
                 Usuń
               </Button>

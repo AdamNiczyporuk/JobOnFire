@@ -120,7 +120,7 @@ export default function CandidateSettingsPage() {
 
       {/* Usunięcie konta */}
       <section className="rounded-lg border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold mb-1">Usuń konto</h2>
+        <h2 className="text-xl font-semibold mb-1 text-red-600">Usuń konto</h2>
         <p className="text-sm text-muted-foreground mb-4">Ta akcja jest nieodwracalna. Spowoduje dezaktywację Twojego konta.</p>
         {!confirmOpen ? (
           <Button variant="destructive" onClick={() => setConfirmOpen(true)}>

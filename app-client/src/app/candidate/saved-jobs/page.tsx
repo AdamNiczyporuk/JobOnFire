@@ -150,11 +150,11 @@ export default function SavedJobsPage() {
   const empty = useMemo(() => items.length === 0, [items]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-h-screen">
       <main className="w-full">
-        <div className="w-full max-w-5xl mx-auto px-4 md:px-6 py-10">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-10">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold">Zapisane oferty (zewnętrzne)</h1>
               <p className="text-muted-foreground mt-2">
@@ -162,7 +162,7 @@ export default function SavedJobsPage() {
               </p>
             </div>
             {viewMode === "list" && (
-              <Button onClick={startCreate} className="transition-all duration-200 hover:scale-105">
+              <Button onClick={startCreate} className="transition-all duration-200 hover:scale-105 flex-shrink-0">
                 Dodaj ofertę
               </Button>
             )}
@@ -184,64 +184,10 @@ export default function SavedJobsPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left: list */}
-              <div className="lg:col-span-2">
-                {empty ? (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground text-lg mb-2">Brak zapisanych zewnętrznych ofert</p>
-                    <Button onClick={startCreate} className="transition-all duration-200 hover:scale-105">
-                      Dodaj pierwszą ofertę
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {items.map((item) => (
-                      <div key={item.id} className="border rounded-lg bg-white p-4 flex items-start justify-between">
-                        <div className="min-w-0">
-                          <h3 className="text-lg font-semibold break-words">{item.name}</h3>
-                          <div className="text-sm text-muted-foreground mt-1 break-words">
-                            {item.company && <span className="mr-2">{item.company}</span>}
-                            {item.site && <span className="mr-2">• {item.site}</span>}
-                          </div>
-                          <div className="mt-2">
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-red-600 hover:text-red-700 underline-offset-2 hover:underline"
-                            >
-                              Otwórz ofertę
-                            </a>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 ml-4 flex-shrink-0">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => startEdit(item)}
-                            className="transition-all duration-200 hover:scale-105"
-                          >
-                            Edytuj
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => askDelete(item)}
-                            className="transition-all duration-200 hover:scale-105"
-                          >
-                            Usuń
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Right: form */}
+            <>
+              {/* Form (displayed above list when active) */}
               {(viewMode === "create" || viewMode === "edit") && (
-                <div className="bg-white rounded-lg border p-6 h-fit">
+                <div className="bg-white rounded-lg border p-6 mb-8 max-w-2xl mx-auto shadow-sm">
                   <h2 className="text-xl font-semibold mb-4">
                     {viewMode === "create" ? "Dodaj ofertę" : "Edytuj ofertę"}
                   </h2>
@@ -309,7 +255,81 @@ export default function SavedJobsPage() {
                   </div>
                 </div>
               )}
-            </div>
+
+              {/* List of saved jobs */}
+              <div className="w-full">
+                {empty ? (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground text-lg mb-4">Brak zapisanych zewnętrznych ofert</p>
+                    <Button onClick={startCreate} className="transition-all duration-200 hover:scale-105">
+                      Dodaj pierwszą ofertę
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {items.map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="border rounded-lg bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xl font-semibold break-words mb-2">{item.name}</h3>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground mb-3">
+                              {item.company && (
+                                <span className="flex items-center">
+                                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                  </svg>
+                                  {item.company}
+                                </span>
+                              )}
+                              {item.site && (
+                                <span className="flex items-center">
+                                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                                  </svg>
+                                  {item.site}
+                                </span>
+                              )}
+                            </div>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-red-600 hover:text-red-700 font-medium transition-colors duration-200"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                              </svg>
+                              Otwórz ofertę
+                            </a>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0 justify-end">
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={() => startEdit(item)}
+                              className="transition-all duration-200 hover:scale-105"
+                            >
+                              Edytuj
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={() => askDelete(item)}
+                              className="transition-all duration-200 hover:scale-105 text-red-600 hover:text-red-700 hover:border-red-300"
+                            >
+                              Usuń
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </main>
@@ -325,7 +345,7 @@ export default function SavedJobsPage() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-red-600">
                   Usuń zapisaną ofertę
                 </h3>
               </div>

@@ -375,7 +375,7 @@ export default function EmployerCalendarPage() {
         {deleteConfirm.show && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-200">
-              <h3 className="text-lg font-semibold mb-2">Usuń spotkanie</h3>
+              <h3 className="text-lg font-semibold mb-2 text-red-600">Usuń spotkanie</h3>
               <p className="text-sm text-gray-600 mb-4">Czy na pewno chcesz usunąć to spotkanie? Tej akcji nie można cofnąć.</p>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setDeleteConfirm({ show: false, meetingId: null })} className="transition-all duration-200 hover:scale-105">Anuluj</Button>

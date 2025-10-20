@@ -344,10 +344,10 @@ export default function CandidateCVsPage() {
                       </svg>
                       Podgląd
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="hover:bg-red-500 hover:text-white transition-colors"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:bg-red-500 hover:text-white transition-colors border-red-300 hover:border-red-500"
                       onClick={() => handleDeleteCV(cv.id, cv.name || `CV #${cv.id}`)}
                       disabled={deleting === cv.id}
                     >

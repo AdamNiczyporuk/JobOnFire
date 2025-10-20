@@ -293,6 +293,7 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
                       alert(msg);
                     }
                   }}
+                  className="text-red-600 hover:text-red-700"
                 >
                   Usuń aplikację
                 </Button>

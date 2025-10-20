@@ -202,6 +202,7 @@ export default function CVUploadPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setFile(null)}
+                  className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-500"
                 >
                   Usuń plik
                 </Button>
