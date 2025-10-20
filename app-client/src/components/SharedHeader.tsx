@@ -224,7 +224,7 @@ export function SharedHeader() {
                               </div>
                             </Link>
                             
-                            <Link href="/candidate/cv-generator">
+                            <Link href="/tools/cv-generator">
                               <div 
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 flex items-center gap-3 rounded-lg cursor-pointer"
                                 onClick={() => setIsDropdownOpen(false)}

@@ -34,7 +34,7 @@ export default function QuestionsPage() {
               <ToolSidebar />
               <section className="flex-1">
                 <div className="rounded-xl border bg-white p-8 shadow-sm text-center">
-                  <svg className="mx-auto h-16 w-16 text-amber-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="mx-auto h-16 w-16 text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   <h2 className="text-xl font-bold mb-2">Wymagane logowanie</h2>
@@ -42,11 +42,8 @@ export default function QuestionsPage() {
                     Aby korzystać z generatora pytań na rozmowę, musisz być zalogowany.
                   </p>
                   <div className="flex items-center justify-center gap-3">
-                    <Link href="/candidate" className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+                    <Link href="/candidate/login" className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
                       Zaloguj się
-                    </Link>
-                    <Link href="/tools" className="inline-flex items-center justify-center rounded-full border px-6 py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors">
-                      Powrót do narzędzi
                     </Link>
                   </div>
                 </div>
