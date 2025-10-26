@@ -177,21 +177,11 @@ export function EmployerHeader() {
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-4 4 4V8" />
                                 </svg>
-                                Moje Oferty
+                                Oferty
                               </button>
                             </Link>
                             
-                            <Link href="/employer/create-job">
-                              <button 
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
-                                onClick={() => setIsDropdownOpen(false)}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                Dodaj Ofertę
-                              </button>
-                            </Link>
+                          
                             
                             <Link href="/employer/candidates">
                               <button 

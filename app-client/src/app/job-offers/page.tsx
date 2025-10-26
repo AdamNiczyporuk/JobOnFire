@@ -4,13 +4,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SmartHeader } from "@/components/SmartHeader";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getPublicJobOffers } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
 import { Search } from "lucide-react";
 
 export default function JobOffersPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [jobOffers, setJobOffers] = useState<JobOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -359,9 +360,17 @@ export default function JobOffersPage() {
                 </div>
               ) : (
                 filteredJobOffers.map((jobOffer) => (
-                  <Link
+                  <div
                     key={jobOffer.id}
-                    href={`/job-offers/${jobOffer.id}`}
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => router.push(`/job-offers/${jobOffer.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        router.push(`/job-offers/${jobOffer.id}`);
+                      }
+                    }}
                     className="block rounded-lg border bg-white p-6 shadow-sm transition-all duration-200 hover:bg-accent/30 hover:shadow-lg hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                   >
                     <div className="flex flex-col gap-3">
@@ -372,7 +381,7 @@ export default function JobOffersPage() {
                           </h3>
                           {jobOffer.employerProfile?.companyName && jobOffer.employerProfile?.id && (
                             <p className="text-muted-foreground mb-1 font-medium text-base">
-                              <Link href={`/companies/${jobOffer.employerProfile.id}`} className="hover:text-primary underline-offset-2 hover:underline">
+                              <Link href={`/companies/${jobOffer.employerProfile.id}`} className="hover:text-primary underline-offset-2 hover:underline" onClick={(e) => e.stopPropagation()}>
                                 {jobOffer.employerProfile.companyName}
                               </Link>
                             </p>
@@ -415,7 +424,7 @@ export default function JobOffersPage() {
                         )}
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))
               )}
             </div>
