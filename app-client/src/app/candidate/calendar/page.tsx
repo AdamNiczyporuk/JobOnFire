@@ -196,7 +196,7 @@ export default function CandidateCalendarPage() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Link href={`/employer/job-offers/${m.application.jobOffer.id}`}>
+                        <Link href={`/job-offers/${m.application.jobOffer.id}`}>
                           <Button size="sm" className="transition-all duration-200 hover:scale-105">Oferta</Button>
                         </Link>
                         <Link href={`/candidate/applications`}>
