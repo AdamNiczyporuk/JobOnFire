@@ -332,7 +332,7 @@ export default function EmployerApplicationsPage() {
             </aside>
 
             {/* Applications list */}
-            <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-2 max-h-[calc(100vh-400px)]">
               {applications.length === 0 ? (
                 <div className="text-center py-12">
                   <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -344,94 +344,97 @@ export default function EmployerApplicationsPage() {
                   {applications.map((application) => (
                     <div
                       key={application.id}
-                      className="block rounded-lg border bg-white p-4 shadow-sm transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer min-w-[400px] w-full"
+                      className="block rounded-lg border bg-white p-4 shadow-sm transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary min-w-[400px] w-full"
                     >
-                      <div className="flex flex-col gap-4">
-                        {/* Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start gap-3 mb-2">
-                              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Briefcase className="w-5 h-5 text-primary" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h3 className="text-lg font-semibold mb-1">
-                                  {application.jobOffer.name}
-                                </h3>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <User className="w-4 h-4" />
-                                  <span>{application.candidate.fullName}</span>
+                      <div className="flex gap-4">
+                        {/* Left side - Content */}
+                        <div className="flex-1 flex flex-col gap-4">
+                          {/* Header */}
+                          <div className="flex items-start justify-between">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start gap-3 mb-2">
+                                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <Briefcase className="w-5 h-5 text-primary" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="text-lg font-semibold mb-1">
+                                    {application.jobOffer.name}
+                                  </h3>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <User className="w-4 h-4" />
+                                    <span>{application.candidate.fullName}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                            
+                            {/* Status badge */}
+                            <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusBadgeClass(application.status)}`}>
+                              {getStatusIcon(application.status)}
+                              {getStatusText(application.status)}
+                            </div>
                           </div>
-                          
-                          {/* Status badge */}
-                          <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusBadgeClass(application.status)}`}>
-                            {getStatusIcon(application.status)}
-                            {getStatusText(application.status)}
+
+                          {/* Details */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            {/* Application date */}
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Data aplikacji</p>
+                                <p className="font-medium">{formatDate(application.createdAt)}</p>
+                              </div>
+                            </div>
+
+                            {/* Recruitment questions */}
+                            <div className="flex items-center gap-2">
+                              <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Pytania rekrutacyjne</p>
+                                <p className="font-medium">
+                                  {application.recruitmentQuestions.total === 0 ? (
+                                    <span className="text-muted-foreground">Brak pytań</span>
+                                  ) : (
+                                    <span className={application.recruitmentQuestions.allAnswered ? 'text-green-600' : 'text-orange-600'}>
+                                      {application.recruitmentQuestions.answered}/{application.recruitmentQuestions.total}
+                                      {application.recruitmentQuestions.allAnswered && (
+                                        <CheckCircle className="w-3 h-3 inline ml-1" />
+                                      )}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Meeting */}
+                            <div className="flex items-center gap-2">
+                              <Video className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Spotkanie</p>
+                                <p className="font-medium">
+                                  {application.meeting.isScheduled ? (
+                                    <span className="text-green-600 flex items-center gap-1">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Zaplanowane
+                                      {application.meeting.type === 'ONLINE' && (
+                                        <span className="text-xs text-muted-foreground">(Online)</span>
+                                      )}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground">Nie zaplanowano</span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                          {/* Application date */}
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Data aplikacji</p>
-                              <p className="font-medium">{formatDate(application.createdAt)}</p>
-                            </div>
-                          </div>
-
-                          {/* Recruitment questions */}
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Pytania rekrutacyjne</p>
-                              <p className="font-medium">
-                                {application.recruitmentQuestions.total === 0 ? (
-                                  <span className="text-muted-foreground">Brak pytań</span>
-                                ) : (
-                                  <span className={application.recruitmentQuestions.allAnswered ? 'text-green-600' : 'text-orange-600'}>
-                                    {application.recruitmentQuestions.answered}/{application.recruitmentQuestions.total}
-                                    {application.recruitmentQuestions.allAnswered && (
-                                      <CheckCircle className="w-3 h-3 inline ml-1" />
-                                    )}
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Meeting */}
-                          <div className="flex items-center gap-2">
-                            <Video className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Spotkanie</p>
-                              <p className="font-medium">
-                                {application.meeting.isScheduled ? (
-                                  <span className="text-green-600 flex items-center gap-1">
-                                    <CheckCircle className="w-3 h-3" />
-                                    Zaplanowane
-                                    {application.meeting.type === 'ONLINE' && (
-                                      <span className="text-xs text-muted-foreground">(Online)</span>
-                                    )}
-                                  </span>
-                                ) : (
-                                  <span className="text-muted-foreground">Nie zaplanowano</span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2 pt-2 border-t">
+                        {/* Right side - Actions */}
+                        <div className="flex flex-col gap-2 justify-center min-w-[140px]">
                           <Link href={`/employer/applications/${application.id}`}>
                             <Button
                               variant="outline"
-                              className="flex-1 px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
+                              className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
                             >
                               Zobacz szczegóły
                             </Button>
@@ -439,12 +442,12 @@ export default function EmployerApplicationsPage() {
                           {application.status === 'PENDING' && (
                             <>
                               <Button
-                                className="transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700"
+                                className="w-full transition-all duration-200 hover:scale-105 bg-white hover:bg-red-50 text-red-600 border border-red-600 hover:border-red-700"
                               >
                                 Akceptuj
                               </Button>
                               <Button
-                                className="transition-all duration-200 hover:scale-105"
+                                className="w-full transition-all duration-200 hover:scale-105"
                               >
                                 Odrzuć
                               </Button>
