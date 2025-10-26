@@ -397,9 +397,9 @@ export default function EmployerDashboard() {
                   </Link>
                 </div>
               ) : activeJobOffers.map((job, idx) => (
-                <Link 
-                  key={job.id} 
-                  href={`/employer/job-offers/${job.id}`}
+                <div
+                  key={job.id}
+                  onClick={() => router.push(`/employer/job-offers/${job.id}`)}
                   className="block"
                   style={{ animationDelay: `${idx * 50}ms` }}
                 >
@@ -434,7 +434,7 @@ export default function EmployerDashboard() {
                       </div>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
