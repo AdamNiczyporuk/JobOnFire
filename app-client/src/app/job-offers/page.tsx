@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SmartHeader } from "@/components/SmartHeader";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { getPublicJobOffers } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
@@ -36,19 +36,17 @@ export default function JobOffersPage() {
   const [appliedTechInput, setAppliedTechInput] = useState('');
 
   // Compute backend filter params (first selected for workingMode/contractType; tags as CSV)
-  const backendWorkingMode = appliedWorkingModes[0];
-  const backendContractType = appliedContractTypes[0];
-  const backendTags = appliedTechInput
-    .split(',')
-    .map(t => t.trim())
-    .filter(Boolean)
-    .join(',') || undefined;
+  const backendWorkingMode = useMemo(() => appliedWorkingModes[0], [appliedWorkingModes]);
+  const backendContractType = useMemo(() => appliedContractTypes[0], [appliedContractTypes]);
+  const backendTags = useMemo(() => {
+    return appliedTechInput
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean)
+      .join(',') || undefined;
+  }, [appliedTechInput]);
 
-  useEffect(() => {
-    fetchJobOffers();
-  }, [page, searchQuery, backendWorkingMode, backendContractType, backendTags]);
-
-  const fetchJobOffers = async () => {
+  const fetchJobOffers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getPublicJobOffers({
@@ -70,17 +68,21 @@ export default function JobOffersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, searchQuery, backendWorkingMode, backendContractType, backendTags]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchJobOffers();
+  }, [fetchJobOffers]);
+
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setSearchQuery(searchInput);
     setPage(1); // Reset to first page when searching
-  };
+  }, [searchInput]);
 
-  const toggleSelection = (arr: string[], value: string, setter: (v: string[]) => void) => {
+  const toggleSelection = useCallback((arr: string[], value: string, setter: (v: string[]) => void) => {
     setter(arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value]);
-  };
+  }, []);
 
   const formatSalary = (salary?: string) => {
     if (!salary) return 'Salary not specified';

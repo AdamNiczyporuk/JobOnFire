@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 import api from "@/api";
 
 type User = { username: string; role: string; hasPassword?: boolean } | null;
@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Sprawdź sesję po załadowaniu strony
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       setIsLoading(true);
       const res = await api.get("/auth/me");
@@ -31,14 +31,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
+
+  const contextValue = useMemo(
+    () => ({ user, setUser, checkAuth, isLoading }),
+    [user, checkAuth, isLoading]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, setUser, checkAuth, isLoading }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

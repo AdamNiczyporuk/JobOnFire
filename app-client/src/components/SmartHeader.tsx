@@ -2,8 +2,9 @@
 import { useAuth } from "@/context/authContext";
 import { SharedHeader } from "./SharedHeader";
 import { EmployerHeader } from "./EmployerHeader";
+import { memo } from "react";
 
-export function SmartHeader() {
+function SmartHeaderComponent() {
   const { user } = useAuth();
 
   // Jeśli użytkownik jest zalogowany jako pracodawca, użyj EmployerHeader
@@ -14,3 +15,5 @@ export function SmartHeader() {
   // Dla kandydatów i niezalogowanych użyj SharedHeader
   return <SharedHeader />;
 }
+
+export const SmartHeader = memo(SmartHeaderComponent);
