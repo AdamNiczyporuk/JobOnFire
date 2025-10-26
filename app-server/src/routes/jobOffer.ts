@@ -57,11 +57,10 @@ router.get('/public', async (req: Request, res: Response): Promise<void> => {
       whereConditions.contractType = { contains: contractType, mode: 'insensitive' };
     }
 
-    // Filtrowanie po trybie pracy
+    // Filtrowanie po trybie pracy (JSON array field)
     if (workingMode) {
       whereConditions.workingMode = {
-        path: '$',
-        array_contains: workingMode
+        array_contains: [workingMode]
       };
     }
 
@@ -96,13 +95,14 @@ router.get('/public', async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    // Filtrowanie po tagach
+    // Filtrowanie po tagach (JSON array field)
     if (tags) {
-      const tagArray = tags.split(',').map(tag => tag.trim());
-      whereConditions.tags = {
-        path: '$',
-        array_contains: tagArray
-      };
+      const tagArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      if (tagArray.length > 0) {
+        whereConditions.tags = {
+          array_contains: tagArray
+        };
+      }
     }
 
     // Filtrowanie po wynagrodzeniu (zakładając że salary jest stringiem typu "5000-8000")

@@ -4,18 +4,24 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SmartHeader } from "@/components/SmartHeader";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getPublicJobOffers } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
 import { Search } from "lucide-react";
 
 export default function JobOffersPage() {
+  const searchParams = useSearchParams();
   const [jobOffers, setJobOffers] = useState<JobOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  
+  // Initialize search from URL parameter immediately
+  const searchFromUrl = searchParams.get('search') || '';
+  const [searchQuery, setSearchQuery] = useState(searchFromUrl);
+  const [searchInput, setSearchInput] = useState(searchFromUrl);
+  
   const [selectedWorkingModes, setSelectedWorkingModes] = useState<string[]>([]);
   const [selectedContractTypes, setSelectedContractTypes] = useState<string[]>([]);
   const [selectedJobLevels, setSelectedJobLevels] = useState<string[]>([]);

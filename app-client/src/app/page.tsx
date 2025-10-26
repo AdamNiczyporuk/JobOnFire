@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/authContext";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import homepage_Image from "../../public/homepage_Image.png";
 
 export default function Home() {
   const { user } = useAuth();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
   const [latestOffers, setLatestOffers] = useState<JobOffer[]>([]);
   const [latestLoading, setLatestLoading] = useState(true);
   const [latestError, setLatestError] = useState<string | null>(null);
@@ -41,7 +44,16 @@ export default function Home() {
 
   const truncate = (text?: string, max = 120) => {
     if (!text) return "";
-    return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+    return text.length > max ? `${text.slice(0, max - 1).trimEnd()}...` : text;
+  };
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/job-offers?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/job-offers');
+    }
   };
 
   const formatWorkingMode = (offer: JobOffer): string => {
@@ -82,7 +94,7 @@ export default function Home() {
                 </div>
                 
                 {/* Wyszukiwarka ofert pracy dla zalogowanych */}
-                <div className="flex flex-col sm:flex-row gap-4 mt-8 max-w-[600px] mx-auto">
+                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 mt-8 max-w-[600px] mx-auto">
                   <div className="relative flex-1 group">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -102,18 +114,19 @@ export default function Home() {
                     <Input
                       type="search"
                       placeholder="Szukaj ofert pracy..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-8 transition-all duration-300 focus:scale-[1.02] focus:border-red-500 hover:border-red-400 bg-background focus:shadow-lg hover:shadow-md placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-70"
                     />
                   </div>
-                  <Link href="/job-offers">
-                    <Button 
-                      size="lg" 
-                      className="px-8 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-lg transform active:scale-95"
-                    >
-                      Szukaj ofert
-                    </Button>
-                  </Link>
-                </div>
+                  <Button 
+                    type="submit"
+                    size="lg" 
+                    className="px-8 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-lg transform active:scale-95"
+                  >
+                    Szukaj ofert
+                  </Button>
+                </form>
                 
                 <p className="text-sm text-muted-foreground">
                   {user.role === "CANDIDATE" 
@@ -137,7 +150,7 @@ export default function Home() {
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
                   Przeglądaj tysiące ofert pracy z różnych dziedzin IT - od developera po analityka, od juniora po seniora.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-[600px]">
+                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-[600px]">
                   <div className="relative flex-1 group">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -157,16 +170,19 @@ export default function Home() {
                     <Input
                       type="search"
                       placeholder="Szukaj technologii, stanowiska..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-8 transition-all duration-300 focus:scale-[1.02] focus:border-red-500 hover:border-red-400 focus:shadow-lg hover:shadow-md placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-70"
                     />
                   </div>
                   <Button
+                    type="submit"
                     size="lg"
                     className="px-8 whitespace-nowrap transition-all duration-300 hover:scale-105 hover:bg-primary/90 hover:shadow-lg transform active:scale-95"
                   >
                     Szukaj
                   </Button>
-                </div>
+                </form>
                 <p className="text-sm text-muted-foreground mt-2">
                   Popularne: React, Java, Python, JavaScript, .NET, Angular
                 </p>
