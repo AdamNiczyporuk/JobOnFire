@@ -206,10 +206,6 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
               </p>
             </div>
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={onCancel}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Wróć do oferty
-              </Button>
               {!user ? (
                 <Button onClick={() => window.location.href = '/candidate/login'}>
                   Zaloguj się jako kandydat
@@ -269,10 +265,6 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
               )}
             </div>
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={onCancel}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Wróć do oferty
-              </Button>
               <Button onClick={() => window.location.href = '/candidate/applications'}>
                 Zobacz moje aplikacje
               </Button>
@@ -308,23 +300,11 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Aplikuj na stanowisko</CardTitle>
-            <CardDescription>{jobOffer.name}</CardDescription>
-            <CardDescription className="text-sm text-muted-foreground mt-1">
-              {jobOffer.employerProfile?.companyName}
-            </CardDescription>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onCancel}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Powrót
-          </Button>
-        </div>
+        <CardTitle>Aplikuj na stanowisko</CardTitle>
+        <CardDescription>{jobOffer.name}</CardDescription>
+        <CardDescription className="text-sm text-muted-foreground mt-1">
+          {jobOffer.employerProfile?.companyName}
+        </CardDescription>
       </CardHeader>
 
       <CardContent>

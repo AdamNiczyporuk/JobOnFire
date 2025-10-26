@@ -185,78 +185,7 @@ export default function SavedJobsPage() {
             </div>
           ) : (
             <>
-              {/* Form (displayed above list when active) */}
-              {(viewMode === "create" || viewMode === "edit") && (
-                <div className="bg-white rounded-lg border p-6 mb-8 max-w-2xl mx-auto shadow-sm">
-                  <h2 className="text-xl font-semibold mb-4">
-                    {viewMode === "create" ? "Dodaj ofertę" : "Edytuj ofertę"}
-                  </h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Nazwa</label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md text-sm"
-                        placeholder="np. Frontend Developer"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">URL</label>
-                      <input
-                        type="url"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md text-sm"
-                        placeholder="https://example.com/oferta"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Serwis</label>
-                      <input
-                        type="text"
-                        value={site}
-                        onChange={(e) => setSite(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md text-sm"
-                        placeholder="np. Pracuj.pl, No Fluff Jobs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Firma</label>
-                      <input
-                        type="text"
-                        value={company}
-                        onChange={(e) => setCompany(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md text-sm"
-                        placeholder="np. Foo Sp. z o.o."
-                      />
-                    </div>
-
-                    {formError && <p className="text-sm text-red-600">{formError}</p>}
-
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={submitting}
-                        className="transition-all duration-200 hover:scale-105"
-                      >
-                        {viewMode === "create" ? "Zapisz" : "Zaktualizuj"}
-                      </Button>
-                      <Button
-                        onClick={cancelForm}
-                        variant="outline"
-                        className="transition-all duration-200 hover:scale-105"
-                        disabled={submitting}
-                      >
-                        Anuluj
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* List of saved jobs */}
+              {/* List of saved jobs - always visible */}
               <div className="w-full">
                 {empty ? (
                   <div className="text-center py-12">
@@ -333,6 +262,88 @@ export default function SavedJobsPage() {
           )}
         </div>
       </main>
+
+      {/* Modal formularza dodawania/edycji */}
+      {(viewMode === "create" || viewMode === "edit") && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={cancelForm}
+          />
+          
+          {/* Modal */}
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl mx-4">
+            <div className="bg-white rounded-lg p-6 shadow-xl border border-gray-200 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-xl font-semibold mb-4">
+                {viewMode === "create" ? "Dodaj ofertę" : "Edytuj ofertę"}
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nazwa</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="np. Frontend Developer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">URL</label>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="https://example.com/oferta"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Serwis</label>
+                  <input
+                    type="text"
+                    value={site}
+                    onChange={(e) => setSite(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="np. Pracuj.pl, No Fluff Jobs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Firma</label>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="np. Foo Sp. z o.o."
+                  />
+                </div>
+
+                {formError && <p className="text-sm text-red-600">{formError}</p>}
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="transition-all duration-200 hover:scale-105"
+                  >
+                    {viewMode === "create" ? "Zapisz" : "Zaktualizuj"}
+                  </Button>
+                  <Button
+                    onClick={cancelForm}
+                    variant="outline"
+                    className="transition-all duration-200 hover:scale-105"
+                    disabled={submitting}
+                  >
+                    Anuluj
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Modal potwierdzenia usunięcia */}
       {deleteConfirm.show && (
