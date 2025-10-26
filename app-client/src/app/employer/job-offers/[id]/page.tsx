@@ -75,11 +75,11 @@ export default function EmployerJobOfferDetailsPage() {
   }
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="min-h-screen bg-gray-50">
       <main className="flex-1 w-full">
-        <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
+        <div className="w-full max-w-5xl mx-auto px-4 md:px-6 py-8">
           {/* Back link */}
-          <div className="mb-6">
+          <div className="mb-4">
             <Button
               variant="outline"
               size="sm"

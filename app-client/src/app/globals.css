@@ -147,6 +147,15 @@ body {
   text-align: center;
 }
 
+/* Style dla czerwonych radio buttonów */
+input[type="radio"].text-red-600 {
+  accent-color: hsl(0, 72.2%, 50.6%);
+}
+
+input[type="radio"]:checked {
+  accent-color: hsl(0, 72.2%, 50.6%);
+}
+
 @media print {
   .chip {
     display: inline-flex;

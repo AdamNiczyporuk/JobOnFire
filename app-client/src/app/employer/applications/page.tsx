@@ -217,9 +217,9 @@ export default function EmployerApplicationsPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col items-center overflow-hidden">
+    <div className="flex h-screen flex-col items-center overflow-hidden bg-gray-50">
       <main className="flex-1 w-full flex flex-col overflow-hidden">
-        <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-col h-full">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-col h-full">
           <div className="mb-4 text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-2">Aplikacje</h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -252,7 +252,7 @@ export default function EmployerApplicationsPage() {
             </form>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 flex-1 overflow-hidden min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4 flex-1 overflow-hidden min-h-0">
             {/* Sidebar filters */}
             <aside className="rounded-lg border bg-white p-4 h-fit">
               <h3 className="text-sm font-semibold mb-3">Filtry</h3>

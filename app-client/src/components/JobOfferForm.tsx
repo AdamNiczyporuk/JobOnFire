@@ -187,6 +187,22 @@ export default function JobOfferForm({
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      {/* Przycisk powrotu */}
+      <div className="mb-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m12 19-7-7 7-7"/>
+            <path d="M19 12H5"/>
+          </svg>
+          Powrót
+        </Button>
+      </div>
+
       <h2 className="text-2xl font-bold mb-6">
         {isEditing ? 'Edytuj ofertę pracy' : 'Utwórz nową ofertę pracy'}
       </h2>

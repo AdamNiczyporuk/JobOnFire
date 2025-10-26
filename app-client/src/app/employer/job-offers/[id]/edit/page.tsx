@@ -102,7 +102,8 @@ export default function EmployerJobOfferEditPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Edytuj ofertę pracy</h1>
         <Button
@@ -123,6 +124,7 @@ export default function EmployerJobOfferEditPage() {
         isEditing={true}
         isLoading={saving}
       />
+      </div>
     </div>
   );
 }

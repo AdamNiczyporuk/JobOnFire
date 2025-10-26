@@ -169,7 +169,7 @@ export default function JobOfferList({
                   <span className="font-medium">Utworzono:</span> {formatDate(jobOffer.createDate)}
                 </div>
                 <div>
-                  <span className="font-medium">Wygasa:</span> 
+                  <span className="font-medium">Wygasa: </span> 
                   <span className={isExpired(jobOffer.expireDate) ? 'text-red-600 font-medium' : ''}>
                     {formatDate(jobOffer.expireDate)}
                   </span>

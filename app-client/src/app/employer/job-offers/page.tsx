@@ -131,7 +131,8 @@ export default function JobOffersPage() {
   // Widok szczegółów jest teraz na trasie /employer/job-offers/[id]
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Nagłówek */}
       {viewMode === 'list' && (
         <div className="flex justify-between items-center mb-6">
@@ -272,6 +273,7 @@ export default function JobOffersPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

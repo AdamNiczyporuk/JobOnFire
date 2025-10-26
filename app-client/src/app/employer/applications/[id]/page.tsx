@@ -249,7 +249,7 @@ export default function EmployerApplicationDetailPage() {
   return (
     <>
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Back Button */}
         <div className="mb-4">
           <Button
@@ -264,14 +264,14 @@ export default function EmployerApplicationDetailPage() {
         </div>
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold">Szczegóły aplikacji</h1>
           <p className="text-muted-foreground">
             Aplikacja #{application.id} na stanowisko: {String(application.jobOffer.name || 'Brak nazwy')}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Application Overview */}
