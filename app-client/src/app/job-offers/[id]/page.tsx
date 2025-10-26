@@ -444,7 +444,11 @@ export default function JobOfferDetailsPage() {
                       </div>
                     )}
                     <Link href={`/companies/${jobOffer.employerProfile.id}`}>
-                      <Button variant="outline" size="default" className="w-full">
+                      <Button
+                        variant="outline"
+                        size="default"
+                        className="w-full transition-all duration-200 hover:scale-105 hover:bg-accent/30"
+                      >
                         Zobacz profil firmy
                       </Button>
                     </Link>
