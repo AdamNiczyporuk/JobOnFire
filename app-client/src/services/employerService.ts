@@ -1,6 +1,23 @@
 import api from "@/api";
 import { EmployerProfileUpdateRequest, EmployerProfileAddress, EmployerProfile, EmployerProfileLokalization } from "@/types/employer";
 
+export const getEmployerStats = async () => {
+  try {
+    const response = await api.get("/employer/stats");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching employer stats:", error);
+    return {
+      totalJobOffers: 0,
+      activeJobOffers: 0,
+      totalApplications: 0,
+      pendingApplications: 0,
+      acceptedApplications: 0,
+      rejectedApplications: 0
+    };
+  }
+};
+
 export const updateEmployerProfile = async (data: EmployerProfileUpdateRequest) => {
   const response = await api.put("/employer/profile", data);
   return response.data;
