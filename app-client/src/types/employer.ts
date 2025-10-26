@@ -43,3 +43,12 @@ export interface EmployerProfileUpdateRequest {
   benefits?: string[];
   address?: EmployerProfileAddress;
 }
+
+export interface EmployerStats {
+  totalJobOffers: number;
+  activeJobOffers: number;
+  totalApplications: number;
+  pendingApplications: number;
+  acceptedApplications: number;
+  rejectedApplications: number;
+}

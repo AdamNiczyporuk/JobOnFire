@@ -1,10 +1,10 @@
 import api from "@/api";
-import { EmployerProfileUpdateRequest, EmployerProfileAddress, EmployerProfile, EmployerProfileLokalization } from "@/types/employer";
+import { EmployerProfileUpdateRequest, EmployerProfileAddress, EmployerProfile, EmployerProfileLokalization, EmployerStats } from "@/types/employer";
 
-export const getEmployerStats = async () => {
+export const getEmployerStats = async (): Promise<EmployerStats> => {
   try {
     const response = await api.get("/employer/stats");
-    return response.data;
+    return response.data as EmployerStats;
   } catch (error) {
     console.error("Error fetching employer stats:", error);
     return {
@@ -14,7 +14,7 @@ export const getEmployerStats = async () => {
       pendingApplications: 0,
       acceptedApplications: 0,
       rejectedApplications: 0
-    };
+    } as EmployerStats;
   }
 };
 

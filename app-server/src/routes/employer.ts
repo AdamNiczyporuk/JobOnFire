@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { ApplicationStatus } from '@prisma/client';
 import { ensureAuthenticated } from '../auth/auth_middleware';
 import { ensureEmployer } from '../auth/ensureEmployer';
 import { prisma } from '../db';
@@ -6,6 +7,55 @@ import { employerProfileEditValidation } from '../validation/employerValidation'
 import { addressValidation } from '../validation/addressValidation';
 
 export const router = Router();
+// Statystyki pracodawcy (liczby ofert i aplikacji)
+router.get('/stats', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    if (!user.employerProfile || !user.employerProfile.id) {
+      res.status(400).json({ message: 'Employer profile not found for this user.' });
+      return;
+    }
+
+    const employerProfileId = user.employerProfile.id;
+
+    // Liczba ofert
+    const [
+      totalJobOffers,
+      activeJobOffers,
+      totalApplications,
+      pendingApplications,
+      acceptedApplications,
+      rejectedApplications,
+    ] = await Promise.all([
+      prisma.jobOffer.count({ where: { employerProfileId } }),
+      prisma.jobOffer.count({ where: { employerProfileId, isActive: true } }),
+      prisma.applicationForJobOffer.count({
+        where: { jobOffer: { employerProfileId } },
+      }),
+      prisma.applicationForJobOffer.count({
+        where: { status: ApplicationStatus.PENDING, jobOffer: { employerProfileId } },
+      }),
+      prisma.applicationForJobOffer.count({
+        where: { status: ApplicationStatus.ACCEPTED, jobOffer: { employerProfileId } },
+      }),
+      prisma.applicationForJobOffer.count({
+        where: { status: ApplicationStatus.REJECTED, jobOffer: { employerProfileId } },
+      }),
+    ]);
+
+    res.status(200).json({
+      totalJobOffers,
+      activeJobOffers,
+      totalApplications,
+      pendingApplications,
+      acceptedApplications,
+      rejectedApplications,
+    });
+  } catch (err) {
+    console.error('Employer stats fetch error:', err);
+    res.status(500).json({ message: 'Error fetching employer stats', error: err });
+  }
+});
 // Edycja profilu pracodawcy
 router.put('/profile', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
   try {
