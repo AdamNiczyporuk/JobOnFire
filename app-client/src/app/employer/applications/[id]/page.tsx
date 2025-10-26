@@ -250,8 +250,8 @@ export default function EmployerApplicationDetailPage() {
     <>
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        {/* Back Button */}
+        <div className="mb-4">
           <Button
             variant="outline"
             size="sm"
@@ -261,12 +261,14 @@ export default function EmployerApplicationDetailPage() {
             <ArrowLeft className="w-4 h-4" />
             Powrót
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Szczegóły aplikacji</h1>
-            <p className="text-muted-foreground">
-              Aplikacja #{application.id} na stanowisko: {String(application.jobOffer.name || 'Brak nazwy')}
-            </p>
-          </div>
+        </div>
+
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Szczegóły aplikacji</h1>
+          <p className="text-muted-foreground">
+            Aplikacja #{application.id} na stanowisko: {String(application.jobOffer.name || 'Brak nazwy')}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -591,7 +593,7 @@ export default function EmployerApplicationDetailPage() {
               <div className="space-y-2">
                 <Button
                   onClick={() => setStatusConfirm({ show: true, status: 'ACCEPTED' })}
-                  className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-white hover:bg-red-50 text-red-600 border border-red-600 hover:border-red-700"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Zaakceptuj aplikację

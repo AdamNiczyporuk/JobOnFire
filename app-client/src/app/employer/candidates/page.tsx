@@ -297,7 +297,7 @@ export default function EmployerCandidatesPage() {
               </aside>
 
               {/* List content */}
-              <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+              <div className="space-y-4 flex-1 overflow-y-auto pr-2 max-h-[calc(100vh-400px)]">
                 {candidates.length === 0 ? (
                   <div className="text-center py-12 md:col-span-2">
                     <p className="text-muted-foreground text-lg mb-4">Brak kandydatów spełniających kryteria</p>
