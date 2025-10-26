@@ -25,16 +25,21 @@ export default function JobOffersPage() {
   
   const [selectedWorkingModes, setSelectedWorkingModes] = useState<string[]>([]);
   const [selectedContractTypes, setSelectedContractTypes] = useState<string[]>([]);
-  const [selectedJobLevels, setSelectedJobLevels] = useState<string[]>([]);
+  // Job level is now free-text input instead of checkboxes
+  const [jobLevelInput, setJobLevelInput] = useState("");
   const [selectedWorkloads, setSelectedWorkloads] = useState<string[]>([]);
   const [techInput, setTechInput] = useState(''); // comma-separated technologies
 
   // Applied filters: used only after clicking "Zastosuj"
   const [appliedWorkingModes, setAppliedWorkingModes] = useState<string[]>([]);
   const [appliedContractTypes, setAppliedContractTypes] = useState<string[]>([]);
-  const [appliedJobLevels, setAppliedJobLevels] = useState<string[]>([]);
+  const [appliedJobLevel, setAppliedJobLevel] = useState("");
   const [appliedWorkloads, setAppliedWorkloads] = useState<string[]>([]);
   const [appliedTechInput, setAppliedTechInput] = useState('');
+
+  // Salary minimum filter (PLN)
+  const [minSalaryInput, setMinSalaryInput] = useState<string>('');
+  const [appliedMinSalary, setAppliedMinSalary] = useState<number | undefined>(undefined);
 
   // Compute backend filter params (first selected for workingMode/contractType; tags as CSV)
   const backendWorkingMode = useMemo(() => appliedWorkingModes[0], [appliedWorkingModes]);
@@ -104,6 +109,22 @@ export default function JobOffersPage() {
     return tags.slice(0, 2); // Show max 2 tags for thin rows
   };
 
+  // Parse salary string like "10 000 - 15 000 PLN" to min/max numbers
+  const parseSalaryNumbers = (salary?: string): { min?: number; max?: number } => {
+    if (!salary) return {};
+    // capture numeric chunks with spaces, dots or commas
+    const matches = salary.match(/\d[\d\s.,]*/g);
+    if (!matches || matches.length === 0) return {};
+    const nums = matches
+      .map((m) => parseInt(m.replace(/[^\d]/g, ''), 10))
+      .filter((n) => !Number.isNaN(n));
+    if (nums.length === 0) return {};
+    if (nums.length === 1) return { min: nums[0] };
+    // ensure ascending order just in case
+    const [a, b] = nums;
+    return { min: Math.min(a, b), max: Math.max(a, b) };
+  };
+
   // Client-side filters (for multiple working modes/contract types, job levels, workloads)
   const filteredJobOffers = useMemo(() => {
     return jobOffers.filter((offer) => {
@@ -121,11 +142,20 @@ export default function JobOffersPage() {
         if (!matchCt) return false;
       }
 
-      // job level
-      if (appliedJobLevels.length > 0) {
+      // job level (free-text contains)
+      if (appliedJobLevel.trim().length > 0) {
+        const needle = appliedJobLevel.toLowerCase();
         const levels = (offer.jobLevel || []).map(l => l.toLowerCase());
-        const matchLevel = appliedJobLevels.some(sel => levels.some(l => l.includes(sel.toLowerCase())));
+        const matchLevel = levels.some(l => l.includes(needle));
         if (!matchLevel) return false;
+      }
+
+      // minimum salary threshold
+      if (appliedMinSalary && appliedMinSalary > 0) {
+        const { min, max } = parseSalaryNumbers(offer.salary);
+        if (min == null && max == null) return false; // no salary provided -> filter out when min required
+        const comparable = (max ?? min ?? 0);
+        if (comparable < appliedMinSalary) return false;
       }
 
       // workload
@@ -145,7 +175,7 @@ export default function JobOffersPage() {
 
       return true;
     });
-  }, [jobOffers, appliedWorkingModes, appliedContractTypes, appliedJobLevels, appliedWorkloads, appliedTechInput]);
+  }, [jobOffers, appliedWorkingModes, appliedContractTypes, appliedJobLevel, appliedWorkloads, appliedTechInput, appliedMinSalary]);
 
   if (loading) {
     return (
@@ -237,7 +267,7 @@ export default function JobOffersPage() {
               {/* Tryb pracy */}
               <div className="mb-5">
                 <p className="text-sm font-medium text-gray-700 mb-2.5">Tryb pracy</p>
-                {['Zdalna', 'Hybrydowa', 'Stacjonarna'].map((mode) => (
+                {['Biuro', 'Hybrydowo', 'Częściowo zdalnie', 'Mobilnie', 'Zdalnie', 'W terenie'].map((mode) => (
                   <label key={mode} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
                     <input
                       type="checkbox"
@@ -253,7 +283,7 @@ export default function JobOffersPage() {
               {/* Rodzaj umowy */}
               <div className="mb-5">
                 <p className="text-sm font-medium text-gray-700 mb-2.5">Rodzaj umowy</p>
-                {['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'].map((ct) => (
+                {['Umowa o pracę', 'Umowa B2B', 'Umowa zlecenie', 'Umowa o dzieło'].map((ct) => (
                   <label key={ct} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
                     <input
                       type="checkbox"
@@ -266,26 +296,22 @@ export default function JobOffersPage() {
                 ))}
               </div>
 
-              {/* Poziom stanowiska */}
+              {/* Poziom stanowiska (wpisz dowolny, np. Junior/Mid/Senior/Lead) */}
               <div className="mb-5">
                 <p className="text-sm font-medium text-gray-700 mb-2.5">Poziom stanowiska</p>
-                {['Junior', 'Mid', 'Senior'].map((lvl) => (
-                  <label key={lvl} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={selectedJobLevels.includes(lvl)}
-                      onChange={() => toggleSelection(selectedJobLevels, lvl, setSelectedJobLevels)}
-                      className="w-4 h-4 cursor-pointer accent-red-600 border-gray-300 rounded transition-all"
-                    />
-                    <span className="group-hover:text-red-600 transition-colors duration-200">{lvl}</span>
-                  </label>
-                ))}
+                <input
+                  type="text"
+                  value={jobLevelInput}
+                  onChange={(e) => setJobLevelInput(e.target.value)}
+                  placeholder="np. Junior, Senior, Lead"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none transition-all duration-200"
+                />
               </div>
 
               {/* Wymiar pracy */}
               <div className="mb-5">
                 <p className="text-sm font-medium text-gray-700 mb-2.5">Wymiar pracy</p>
-                {['Pełny etat', 'Część etatu'].map((wl) => (
+                {['Pełny etat', 'Część etatu', 'Elastyczny wymiar', 'Weekend', 'Wieczory', 'Dodatkowa praca'].map((wl) => (
                   <label key={wl} className="flex items-center gap-2.5 text-sm mb-2 cursor-pointer group">
                     <input
                       type="checkbox"
@@ -296,6 +322,21 @@ export default function JobOffersPage() {
                     <span className="group-hover:text-red-600 transition-colors duration-200">{wl}</span>
                   </label>
                 ))}
+              </div>
+
+              {/* Minimalne wynagrodzenie (PLN) */}
+              <div className="mb-5">
+                <p className="text-sm font-medium text-gray-700 mb-2.5">Minimalne wynagrodzenie (PLN)</p>
+                <input
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={minSalaryInput}
+                  onChange={(e) => setMinSalaryInput(e.target.value)}
+                  placeholder="np. 8000"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none transition-all duration-200"
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">Filtruje oferty z wynagrodzeniem co najmniej tej wysokości</p>
               </div>
 
               {/* Technologie / Specjalizacje */}
@@ -317,9 +358,11 @@ export default function JobOffersPage() {
                   onClick={() => {
                     setAppliedWorkingModes(selectedWorkingModes);
                     setAppliedContractTypes(selectedContractTypes);
-                    setAppliedJobLevels(selectedJobLevels);
+                    setAppliedJobLevel(jobLevelInput);
                     setAppliedWorkloads(selectedWorkloads);
                     setAppliedTechInput(techInput);
+                    const parsed = parseInt(minSalaryInput, 10);
+                    setAppliedMinSalary(!Number.isNaN(parsed) && parsed > 0 ? parsed : undefined);
                     setPage(1);
                   }}
                   className="flex-1 transition-all duration-200 hover:scale-105"
@@ -332,15 +375,17 @@ export default function JobOffersPage() {
                   onClick={() => {
                     setSelectedWorkingModes([]);
                     setSelectedContractTypes([]);
-                    setSelectedJobLevels([]);
+                    setJobLevelInput("");
                     setSelectedWorkloads([]);
                     setTechInput('');
+                    setMinSalaryInput('');
 
                     setAppliedWorkingModes([]);
                     setAppliedContractTypes([]);
-                    setAppliedJobLevels([]);
+                    setAppliedJobLevel("");
                     setAppliedWorkloads([]);
                     setAppliedTechInput('');
+                    setAppliedMinSalary(undefined);
                     setPage(1);
                   }}
                   className="flex-1 transition-all duration-200 hover:scale-105"
