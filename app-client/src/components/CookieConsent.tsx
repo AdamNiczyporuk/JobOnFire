@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Ochrona przed uruchomieniem w środowisku SSR / build step
     if (typeof window === 'undefined') return;
     try {
@@ -33,7 +35,8 @@ export default function CookieConsent() {
     }
   };
 
-  if (!visible) return null;
+  // Prevent hydration mismatch by not rendering until mounted on client
+  if (!mounted || !visible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
