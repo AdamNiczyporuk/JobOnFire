@@ -162,6 +162,7 @@ model jobOffer {
   lokalization      lokalization?           @relation(fields: [lokalizationId], references: [id])
   applications      applicationForJobOffer[]
   questions         recruitmentQuestion[]
+  recruitmentTest   recruitmentTest?
 }
 
 model lokalization {
@@ -215,4 +216,12 @@ model recruitmentQuestion {
 
   jobOffer jobOffer          @relation(fields: [jobOfferId], references: [id])
   answers  candidateAnswer[]
+}
+
+model recruitmentTest {
+  id         Int    @id @default(autoincrement())
+  testJson   Json?
+  jobOfferId Int @unique
+
+  jobOffer jobOffer @relation(fields: [jobOfferId], references: [id]) 
 }

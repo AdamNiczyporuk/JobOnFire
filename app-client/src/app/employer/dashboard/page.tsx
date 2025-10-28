@@ -249,7 +249,7 @@ export default function EmployerDashboard() {
               </Button>
             </Link>
 
-            <Link href="/employer/employer-profiles" className="w-full group">
+            <Link href="/employer/profile?edit=1#locations" className="w-full group">
               <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
                 <MapPin className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" />
                 Lokalizacje

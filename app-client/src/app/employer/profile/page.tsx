@@ -1,6 +1,7 @@
 "use client";
 import { useAuth } from "@/context/authContext";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getEmployerProfile, updateEmployerProfile, addEmployerProfileLocation, removeEmployerProfileLocation } from "@/services/employerService";
 import { EmployerProfile, EmployerProfileUpdateRequest, EmployerProfileAddress } from "@/types/employer";
 import { COMPANY_LOGOS, CONTRACT_TYPES, POPULAR_INDUSTRIES, POPULAR_BENEFITS } from "@/constants/employer";
@@ -10,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 
 export default function EmployerProfilePage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const { addToast } = useToast();
   const [profile, setProfile] = useState<EmployerProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,11 @@ export default function EmployerProfilePage() {
 
   useEffect(() => {
     loadProfile();
+    // Włącz tryb edycji, jeśli w URL jest parametr ?edit=1/true
+    const editParam = searchParams.get("edit");
+    if (editParam && (editParam === "1" || editParam.toLowerCase() === "true")) {
+      setEditing(true);
+    }
   }, []);
 
   const loadProfile = async () => {
@@ -634,8 +641,8 @@ export default function EmployerProfilePage() {
         </div>
       )}
 
-      {/* Sekcja lokalizacji */}
-      <div className="bg-white rounded shadow p-6">
+  {/* Sekcja lokalizacji */}
+  <div id="locations" className="bg-white rounded shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold">Lokalizacje firmy</h3>
           
