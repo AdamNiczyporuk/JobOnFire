@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,22 +10,56 @@ import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 
 export default function CandidateLogin() {
   const router = useRouter();
-  const { checkAuth } = useAuth();
+  const { checkAuth, user, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Jeśli użytkownik jest już zalogowany jako candidate, przekieruj do dashboard
+  useEffect(() => {
+    if (!isLoading && user && user.role === "CANDIDATE") {
+      router.replace("/candidate/dashboard");
+    }
+  }, [user, isLoading, router]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsSubmitting(true);
     try {
       await login(email, password, "CANDIDATE");
       await checkAuth(); // pobierz aktualnego użytkownika
-      router.push("/candidate/dashboard");
+      // Przekierowanie nastąpi automatycznie przez useEffect powyżej
     } catch (err: any) {
       setError(err?.response?.data?.message || "Błąd logowania");
+      setIsSubmitting(false);
     }
   };
+
+  // Pokaż loading jeśli trwa ładowanie danych użytkownika lub logowanie
+  if (isLoading || isSubmitting) {
+    return (
+      <main className="flex-1 w-full flex items-center justify-center py-12 md:py-16">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-gray-600">{isSubmitting ? "Logowanie..." : "Ładowanie..."}</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Jeśli użytkownik jest już zalogowany jako candidate, pokaż loading (przekierowanie w toku)
+  if (user && user.role === "CANDIDATE") {
+    return (
+      <main className="flex-1 w-full flex items-center justify-center py-12 md:py-16">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-gray-600">Przekierowanie do panelu...</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 w-full flex items-center justify-center py-12 md:py-16">
