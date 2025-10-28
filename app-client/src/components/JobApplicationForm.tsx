@@ -12,6 +12,7 @@ import { candidateService } from '@/services/candidateService';
 import { createApplication, checkApplicationStatus, deleteApplication } from '@/services/applicationService';
 import { getJobOfferQuestions } from '@/services/jobOfferService';
 import { useAuth } from '@/context/authContext';
+import { useToast } from '@/components/ui/toast';
 
 interface JobApplicationFormProps {
   jobOffer: JobOffer;
@@ -22,6 +23,7 @@ interface JobApplicationFormProps {
 export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: JobApplicationFormProps) {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
+  const { addToast } = useToast();
   
   const [formData, setFormData] = useState<ApplicationFormData>({
     message: '',
@@ -272,17 +274,27 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
                 <Button
                   variant="destructive"
                   onClick={async () => {
-                    if (!confirm('Czy na pewno chcesz usunąć tę aplikację?')) return;
+                    const confirmed = window.confirm('Czy na pewno chcesz usunąć tę aplikację?');
+                    if (!confirmed) return;
                     try {
                       await deleteApplication(applicationId);
-                      alert('Aplikacja została usunięta.');
+                      addToast({
+                        title: "Sukces",
+                        description: "Aplikacja została usunięta.",
+                        type: "success",
+                        duration: 5000
+                      });
                       setHasApplied(false);
                       setApplicationId(null);
-                      // Opcjonalnie: odśwież pytania/status
                       await loadData();
                     } catch (e: any) {
                       const msg = e?.response?.data?.message || 'Nie udało się usunąć aplikacji';
-                      alert(msg);
+                      addToast({
+                        title: "Błąd",
+                        description: msg,
+                        type: "error",
+                        duration: 5000
+                      });
                     }
                   }}
                   className="text-red-600 hover:text-red-700"

@@ -47,7 +47,6 @@ export default function SiteFooter() {
             <p className="text-sm font-bold">Przydatne linki</p>
             <Link href="/job-offers" className="text-sm text-muted-foreground hover:text-primary">Oferty pracy</Link>
             <Link href="/employer" className="text-sm text-muted-foreground hover:text-primary">Dla firm</Link>
-            <Link href="/categories" className="text-sm text-muted-foreground hover:text-primary">Kategorie</Link>
           </div>
         </nav>
       </div>

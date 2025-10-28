@@ -2,7 +2,6 @@
 
 import ToolSidebar from "@/components/ToolSidebar";
 import { SmartHeader } from "@/components/SmartHeader";
-import SiteFooter from "@/components/SiteFooter";
 import { useEffect, useMemo, useState } from "react";
 
 type ContractType = "UOP" | "UZ" | "UOD" | "B2B";
@@ -502,7 +501,6 @@ export default function SalaryCalculatorPage() {
           </div>
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

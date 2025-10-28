@@ -9,6 +9,7 @@ import { getCandidateApplications } from "@/services/applicationService";
 import type { CandidateProfile, Application } from "@/types/candidate";
 import type { JobOffer } from "@/types/jobOffer";
 import { Save, Download, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 type CVForm = {
 	fullName: string;
@@ -36,6 +37,7 @@ type DataSource = "manual" | "application";
 
 export default function CVGenerator() {
 	const searchParams = useSearchParams();
+	const { addToast } = useToast();
 	const [dataSource, setDataSource] = useState<DataSource>("manual");
 	const [applications, setApplications] = useState<Application[]>([]);
 	const [loadingApplications, setLoadingApplications] = useState(false);
@@ -391,14 +393,17 @@ export default function CVGenerator() {
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
-				URL.revokeObjectURL(url);
-			} catch (error) {
-				console.error('Error generating PDF:', error);
-				alert('Nie udało się pobrać PDF. Spróbuj ponownie.');
-			}
-		};
-
-		const handleGenerateNew = () => {
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('Error generating PDF:', error);
+			addToast({
+				title: "Błąd",
+				description: "Nie udało się pobrać PDF. Spróbuj ponownie.",
+				type: "error",
+				duration: 5000
+			});
+		}
+	};		const handleGenerateNew = () => {
 			setGeneratedCV(null);
 			sessionStorage.removeItem('generatedCV');
 			setSaveSuccess(false);

@@ -12,10 +12,12 @@ import { getPublicJobOffer } from "@/services/jobOfferService";
 import { checkApplicationStatus } from "@/services/applicationService";
 import { JobOffer } from "@/types/jobOffer";
 import { MapPin, Building2, Calendar, DollarSign, Clock, Users, ArrowLeft } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 export default function JobOfferDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const { addToast } = useToast();
   const [jobOffer, setJobOffer] = useState<JobOffer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,9 +83,12 @@ export default function JobOfferDetailsPage() {
 
   const handleApplicationSuccess = () => {
     setShowApplicationForm(false);
-    // Można dodać toast notification sukcesu
-    alert('Aplikacja została wysłana pomyślnie!');
-    // Oznacz jako zaaplikowano i spróbuj pobrać ID aplikacji
+    addToast({
+      title: "Sukces!",
+      description: "Aplikacja została wysłana pomyślnie!",
+      type: "success",
+      duration: 5000
+    });
     setHasApplied(true);
     checkApplied();
   };

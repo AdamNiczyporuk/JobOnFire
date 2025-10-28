@@ -3,7 +3,6 @@ import { useAuth } from "@/context/authContext";
 import ToolSidebar from "@/components/ToolSidebar";
 import CVGenerator from "@/components/CVGenerator";
 import { SmartHeader } from "@/components/SmartHeader";
-import SiteFooter from "@/components/SiteFooter";
 import Link from "next/link";
 
 export default function CvGeneratorPage() {
@@ -19,7 +18,6 @@ export default function CvGeneratorPage() {
             <p className="text-sm text-muted-foreground">Ładowanie...</p>
           </div>
         </main>
-        <SiteFooter />
       </div>
     );
   }
@@ -51,7 +49,6 @@ export default function CvGeneratorPage() {
             </div>
           </div>
         </main>
-        <SiteFooter />
       </div>
     );
   }
@@ -76,7 +73,6 @@ export default function CvGeneratorPage() {
           </div>
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

@@ -6,9 +6,11 @@ import { EmployerProfile, EmployerProfileUpdateRequest, EmployerProfileAddress }
 import { COMPANY_LOGOS, CONTRACT_TYPES, POPULAR_INDUSTRIES, POPULAR_BENEFITS } from "@/constants/employer";
 import { Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 
 export default function EmployerProfilePage() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [profile, setProfile] = useState<EmployerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -117,18 +119,38 @@ export default function EmployerProfilePage() {
       await updateEmployerProfile(formData);
       await loadProfile();
       setEditing(false);
-      alert("Profil zaktualizowany pomyślnie!");
+      addToast({
+        title: "Sukces!",
+        description: "Profil zaktualizowany pomyślnie!",
+        type: "success",
+        duration: 5000
+      });
     } catch (error: any) {
       console.error("Błąd podczas aktualizacji profilu:", error);
       console.error("Szczegóły błędu:", error.response?.data);
       
       if (error.response?.data?.errors) {
         const errorMessages = error.response.data.errors.join('\n');
-        alert(`Błąd walidacji:\n${errorMessages}`);
+        addToast({
+          title: "Błąd walidacji",
+          description: errorMessages,
+          type: "error",
+          duration: 7000
+        });
       } else if (error.response?.data?.message) {
-        alert(`Błąd: ${error.response.data.message}`);
+        addToast({
+          title: "Błąd",
+          description: error.response.data.message,
+          type: "error",
+          duration: 5000
+        });
       } else {
-        alert("Błąd podczas aktualizacji profilu");
+        addToast({
+          title: "Błąd",
+          description: "Błąd podczas aktualizacji profilu",
+          type: "error",
+          duration: 5000
+        });
       }
     }
   };
@@ -147,22 +169,43 @@ export default function EmployerProfilePage() {
         longtitude: undefined
       });
       setAddingLocation(false);
-      alert("Lokalizacja dodana pomyślnie!");
+      addToast({
+        title: "Sukces!",
+        description: "Lokalizacja dodana pomyślnie!",
+        type: "success",
+        duration: 5000
+      });
     } catch (error) {
       console.error("Błąd podczas dodawania lokalizacji:", error);
-      alert("Błąd podczas dodawania lokalizacji");
+      addToast({
+        title: "Błąd",
+        description: "Błąd podczas dodawania lokalizacji",
+        type: "error",
+        duration: 5000
+      });
     }
   };
 
   const handleRemoveLocation = async (lokalizationId: number) => {
-    if (confirm("Czy na pewno chcesz usunąć tę lokalizację?")) {
+    const confirmed = window.confirm("Czy na pewno chcesz usunąć tę lokalizację?");
+    if (confirmed) {
       try {
         await removeEmployerProfileLocation(lokalizationId);
         await loadProfile();
-        alert("Lokalizacja usunięta pomyślnie!");
+        addToast({
+          title: "Sukces!",
+          description: "Lokalizacja usunięta pomyślnie!",
+          type: "success",
+          duration: 5000
+        });
       } catch (error) {
         console.error("Błąd podczas usuwania lokalizacji:", error);
-        alert("Błąd podczas usuwania lokalizacji");
+        addToast({
+          title: "Błąd",
+          description: "Błąd podczas usuwania lokalizacji",
+          type: "error",
+          duration: 5000
+        });
       }
     }
   };

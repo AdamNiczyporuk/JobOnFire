@@ -1,6 +1,5 @@
 import ToolSidebar from "@/components/ToolSidebar";
 import { SmartHeader } from "@/components/SmartHeader";
-import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = { title: "Narzędzia" };
 
@@ -62,7 +61,6 @@ export default function ToolsPage() {
           </div>
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }
