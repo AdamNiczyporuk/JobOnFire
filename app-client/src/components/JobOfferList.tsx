@@ -71,13 +71,13 @@ export default function JobOfferList({
                   {/* Status badge */}
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     !jobOffer.isActive 
-                      ? 'bg-gray-200 text-gray-700'
+                      ? 'bg-red-100 text-red-700'
                       : isExpired(jobOffer.expireDate)
                       ? 'bg-red-100 text-red-700'
                       : 'bg-green-100 text-green-700'
                   }`}>
                     {!jobOffer.isActive 
-                      ? 'Nieaktywna'
+                      ? 'Usunięta'
                       : isExpired(jobOffer.expireDate)
                       ? 'Wygasła'
                       : 'Aktywna'
@@ -200,24 +200,28 @@ export default function JobOfferList({
                   Zobacz
                 </Button>
               </Link>
-              
-              <Button
-                onClick={() => onEdit(jobOffer)}
-                variant="outline"
-                size="sm"
-                className="transition-all duration-200 hover:scale-105"
-              >
-                Edytuj
-              </Button>
-              
-              <Button
-                onClick={() => onDelete(jobOffer.id)}
-                variant="outline"
-                size="sm"
-                className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-500 transition-all duration-200 hover:scale-105"
-              >
-                Usuń
-              </Button>
+
+              {jobOffer.isActive && (
+                <>
+                  <Button
+                    onClick={() => onEdit(jobOffer)}
+                    variant="outline"
+                    size="sm"
+                    className="transition-all duration-200 hover:scale-105"
+                  >
+                    Edytuj
+                  </Button>
+                  
+                  <Button
+                    onClick={() => onDelete(jobOffer.id)}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-500 transition-all duration-200 hover:scale-105"
+                  >
+                    Usuń
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

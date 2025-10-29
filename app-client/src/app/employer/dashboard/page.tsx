@@ -136,7 +136,7 @@ export default function EmployerDashboard() {
       icon: <Users className="w-6 h-6" />
     },
     { 
-      label: "Oczekujące", 
+      label: "Aplikacje Oczekujące", 
       value: stats.pendingApplications, 
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",

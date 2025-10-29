@@ -115,11 +115,13 @@ export default function EmployerJobOfferDetailsPage() {
           <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg border">
             <div className="flex justify-between items-start mb-6">
               <h1 className="text-2xl font-bold">{jobOffer.name}</h1>
-              <div className="flex gap-2">
-                <Link href={`/employer/job-offers/${jobOffer.id}/edit`}>
-                  <Button className="transition-all duration-200 hover:scale-105">Edytuj</Button>
-                </Link>
-              </div>
+              {jobOffer.isActive && (
+                <div className="flex gap-2">
+                  <Link href={`/employer/job-offers/${jobOffer.id}/edit`}>
+                    <Button className="transition-all duration-200 hover:scale-105">Edytuj</Button>
+                  </Link>
+                </div>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -137,7 +139,7 @@ export default function EmployerJobOfferDetailsPage() {
                     }`}
                   >
                     {!jobOffer.isActive
-                      ? "Nieaktywna"
+                      ? "Usunięta"
                       : isExpired(jobOffer.expireDate)
                       ? "Wygasła"
                       : "Aktywna"}
