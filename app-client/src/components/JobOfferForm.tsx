@@ -27,7 +27,7 @@ import {
 
 interface JobOfferFormProps {
   initialData?: JobOffer;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: any) => Promise<any>;
   onCancel: () => void;
   isEditing?: boolean;
   isLoading?: boolean;
@@ -186,9 +186,9 @@ export default function JobOfferForm({
         tags: formData.tags.length > 0 ? formData.tags : undefined,
       };
 
-      await onSubmit(submitData);
+      const result = await onSubmit(submitData);
 
-      // Zapisz zmiany pytań rekrutacyjnych dopiero przy zapisie oferty (tryb edycji)
+      // Zapis pytań rekrutacyjnych po zapisie oferty
       if (isEditing && initialData?.id) {
         const byIdOriginal = new Map<number, string>(originalQuestions.map(q => [q.id, (q.question || '').trim()]));
         const current = questions.map(q => ({ ...q, question: (q.question || '').trim() }));
@@ -222,6 +222,23 @@ export default function JobOfferForm({
             await deleteRecruitmentQuestion(q.id);
           } catch (err) {
             console.error('Error deleting question on submit', err);
+          }
+        }
+      } else {
+        // Tryb tworzenia — utwórz pytania dla nowo utworzonej oferty
+        const createdJobOfferId: number | undefined = (result && typeof result === 'object')
+          ? (result.id ?? result.jobOffer?.id)
+          : undefined;
+
+        if (createdJobOfferId && questions.length > 0) {
+          for (const q of questions) {
+            const text = (q.question || '').trim();
+            if (!text) continue;
+            try {
+              await createRecruitmentQuestion({ jobOfferId: createdJobOfferId, question: text });
+            } catch (err) {
+              console.error('Error creating question for new offer', err);
+            }
           }
         }
       }
@@ -498,7 +515,10 @@ export default function JobOfferForm({
         </div>
 
         {/* Pytania rekrutacyjne - tylko w trybie edycji (lokalne zmiany, zapis przy zapisie oferty) */}
-        {isEditing && initialData?.id && (
+        {(
+          // Sekcja pytań dostępna zarówno w tworzeniu, jak i w edycji
+          true
+        ) && (
           <div>
             <label className="block text-sm font-medium mb-2">
               Pytania rekrutacyjne

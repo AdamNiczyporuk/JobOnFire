@@ -53,9 +53,10 @@ export default function JobOffersPage() {
   const handleCreate = async (data: JobOfferCreateRequest) => {
     setIsSubmitting(true);
     try {
-      await createJobOffer(data);
+      const created = await createJobOffer(data);
       await loadJobOffers(); // Odświeżenie listy
       setViewMode('list');
+      return created;
       // Tutaj można dodać toast notification sukcesu
     } catch (error) {
       console.error('Error creating job offer:', error);
@@ -71,10 +72,11 @@ export default function JobOffersPage() {
     
     setIsSubmitting(true);
     try {
-      await updateJobOffer(selectedJobOffer.id, data);
+      const updated = await updateJobOffer(selectedJobOffer.id, data);
       await loadJobOffers(); // Odświeżenie listy
       setViewMode('list');
       setSelectedJobOffer(null);
+      return updated;
       // Tutaj można dodać toast notification sukcesu
     } catch (error) {
       console.error('Error updating job offer:', error);

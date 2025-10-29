@@ -43,8 +43,9 @@ export default function EmployerJobOfferEditPage() {
     if (Number.isNaN(jobOfferId)) return;
     setSaving(true);
     try {
-      await updateJobOffer(jobOfferId, form);
+      const updated = await updateJobOffer(jobOfferId, form);
       router.push(`/employer/job-offers/${jobOfferId}`);
+      return updated;
     } catch (e) {
       console.error("Error updating job offer", e);
       setError("Nie udało się zapisać zmian");
