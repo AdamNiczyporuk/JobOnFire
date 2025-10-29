@@ -302,22 +302,31 @@ export default function EmployerApplicationDetailPage() {
                 </div>
               )}
 
-              {/* Recruitment Questions */}
-              {application.answers.length > 0 && (
+              {/* Recruitment Questions - show all questions with answers or 'Brak odpowiedzi' */}
+              {(application.jobOffer.questions && application.jobOffer.questions.length > 0) || application.answers.length > 0 ? (
                 <div className="mb-6">
-                  <h3 className="font-medium mb-4">Odpowiedzi na pytania rekrutacyjne</h3>
+                  <h3 className="font-medium mb-4">Pytania rekrutacyjne i odpowiedzi</h3>
                   <div className="space-y-4">
-                    {application.answers.map((answer, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <p className="font-medium text-sm text-gray-600 mb-2">
-                          {String(answer.question.question || '')}
-                        </p>
-                        <p className="text-gray-800">{String(answer.answer || 'Brak odpowiedzi')}</p>
-                      </div>
-                    ))}
+                    {(
+                      (application.jobOffer.questions && application.jobOffer.questions.length > 0)
+                        ? application.jobOffer.questions
+                        : application.answers.map(a => ({ id: a.question.id, question: a.question.question }))
+                    ).map((q) => {
+                      const found = application.answers.find(a => a.recruitmentQuestionId === q.id);
+                      return (
+                        <div key={q.id} className="border rounded-lg p-4">
+                          <p className="font-medium text-sm text-gray-600 mb-2">
+                            {String(q.question || '')}
+                          </p>
+                          <p className={found?.answer ? 'text-gray-800 whitespace-pre-wrap' : 'text-muted-foreground italic'}>
+                            {String(found?.answer || 'Brak odpowiedzi')}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Employer Response Section */}
               <div className="border-t pt-6">

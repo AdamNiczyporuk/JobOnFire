@@ -39,58 +39,68 @@ export default function EmployerApplicationsPage() {
       setLoading(true);
       setError(null);
       
+      const itemsPerPage = 12;
+      const hasClientFilters = Boolean(appliedJobOffer || appliedMeeting || searchQuery);
+
+      // Buduj parametry z uwzględnieniem paginacji backendowej gdy brak filtrów klienckich
       const params: EmployerApplicationsParams = {
-        page: 1,
-        limit: 1000, // Pobierz wszystkie aplikacje
+        page: hasClientFilters ? 1 : page,
+        limit: hasClientFilters ? 1000 : itemsPerPage,
       };
 
-      // Tylko status może być filtrowany po stronie backendu
+      // Status filtrowany po stronie backendu
       if (appliedStatus) {
         params.status = appliedStatus as any;
       }
 
       const response = await getEmployerApplications(params);
-      
-      let filteredApplications = response.applications;
-      
-      // Filtrowanie po nazwie oferty pracy
-      if (appliedJobOffer) {
-        filteredApplications = filteredApplications.filter(app => 
-          app.jobOffer.name.toLowerCase().includes(appliedJobOffer.toLowerCase())
-        );
+
+      if (!hasClientFilters) {
+        // Używaj paginacji backendowej i całkowitej liczby z backendu (spójnie z dashboardem)
+        setApplications(response.applications);
+        setTotalPages(response.pagination.pages);
+        setTotalCount(response.pagination.total);
+      } else {
+        // Filtrowanie po stronie frontu na pełnym zbiorze i paginacja lokalna
+        let filteredApplications = response.applications;
+
+        // Filtrowanie po nazwie oferty pracy
+        if (appliedJobOffer) {
+          filteredApplications = filteredApplications.filter(app => 
+            app.jobOffer.name.toLowerCase().includes(appliedJobOffer.toLowerCase())
+          );
+        }
+
+        // Filtrowanie po statusie spotkania
+        if (appliedMeeting) {
+          filteredApplications = filteredApplications.filter(app => {
+            if (appliedMeeting === 'scheduled') {
+              return app.meeting.isScheduled;
+            } else if (appliedMeeting === 'not_scheduled') {
+              return !app.meeting.isScheduled;
+            }
+            return true;
+          });
+        }
+
+        // Filtrowanie po wyszukiwanej frazie
+        if (searchQuery) {
+          filteredApplications = filteredApplications.filter(app => 
+            app.jobOffer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            app.candidate.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+
+        setAllApplications(response.applications);
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedApplications = filteredApplications.slice(startIndex, endIndex);
+
+        setApplications(paginatedApplications);
+        setTotalPages(Math.ceil(filteredApplications.length / itemsPerPage));
+        setTotalCount(filteredApplications.length);
       }
-      
-      // Filtrowanie po statusie spotkania
-      if (appliedMeeting) {
-        filteredApplications = filteredApplications.filter(app => {
-          if (appliedMeeting === 'scheduled') {
-            return app.meeting.isScheduled;
-          } else if (appliedMeeting === 'not_scheduled') {
-            return !app.meeting.isScheduled;
-          }
-          return true;
-        });
-      }
-      
-      // Filtrowanie po wyszukiwanej frazie
-      if (searchQuery) {
-        filteredApplications = filteredApplications.filter(app => 
-          app.jobOffer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          app.candidate.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-      
-      setAllApplications(response.applications);
-      
-      // Paginacja po stronie frontendu
-      const itemsPerPage = 12;
-      const startIndex = (page - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginatedApplications = filteredApplications.slice(startIndex, endIndex);
-      
-      setApplications(paginatedApplications);
-      setTotalPages(Math.ceil(filteredApplications.length / itemsPerPage));
-      setTotalCount(filteredApplications.length);
     } catch (err) {
       console.error('Błąd podczas pobierania aplikacji:', err);
       setError('Nie udało się pobrać aplikacji. Spróbuj ponownie.');
