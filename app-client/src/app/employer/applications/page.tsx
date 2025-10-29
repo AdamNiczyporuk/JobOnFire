@@ -176,8 +176,8 @@ export default function EmployerApplicationsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen flex-col items-center overflow-hidden">
-        <main className="flex-1 w-full flex flex-col overflow-hidden">
+      <div className="flex flex-col items-center">
+        <main className="w-full flex flex-col">
           <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 flex flex-col">
             <div className="mb-12 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Aplikacje</h1>
@@ -199,8 +199,8 @@ export default function EmployerApplicationsPage() {
 
   if (error) {
     return (
-      <div className="flex h-screen flex-col items-center overflow-hidden">
-        <main className="flex-1 w-full flex flex-col overflow-hidden">
+      <div className="flex flex-col items-center">
+        <main className="w-full flex flex-col">
           <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 flex flex-col">
             <div className="mb-12 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Aplikacje</h1>
@@ -217,9 +217,9 @@ export default function EmployerApplicationsPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col items-center overflow-hidden bg-gray-50">
-      <main className="flex-1 w-full flex flex-col overflow-hidden">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-col h-full">
+    <div className="flex flex-col items-center bg-gray-50">
+      <main className="w-full flex flex-col">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-col">
           <div className="mb-4 text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-2">Aplikacje</h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -252,7 +252,7 @@ export default function EmployerApplicationsPage() {
             </form>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4 flex-1 overflow-hidden min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
             {/* Sidebar filters */}
             <aside className="rounded-lg border bg-white p-4 h-fit">
               <h3 className="text-sm font-semibold mb-3">Filtry</h3>
@@ -332,7 +332,7 @@ export default function EmployerApplicationsPage() {
             </aside>
 
             {/* Applications list */}
-            <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+            <div className="space-y-4 pr-2">
               {applications.length === 0 ? (
                 <div className="text-center py-12">
                   <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
