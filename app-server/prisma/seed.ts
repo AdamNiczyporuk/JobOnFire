@@ -14,6 +14,7 @@ async function main(): Promise<void> {
   await prisma.meeting.deleteMany();
   await prisma.applicationForJobOffer.deleteMany();
   await prisma.recruitmentQuestion.deleteMany();
+  await prisma.recruitmentTest.deleteMany();
   await prisma.jobOffer.deleteMany();
   await prisma.lokalizationToEmployerProfile.deleteMany();
   await prisma.employerProfile.deleteMany();
@@ -769,39 +770,197 @@ async function main(): Promise<void> {
   console.info("✅ 3 applications created for Candidate 2\n");
 
   // ============================================
+  // EXTRA DATA TO STRESS TEST PAGINATION
+  // ============================================
+  console.info("📈 Creating extra job offers, candidates and applications for pagination tests...");
+
+  // Helper arrays
+  const titles = [
+    "Software Engineer", "Frontend Developer", "Backend Developer", "Fullstack Developer",
+    "Data Engineer", "DevOps Engineer", "QA Engineer", "Mobile Developer",
+    "Product Designer", "Project Manager", "Support Engineer", "SRE"
+  ];
+  const workloads = ["Pełny etat", "Część etatu"];
+  const workingModes = [["Zdalna"], ["Hybrydowa"], ["Stacjonarna"], ["Zdalna", "Hybrydowa"]] as Prisma.JsonArray[];
+  const jobLevels = [["Junior"], ["Mid"], ["Senior"], ["Mid", "Senior"]] as Prisma.JsonArray[];
+  const tagPools = [
+    ["React", "TypeScript", "Next.js"],
+    ["Node.js", "PostgreSQL", "REST API"],
+    ["Azure", "Python", "SQL"],
+    ["Docker", "Kubernetes", "CI/CD"],
+  ];
+
+  const extraOffers: { id: number; employerProfileId: number }[] = [];
+
+  async function createExtraOffersForEmployer(employerProfileId: number, lokalizationId: number, count: number) {
+    for (let i = 1; i <= count; i++) {
+      const title = titles[(i + employerProfileId) % titles.length];
+      const jl = jobLevels[(i + 2) % jobLevels.length];
+      const wm = workingModes[(i + 1) % workingModes.length];
+      const tg = tagPools[i % tagPools.length] as unknown as Prisma.JsonArray;
+      const created = await prisma.jobOffer.create({
+        data: {
+          name: `${title} #${i}`,
+          description: `Opis stanowiska ${title} numer ${i}.`,
+          jobLevel: jl,
+          contractType: i % 2 === 0 ? "B2B" : "Umowa o pracę",
+          salary: i % 3 === 0 ? "12000 - 18000 PLN" : "15000 - 23000 PLN",
+          createDate: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
+          expireDate: new Date(Date.now() + (30 + (i % 30)) * 24 * 60 * 60 * 1000),
+          workingMode: wm,
+          workload: workloads[i % workloads.length],
+          responsibilities: [
+            "Realizacja zadań programistycznych",
+            "Współpraca z zespołem",
+            "Dbanie o jakość kodu"
+          ] as Prisma.JsonArray,
+          requirements: [
+            "Doświadczenie komercyjne",
+            "Znajomość Git",
+            "Komunikatywność"
+          ] as Prisma.JsonArray,
+          whatWeOffer: [
+            "Elastyczne godziny",
+            "Budżet szkoleniowy",
+            "Praca zdalna/hybrydowa"
+          ] as Prisma.JsonArray,
+          applicationUrl: null,
+          tags: tg,
+          isActive: true,
+          lokalizationId,
+          employerProfileId,
+        },
+      });
+
+      // 1-2 pytania rekrutacyjne do oferty
+      await prisma.recruitmentQuestion.createMany({
+        data: [
+          { jobOfferId: created.id, question: `Dlaczego chcesz pracować jako ${title}?` },
+          { jobOfferId: created.id, question: `Opisz projekt związany z: ${(tg as unknown as string[])[0]}` },
+        ],
+      });
+
+      extraOffers.push({ id: created.id, employerProfileId });
+    }
+  }
+
+  // Create extra offers: 20 for each employer
+  await createExtraOffersForEmployer(employer1Profile.id, warsawOffice.id, 20);
+  await createExtraOffersForEmployer(employer2Profile.id, krakowOffice.id, 20);
+
+  // Extra candidates
+  const extraCandidateProfiles: { id: number }[] = [];
+  for (let i = 1; i <= 30; i++) {
+    const u = await prisma.user.create({
+      data: {
+        username: `candidate_seed_${i}`,
+        email: `candidate_seed_${i}@jobonfire.com`,
+        passwordHash,
+        role: UserRole.CANDIDATE,
+        registerDate: new Date(Date.now() - i * 1000 * 60 * 60),
+        isDeleted: false,
+      },
+    });
+    const p = await prisma.candidateProfile.create({
+      data: {
+        name: `Jan${i % 2 ? 'a' : ''}`,
+        lastName: `Testowy_${i}`,
+        description: `Kandydat demo #${i}`,
+        userId: u.id,
+        skills: [{ name: "JavaScript", level: "INTERMEDIATE" }] as Prisma.JsonArray,
+      },
+    });
+    await prisma.candidateCV.create({
+      data: {
+        name: `CV #${i}`,
+        cvJson: JSON.stringify({ fullName: `Kandydat Seed ${i}`, skills: ["JS", "TS"] }),
+        candidateProfileId: p.id,
+        isDeleted: false,
+      },
+    });
+    extraCandidateProfiles.push({ id: p.id });
+  }
+
+  // Create many applications distributed across offers and candidates
+  const allOfferIds = [frontendOffer.id, backendOffer.id, dataEngineerOffer.id, biDeveloperOffer.id, ...extraOffers.map(o => o.id)];
+  const statuses: ApplicationStatus[] = [ApplicationStatus.PENDING, ApplicationStatus.ACCEPTED, ApplicationStatus.REJECTED, ApplicationStatus.CANCELED];
+
+  let createdApplications = 0;
+  for (let i = 0; i < 120; i++) {
+    const offerId = allOfferIds[i % allOfferIds.length];
+    const candidateProfile = i % 2 === 0 ? candidate1Profile : i % 3 === 0 ? candidate2Profile : extraCandidateProfiles[i % extraCandidateProfiles.length];
+    const candidateCv = await prisma.candidateCV.findFirst({ where: { candidateProfileId: candidateProfile.id } });
+    if (!candidateCv) continue;
+    const status = statuses[i % statuses.length];
+    const app = await prisma.applicationForJobOffer.create({
+      data: {
+        message: `Aplikacja demo #${i} na ofertę ${offerId}`,
+        status,
+        candidateProfileId: candidateProfile.id,
+        jobOfferId: offerId,
+        cvId: candidateCv.id,
+        createDate: new Date(Date.now() - (i % 25) * 24 * 60 * 60 * 1000),
+      },
+    });
+    createdApplications++;
+
+    // Optional: create 1 answer if question exists, for some apps
+    if (i % 4 === 0) {
+      const anyQuestion = await prisma.recruitmentQuestion.findFirst({ where: { jobOfferId: offerId } });
+      if (anyQuestion) {
+        await prisma.candidateAnswer.create({
+          data: {
+            applicationForJobOfferId: app.id,
+            recruitmentQuestionId: anyQuestion.id,
+            answer: `Odpowiedź demo dla aplikacji #${i}`,
+          },
+        });
+      }
+    }
+  }
+
+  console.info(`✅ Extra data created: +${extraOffers.length} job offers, +${extraCandidateProfiles.length} candidates, +${createdApplications} applications`);
+
+  // ============================================
   // SUMMARY
   // ============================================
-  console.info("=" .repeat(60));
+  const counts = await Promise.all([
+    prisma.employerProfile.count(),
+    prisma.candidateProfile.count(),
+    prisma.lokalization.count(),
+    prisma.jobOffer.count(),
+    prisma.applicationForJobOffer.count(),
+    prisma.meeting.count(),
+    prisma.profileLink.count(),
+    prisma.externalJobOffer.count(),
+    prisma.recruitmentQuestion.count(),
+    prisma.candidateAnswer.count(),
+    prisma.applicationResponse.count(),
+  ]);
+  console.info("=".repeat(60));
   console.info("✅ SEEDING COMPLETED SUCCESSFULLY!");
-  console.info("=" .repeat(60));
+  console.info("=".repeat(60));
   console.info("\n📊 Summary:");
-  console.info("  👔 Employers: 2");
-  console.info("     - FireTech Software (2 job offers)");
-  console.info("     - DataForge Analytics (2 job offers)");
-  console.info("  👤 Candidates: 2");
-  console.info("     - Anna Nowak (2 CVs, 2 applications)");
-  console.info("     - Piotr Kowalski (2 CVs, 3 applications)");
-  console.info("  📍 Locations: 2 (Warszawa, Kraków)");
-  console.info("  💼 Job Offers: 4");
-  console.info("  📝 Applications: 5");
-  console.info("     - PENDING: 2");
-  console.info("     - ACCEPTED: 1");
-  console.info("     - REJECTED: 1");
-  console.info("     - CANCELED: 1");
-  console.info("  📅 Meetings: 3");
-  console.info("  🔗 Profile Links: 5");
-  console.info("  📄 External Job Offers: 2");
-  console.info("  ❓ Recruitment Questions: 6");
-  console.info("  💬 Candidate Answers: 6");
-  console.info("  📧 Application Responses: 2");
-  console.info("\n🔐 Login credentials (all users):");
+  console.info(`  👔 Employers: ${counts[0]}`);
+  console.info(`  👤 Candidates: ${counts[1]}`);
+  console.info(`  📍 Locations: ${counts[2]}`);
+  console.info(`  💼 Job Offers: ${counts[3]}`);
+  console.info(`  📝 Applications: ${counts[4]}`);
+  console.info(`  📅 Meetings: ${counts[5]}`);
+  console.info(`  🔗 Profile Links: ${counts[6]}`);
+  console.info(`  📄 External Job Offers: ${counts[7]}`);
+  console.info(`  ❓ Recruitment Questions: ${counts[8]}`);
+  console.info(`  💬 Candidate Answers: ${counts[9]}`);
+  console.info(`  📧 Application Responses: ${counts[10]}`);
+  console.info("\n🔐 Login credentials (seeded users):");
   console.info("  Password: Demo123!");
   console.info("  Emails:");
   console.info("    - employer1@jobonfire.com (FireTech)");
   console.info("    - employer2@jobonfire.com (DataForge)");
   console.info("    - candidate1@jobonfire.com (Anna Nowak)");
   console.info("    - candidate2@jobonfire.com (Piotr Kowalski)");
-  console.info("=" .repeat(60));
+  console.info("    - candidate_seed_1..30@jobonfire.com");
+  console.info("=".repeat(60));
 }
 
 main()
