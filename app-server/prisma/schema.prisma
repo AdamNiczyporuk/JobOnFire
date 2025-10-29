@@ -220,7 +220,7 @@ model recruitmentQuestion {
 
 model recruitmentTest {
   id         Int    @id @default(autoincrement())
-  testJson   Json?
+  testJson   Json
   jobOfferId Int @unique
 
   jobOffer jobOffer @relation(fields: [jobOfferId], references: [id]) 
