@@ -17,6 +17,13 @@ import {
 } from '@/constants/employer';
 import { JobOffer, JobOfferCreateRequest, JobOfferUpdateRequest } from '@/types/jobOffer';
 import { getAvailableLocalizations } from '@/services/jobOfferService';
+import type { RecruitmentQuestion } from '@/types/application';
+import { 
+  listRecruitmentQuestions,
+  createRecruitmentQuestion,
+  updateRecruitmentQuestion,
+  deleteRecruitmentQuestion
+} from '@/services/recruitmentQuestionService';
 
 interface JobOfferFormProps {
   initialData?: JobOffer;
@@ -52,6 +59,13 @@ export default function JobOfferForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [availableLocalizations, setAvailableLocalizations] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<RecruitmentQuestion[]>([]);
+  const [originalQuestions, setOriginalQuestions] = useState<RecruitmentQuestion[]>([]);
+  const [newQuestion, setNewQuestion] = useState('');
+  const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
+  const [editingQuestionText, setEditingQuestionText] = useState('');
+  const [tempId, setTempId] = useState(-1);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
 
   // Inicjalizacja danych w trybie edycji
   useEffect(() => {
@@ -74,6 +88,25 @@ export default function JobOfferForm({
       });
     }
   }, [initialData, isEditing]);
+
+  // Załaduj pytania rekrutacyjne w trybie edycji
+  useEffect(() => {
+    const loadQuestions = async () => {
+      if (isEditing && initialData?.id) {
+        setLoadingQuestions(true);
+        try {
+          const q = await listRecruitmentQuestions(initialData.id);
+          setQuestions(q);
+          setOriginalQuestions(q);
+        } catch (err) {
+          console.error('Error loading recruitment questions', err);
+        } finally {
+          setLoadingQuestions(false);
+        }
+      }
+    };
+    loadQuestions();
+  }, [isEditing, initialData?.id]);
 
   // Ładowanie dostępnych lokalizacji
   useEffect(() => {
@@ -154,6 +187,44 @@ export default function JobOfferForm({
       };
 
       await onSubmit(submitData);
+
+      // Zapisz zmiany pytań rekrutacyjnych dopiero przy zapisie oferty (tryb edycji)
+      if (isEditing && initialData?.id) {
+        const byIdOriginal = new Map<number, string>(originalQuestions.map(q => [q.id, (q.question || '').trim()]));
+        const current = questions.map(q => ({ ...q, question: (q.question || '').trim() }));
+
+        const toCreate = current.filter(q => q.id <= 0 && q.question);
+        const toUpdate = current.filter(q => q.id > 0 && byIdOriginal.has(q.id) && byIdOriginal.get(q.id) !== q.question);
+        const currentIds = new Set(current.filter(q => q.id > 0).map(q => q.id));
+        const toDelete = originalQuestions.filter(q => !currentIds.has(q.id));
+
+        // Tworzenie
+        for (const q of toCreate) {
+          try {
+            await createRecruitmentQuestion({ jobOfferId: initialData.id, question: q.question });
+          } catch (err) {
+            console.error('Error creating question on submit', err);
+          }
+        }
+
+        // Aktualizacje
+        for (const q of toUpdate) {
+          try {
+            await updateRecruitmentQuestion(q.id, { question: q.question });
+          } catch (err) {
+            console.error('Error updating question on submit', err);
+          }
+        }
+
+        // Usunięcia
+        for (const q of toDelete) {
+          try {
+            await deleteRecruitmentQuestion(q.id);
+          } catch (err) {
+            console.error('Error deleting question on submit', err);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
     }
@@ -425,6 +496,92 @@ export default function JobOfferForm({
             placeholder="Dodaj tag..."
           />
         </div>
+
+        {/* Pytania rekrutacyjne - tylko w trybie edycji (lokalne zmiany, zapis przy zapisie oferty) */}
+        {isEditing && initialData?.id && (
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Pytania rekrutacyjne
+            </label>
+            {loadingQuestions ? (
+              <div className="text-sm text-gray-500">Ładowanie pytań...</div>
+            ) : (
+              <div className="space-y-2">
+                <div className="min-h-[60px] p-2 border border-gray-300 rounded-md bg-gray-50">
+                  {questions.length === 0 && (
+                    <div className="text-sm text-gray-500">Brak pytań. Dodaj pierwsze pytanie poniżej.</div>
+                  )}
+                  {questions.map((q) => (
+                    <div
+                      key={q.id}
+                      className="flex items-start gap-2 mb-2 p-2 bg-white rounded border group"
+                      onDoubleClick={() => {
+                        setEditingQuestionId(q.id);
+                        setEditingQuestionText(q.question || '');
+                      }}
+                    >
+                      {editingQuestionId === q.id ? (
+                        <textarea
+                          value={editingQuestionText}
+                          onChange={(e) => setEditingQuestionText(e.target.value)}
+                          onBlur={() => {
+                            const text = editingQuestionText.trim();
+                            setQuestions((prev) => prev.map((it) => (it.id === q.id ? { ...it, question: text } : it)));
+                            setEditingQuestionId(null);
+                            setEditingQuestionText('');
+                          }}
+                          rows={3}
+                          className="flex-1 w-full p-2 border border-gray-300 rounded-md"
+                          placeholder="Wpisz treść pytania..."
+                        />
+                      ) : (
+                        <>
+                          <span className="flex-1 min-w-0 text-sm whitespace-pre-wrap break-words">{q.question}</span>
+                          <button
+                            type="button"
+                            onClick={() => setQuestions((prev) => prev.filter((it) => it.id !== q.id))}
+                            className="text-red-500 hover:text-red-700 text-lg leading-none px-2"
+                            aria-label="Usuń pytanie"
+                            title="Usuń pytanie"
+                          >
+                            ×
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  <textarea
+                    value={newQuestion}
+                    onChange={(e) => setNewQuestion(e.target.value)}
+                    placeholder="Dodaj pytanie."
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    rows={3}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const text = newQuestion.trim();
+                        if (!text) return;
+                        const nextId = tempId;
+                        setTempId((prev) => prev - 1);
+                        setQuestions((prev) => [...prev, { id: nextId as unknown as number, question: text } as RecruitmentQuestion]);
+                        setNewQuestion('');
+                      }}
+                    >
+                      Dodaj
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Dwukrotnie kliknij pytanie, aby edytować. Zmiany pytań zostaną zapisane razem z ofertą.</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Lokalizacja */}
         <div>

@@ -475,9 +475,33 @@ router.delete('/:id', ensureAuthenticated, ensureEmployer, async (req: Request, 
         jobOffer: deactivatedOffer 
       });
     } else {
-      // Usuń ofertę jeśli nie ma aplikacji
-      await prisma.jobOffer.delete({
-        where: { id: jobOfferId }
+      // Usuń ofertę jeśli nie ma aplikacji wraz z zależnymi danymi (pytania, odpowiedzi, ewentualny test)
+      await prisma.$transaction(async (tx) => {
+        // Pytania powiązane z ofertą
+        const qIds = await tx.recruitmentQuestion.findMany({
+          where: { jobOfferId: jobOfferId },
+          select: { id: true }
+        });
+
+        const questionIds = qIds.map((q) => q.id);
+
+        if (questionIds.length > 0) {
+          // Najpierw usuń odpowiedzi kandydatów do tych pytań
+          await tx.candidateAnswer.deleteMany({
+            where: { recruitmentQuestionId: { in: questionIds } }
+          });
+
+          // Usuń same pytania
+          await tx.recruitmentQuestion.deleteMany({
+            where: { id: { in: questionIds } }
+          });
+        }
+
+        // Usuń ewentualny powiązany test rekrutacyjny
+        await tx.recruitmentTest.deleteMany({ where: { jobOfferId: jobOfferId } });
+
+        // Na końcu usuń ofertę pracy
+        await tx.jobOffer.delete({ where: { id: jobOfferId } });
       });
 
       res.status(200).json({ message: 'Job offer deleted successfully' });

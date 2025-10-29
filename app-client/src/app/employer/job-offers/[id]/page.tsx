@@ -227,6 +227,18 @@ export default function EmployerJobOfferDetailsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Pytania rekrutacyjne */}
+              {jobOffer.questions && jobOffer.questions.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Pytania rekrutacyjne</h3>
+                  <ul className="list-disc list-inside space-y-1">
+                    {jobOffer.questions.map((q) => (
+                      <li key={q.id} className="text-gray-700 whitespace-normal break-words">{q.question}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
