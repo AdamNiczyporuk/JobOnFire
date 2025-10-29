@@ -6,7 +6,9 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getJobOffer } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User, Clock, CheckCircle, XCircle, AlertCircle, Calendar, MessageSquare } from "lucide-react";
+import { getEmployerApplications } from "@/services/applicationService";
+import { EmployerApplication } from "@/types/application";
 
 export default function EmployerJobOfferDetailsPage() {
   const params = useParams();
@@ -17,10 +19,14 @@ export default function EmployerJobOfferDetailsPage() {
   const [jobOffer, setJobOffer] = useState<JobOffer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [apps, setApps] = useState<EmployerApplication[]>([]);
+  const [appsLoading, setAppsLoading] = useState(false);
+  const [appsError, setAppsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!Number.isNaN(jobOfferId)) {
       fetchDetails();
+      fetchApplications();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobOfferId]);
@@ -39,6 +45,21 @@ export default function EmployerJobOfferDetailsPage() {
   };
 
   const isExpired = (dateString: string) => new Date(dateString) < new Date();
+
+  const fetchApplications = async () => {
+    if (Number.isNaN(jobOfferId)) return;
+    try {
+      setAppsLoading(true);
+      setAppsError(null);
+      const res = await getEmployerApplications({ page: 1, limit: 1000, jobOfferId });
+      setApps(res.applications || []);
+    } catch (e) {
+      console.error("Error loading applications for job offer", e);
+      setAppsError("Nie udało się pobrać aplikacji dla tej oferty");
+    } finally {
+      setAppsLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -239,6 +260,83 @@ export default function EmployerJobOfferDetailsPage() {
                   </ul>
                 </div>
               )}
+
+              {/* Aplikacje do tej oferty */}
+              <div className="pt-4 border-t">
+                <div className="flex items-baseline justify-between mb-2">
+                  <h3 className="text-lg font-semibold">Aplikacje do tej oferty</h3>
+                  {!appsLoading && !appsError && (
+                    <span className="text-sm text-muted-foreground">Łącznie: {apps.length}</span>
+                  )}
+                </div>
+
+                {appsLoading ? (
+                  <div className="flex items-center gap-2 text-muted-foreground py-4">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+                    <span>Ładowanie aplikacji...</span>
+                  </div>
+                ) : appsError ? (
+                  <div className="bg-red-50 border border-red-200 text-red-700 rounded-md p-3 text-sm">
+                    {appsError}
+                    <div className="mt-2">
+                      <Button size="sm" variant="outline" onClick={fetchApplications}>Spróbuj ponownie</Button>
+                    </div>
+                  </div>
+                ) : apps.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Brak aplikacji na tę ofertę.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {apps.map((application) => (
+                      <div key={application.id} className="rounded-lg border bg-white p-4 shadow-sm">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <User className="w-4 h-4" />
+                              <span className="truncate">
+                                {application.candidate.fullName}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-sm">
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <Calendar className="w-4 h-4" />
+                                <span>{new Date(application.createdAt).toLocaleDateString("pl-PL")}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <MessageSquare className="w-4 h-4" />
+                                <span>
+                                  {application.recruitmentQuestions.total === 0 ? 'Brak pytań' : `${application.recruitmentQuestions.answered}/${application.recruitmentQuestions.total} odpowiedzi`}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 ${
+                              application.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                              application.status === 'ACCEPTED' ? 'bg-green-100 text-green-800 border-green-200' :
+                              application.status === 'REJECTED' ? 'bg-red-100 text-red-800 border-red-200' :
+                              'bg-gray-100 text-gray-800 border-gray-200'
+                            }`}>
+                              {application.status === 'PENDING' && <Clock className="w-3 h-3" />}
+                              {application.status === 'ACCEPTED' && <CheckCircle className="w-3 h-3" />}
+                              {application.status === 'REJECTED' && <XCircle className="w-3 h-3" />}
+                              {application.status === 'CANCELED' && <AlertCircle className="w-3 h-3" />}
+                              <span>{
+                                application.status === 'PENDING' ? 'Oczekuje' :
+                                application.status === 'ACCEPTED' ? 'Zaakceptowana' :
+                                application.status === 'REJECTED' ? 'Odrzucona' :
+                                'Anulowana'
+                              }</span>
+                            </span>
+                            <Link href={`/employer/applications/${application.id}`}>
+                              <Button variant="outline" className="transition-all duration-200 hover:scale-105" size="sm">Szczegóły</Button>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

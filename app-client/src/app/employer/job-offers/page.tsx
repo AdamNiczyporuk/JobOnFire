@@ -12,6 +12,8 @@ import {
   deleteJobOffer
 } from '@/services/jobOfferService';
 import { JobOffer, JobOfferCreateRequest, JobOfferUpdateRequest } from '@/types/jobOffer';
+import { getEmployerStats } from '@/services/employerService';
+import type { EmployerStats } from '@/types/employer';
 
 type ViewMode = 'list' | 'create' | 'edit';
 
@@ -28,6 +30,8 @@ export default function JobOffersPage() {
     total: 0,
     totalPages: 0
   });
+  const [stats, setStats] = useState<EmployerStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // Ładowanie listy ofert
   const loadJobOffers = async (page = 1) => {
@@ -47,7 +51,20 @@ export default function JobOffersPage() {
   // Inicjalne ładowanie
   useEffect(() => {
     loadJobOffers();
+    loadStats();
   }, []);
+
+  const loadStats = async () => {
+    try {
+      setStatsLoading(true);
+      const s = await getEmployerStats();
+      setStats(s);
+    } catch (e) {
+      console.error('Error loading employer stats:', e);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   // Tworzenie nowej oferty
   const handleCreate = async (data: JobOfferCreateRequest) => {
@@ -159,19 +176,15 @@ export default function JobOffersPage() {
           {/* Statystyki */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-              <div className="text-2xl font-bold text-red-600">{pagination.total}</div>
+              <div className="text-2xl font-bold text-red-600">{statsLoading ? '-' : (stats?.totalJobOffers ?? pagination.total)}</div>
               <div className="text-gray-600">Wszystkie oferty</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-              <div className="text-2xl font-bold text-red-600">
-                {jobOffers.filter(jo => jo.isActive).length}
-              </div>
+              <div className="text-2xl font-bold text-red-600">{statsLoading ? '-' : (stats?.activeJobOffers ?? jobOffers.filter(jo => jo.isActive).length)}</div>
               <div className="text-gray-600">Aktywne oferty</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-              <div className="text-2xl font-bold text-red-600">
-                {jobOffers.reduce((sum, jo) => sum + (jo._count?.applications || 0), 0)}
-              </div>
+              <div className="text-2xl font-bold text-red-600">{statsLoading ? '-' : (stats?.totalApplications ?? jobOffers.reduce((sum, jo) => sum + (jo._count?.applications || 0), 0))}</div>
               <div className="text-gray-600">Aplikacje</div>
             </div>
           </div>
