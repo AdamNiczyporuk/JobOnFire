@@ -42,23 +42,43 @@ passport.use(new GoogleStrategy({
     try {
       // Odczytaj rolę z req.query.state (przekazaną przez frontend)
       const role = ((req.query.state as string) || 'CANDIDATE').toUpperCase();
-      const userRole: UserRole = role === 'EMPLOYER' ? UserRole.EMPLOYER : UserRole.CANDIDATE;
-      let user = await prisma.user.findFirst({ where: { email: profile.emails?.[0]?.value } });
+      const requestedRole: UserRole = role === 'EMPLOYER' ? UserRole.EMPLOYER : UserRole.CANDIDATE;
+      const email = profile.emails?.[0]?.value || '';
+      let user = await prisma.user.findFirst({ where: { email }, include: { employerProfile: true, candidateProfile: true } });
       if (!user) {
         user = await prisma.user.create({
           data: {
             username: profile.displayName.replace(/\s/g, "").toLowerCase(),
-            email: profile.emails?.[0]?.value || '',
-            role: userRole,
+            email,
+            role: requestedRole,
             registerDate: new Date(),
             isDeleted: false,
-            candidateProfile: userRole === UserRole.CANDIDATE ? { create: {} } : undefined,
-            employerProfile: userRole === UserRole.EMPLOYER ? { create: { companyName: profile.displayName } } : undefined,
+            candidateProfile: requestedRole === UserRole.CANDIDATE ? { create: {} } : undefined,
+            employerProfile: requestedRole === UserRole.EMPLOYER ? { create: { companyName: profile.displayName } } : undefined,
             passwordHash: null,
           },
+          include: { employerProfile: true, candidateProfile: true },
         });
+      } else {
+        // Użytkownik istnieje — trzymaj się jego obecnej roli, nie pozwalaj na dwie role/profil na jednym mailu
+        const currentRole = user.role;
+        if (currentRole === UserRole.EMPLOYER && !user.employerProfile) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { employerProfile: { create: { companyName: profile.displayName } } },
+            include: { employerProfile: true, candidateProfile: true },
+          });
+        }
+        if (currentRole === UserRole.CANDIDATE && !user.candidateProfile) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { candidateProfile: { create: {} } },
+            include: { employerProfile: true, candidateProfile: true },
+          });
+        }
+        // Opcjonalnie można zalogować, że proszono o inną rolę niż przypisana
       }
-      return done(null, user);
+  return done(null, user as any);
     } catch (error) {
       return done(error);
     }

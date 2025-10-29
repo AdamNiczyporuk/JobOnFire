@@ -61,6 +61,8 @@ export default function EmployerProfilesPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [sortOption, setSortOption] = useState<"relevance" | "alphabetical">("relevance");
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 12;
 
 	const fetchEmployerProfiles = useCallback(async () => {
 		setLoading(true);
@@ -143,6 +145,11 @@ export default function EmployerProfilesPage() {
 		fetchEmployerProfiles();
 	}, [fetchEmployerProfiles]);
 
+	// Resetuj stronę przy zmianie filtrów/sortowania
+	useEffect(() => {
+		setPage(1);
+	}, [searchTerm, sortOption]);
+
 	const filteredEmployers = useMemo(() => {
 		const query = searchTerm.trim().toLowerCase();
 		let data = !query
@@ -221,7 +228,11 @@ export default function EmployerProfilesPage() {
 						</div>
 
 						<div className="mt-6 text-sm text-muted-foreground">
-							{loading ? <span>Ładujemy dane o pracodawcach…</span> : <span>{filteredEmployers.length} firm</span>}
+							{loading ? (
+								<span>Ładujemy dane o pracodawcach…</span>
+							) : (
+								<span>Znaleziono {filteredEmployers.length} firm</span>
+							)}
 						</div>
 					</section>
 
@@ -244,7 +255,9 @@ export default function EmployerProfilesPage() {
 						</div>
 					) : (
 						<div className="space-y-6">
-														{filteredEmployers.map((employer) => (
+							{filteredEmployers
+								.slice((page - 1) * itemsPerPage, page * itemsPerPage)
+								.map((employer) => (
 								<Link key={employer.id} href={`/companies/${employer.id}`} className="block">
 								<Card className="relative flex h-full flex-col shadow-sm hover:bg-accent/30 transition-colors">
 									<CardHeader className="pb-3">
@@ -324,6 +337,48 @@ export default function EmployerProfilesPage() {
 								</Card>
 								</Link>
 							))}
+							{/* Paginacja */}
+							{filteredEmployers.length > itemsPerPage && (
+								<div className="flex justify-center items-center gap-2 mt-8">
+									<Button
+										variant="outline"
+										onClick={() => setPage((p) => Math.max(1, p - 1))}
+										disabled={page === 1}
+									>
+										Poprzednia
+									</Button>
+
+									<div className="flex gap-2">
+										{Array.from({ length: Math.ceil(filteredEmployers.length / itemsPerPage) }).slice(
+											Math.max(0, page - 3),
+											Math.max(0, page - 3) + 5
+										).map((_, i) => {
+											const totalPages = Math.ceil(filteredEmployers.length / itemsPerPage);
+											const base = Math.min(Math.max(1, page - 2), Math.max(1, totalPages - 4));
+											const pageNum = base + i;
+											if (pageNum < 1 || pageNum > totalPages) return null;
+											return (
+												<Button
+													key={pageNum}
+													variant={page === pageNum ? "default" : "outline"}
+													onClick={() => setPage(pageNum)}
+													className="w-10"
+												>
+													{pageNum}
+												</Button>
+											);
+										})}
+									</div>
+
+									<Button
+										variant="outline"
+										onClick={() => setPage((p) => Math.min(Math.ceil(filteredEmployers.length / itemsPerPage), p + 1))}
+										disabled={page === Math.ceil(filteredEmployers.length / itemsPerPage)}
+									>
+										Następna
+									</Button>
+								</div>
+							)}
 						</div>
 					)}
 				</div>
