@@ -9,6 +9,11 @@ export interface GenerateRecruitmentTestRequest {
   language?: string;
 }
 
+export interface CreateRecruitmentTestRequest {
+  jobOfferId: number;
+  testJson: any;
+}
+
 export interface UpdateRecruitmentTestRequest {
   testJson: any;
 }
@@ -26,10 +31,34 @@ export const getRecruitmentTestByJobOffer = async (jobOfferId: number): Promise<
   }
 };
 
-// Generate with AI for a job offer
-export const generateRecruitmentTest = async (data: GenerateRecruitmentTestRequest): Promise<RecruitmentTest> => {
-  const res = await api.post<{ test: RecruitmentTest }>(`/recruitment-tests/generate`, data);
+// Create test manually
+export const createRecruitmentTest = async (data: CreateRecruitmentTestRequest): Promise<RecruitmentTest> => {
+  const res = await api.post<{ test: RecruitmentTest }>(`/recruitment-tests`, data);
   return res.data.test;
+};
+
+// Generate with AI for a job offer - returns generated JSON (not saved to DB yet)
+export const generateRecruitmentTest = async (data: GenerateRecruitmentTestRequest): Promise<{ testJson: any; message: string }> => {
+  console.log('[Service] Calling generate API with data:', data);
+  const startTime = Date.now();
+  
+  try {
+    // Increase timeout for AI generation (60 seconds)
+    const res = await api.post<{ testJson: any; message: string }>(
+      `/recruitment-tests/generate`, 
+      data,
+      { timeout: 60000 } // 60 seconds timeout for AI generation
+    );
+    const duration = Date.now() - startTime;
+    console.log('[Service] Generate API successful. Duration:', duration, 'ms');
+    console.log('[Service] Response:', res.data);
+    return res.data;
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    console.error('[Service] Generate API failed after', duration, 'ms');
+    console.error('[Service] Error:', error);
+    throw error;
+  }
 };
 
 // Update test JSON
@@ -42,3 +71,4 @@ export const updateRecruitmentTest = async (id: number, data: UpdateRecruitmentT
 export const deleteRecruitmentTest = async (id: number): Promise<void> => {
   await api.delete(`/recruitment-tests/${id}`);
 };
+

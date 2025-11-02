@@ -9,6 +9,7 @@ import { router as externalJobOfferRoute } from "./externalJobOffer";
 import { router as cvGeneratorRoute } from "./cvGenerator";
 import { router as questionGeneratorRoute } from "./questionGenerator";
 import { router as recruitmentQuestionRoute } from "./recruitementQuestion";
+import { router as recruitmentTestRoute } from "./recruitmentTest";
 
 export const router = Router();
 
@@ -22,3 +23,4 @@ router.use("/external-job-offers", externalJobOfferRoute);
 router.use("/cv-generator", cvGeneratorRoute);
 router.use("/question-generator", questionGeneratorRoute);
 router.use("/recruitment-questions", recruitmentQuestionRoute);
+router.use("/recruitment-tests", recruitmentTestRoute);
