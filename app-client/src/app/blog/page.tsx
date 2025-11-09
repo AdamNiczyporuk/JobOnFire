@@ -308,7 +308,7 @@ export default function BlogPage() {
               const isExpanded = expandedArticle === article.id;
               
               return (
-                <article key={article.id} className="rounded-lg border bg-white shadow-sm transition-all duration-300">
+                <article key={article.id} className="rounded-lg border bg-white shadow-md transition-all duration-300">
                   <div className="p-8">
                     <div className="flex flex-wrap items-center gap-4 mb-4">
                       <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">

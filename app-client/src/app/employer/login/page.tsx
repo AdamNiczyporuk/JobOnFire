@@ -64,7 +64,7 @@ export default function EmployerLogin() {
   return (
     <main className="flex-1 w-full flex items-center justify-center py-12 md:py-16">
       <div className="w-full max-w-md">
-          <div className="rounded-lg border bg-white p-8 shadow-sm">
+          <div className="rounded-lg border bg-white p-8 shadow-md">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold tracking-tighter mb-2">Panel pracodawcy</h1>
               <p className="text-muted-foreground">Zaloguj się do konta pracodawcy</p>

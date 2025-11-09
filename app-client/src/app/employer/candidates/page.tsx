@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useEffect, useMemo, useState } from "react";
 import { candidateService } from "@/services/candidateService";
 import { CandidateListItem, CandidateFilters } from "@/types/candidate";
@@ -182,19 +183,19 @@ export default function EmployerCandidatesPage() {
               Znajdź idealnych kandydatów do swojego zespołu
             </p>
             <p className="text-sm text-muted-foreground mb-8">
-              Znaleziono {totalCount} kandydatów
+              Znaleziono <span className="font-semibold text-primary">{totalCount}</span> kandydatów
             </p>
             
             {/* Wyszukiwarka */}
             <form onSubmit={handleSearch} className="max-w-md mx-auto">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
                   type="text"
                   placeholder="Wyszukaj kandydatów..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="pl-10"
                 />
                 <Button 
                   type="submit" 
@@ -309,7 +310,7 @@ export default function EmployerCandidatesPage() {
                       <Link
                         key={candidate.id}
                         href={`/employer/candidates/${candidate.id}`}
-                        className="block rounded-lg border bg-white p-4 shadow-sm transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer min-w-[400px] w-full"
+                        className="block rounded-lg border bg-white p-4 shadow-md transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer min-w-[400px] w-full"
                       >
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                           <div className="min-w-0 flex-1">

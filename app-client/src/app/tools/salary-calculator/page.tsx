@@ -285,7 +285,7 @@ export default function SalaryCalculatorPage() {
 
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Formularz */}
-                <div className="bg-white rounded-xl p-5 shadow-sm border">
+                <div className="bg-white rounded-xl p-5 shadow-md border">
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Rodzaj umowy</label>
@@ -403,7 +403,7 @@ export default function SalaryCalculatorPage() {
                 </div>
 
                 {/* Wynik */}
-                <div className="bg-white rounded-xl p-5 shadow-sm border">
+                <div className="bg-white rounded-xl p-5 shadow-md border">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Kwota brutto</span>

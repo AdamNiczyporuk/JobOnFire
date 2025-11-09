@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { getEmployerApplications } from "@/services/applicationService";
 import { EmployerApplication, EmployerApplicationsParams } from "@/types/application";
@@ -227,7 +228,7 @@ export default function EmployerApplicationsPage() {
   }
 
   return (
-    <div className="flex flex-col items-center bg-gray-50">
+    <div className="flex flex-col items-center">
       <main className="w-full flex flex-col">
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-col">
           <div className="mb-4 text-center">
@@ -245,12 +246,12 @@ export default function EmployerApplicationsPage() {
             <form onSubmit={handleSearch} className="relative">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <input
+                <Input
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Szukaj po nazwie oferty lub kandydacie..."
-                  className="w-full pl-10 pr-20 py-2 border rounded-lg"
+                  className="pl-10 pr-20"
                 />
                 <Button
                   type="submit"
@@ -354,7 +355,7 @@ export default function EmployerApplicationsPage() {
                   {applications.map((application) => (
                     <div
                       key={application.id}
-                      className="block rounded-lg border bg-white p-4 shadow-sm transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary min-w-[400px] w-full"
+                      className="block rounded-lg border bg-white p-4 shadow-md transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary min-w-[400px] w-full"
                     >
                       <div className="flex gap-4">
                         {/* Left side - Content */}

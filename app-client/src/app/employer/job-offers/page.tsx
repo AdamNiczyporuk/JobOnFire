@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import JobOfferForm from '@/components/JobOfferForm';
 import JobOfferList from '@/components/JobOfferList';
+import { Search } from 'lucide-react';
 import { 
   getJobOffers, 
   createJobOffer, 
@@ -32,20 +34,35 @@ export default function JobOffersPage() {
   });
   const [stats, setStats] = useState<EmployerStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   // Ładowanie listy ofert
-  const loadJobOffers = async (page = 1) => {
+  const loadJobOffers = async (page = 1, search?: string) => {
     setIsLoading(true);
     try {
-      const response = await getJobOffers({ page, limit: pagination.limit });
+      const searchTerm = search !== undefined ? search : searchQuery;
+      const response = await getJobOffers({ 
+        page, 
+        limit: pagination.limit,
+        search: searchTerm || undefined
+      });
       setJobOffers(response.jobOffers);
-      setPagination(response.pagination);
+      setPagination(prev => ({ ...prev, ...response.pagination }));
     } catch (error) {
       console.error('Error loading job offers:', error);
       // Tutaj można dodać toast notification
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQuery(searchInput);
+    setPagination(prev => ({ ...prev, page: 1 }));
+    // Załaduj od razu z pierwszej strony z nowym wyszukiwaniem
+    loadJobOffers(1, searchInput);
   };
 
   // Inicjalne ładowanie
@@ -150,7 +167,7 @@ export default function JobOffersPage() {
   // Widok szczegółów jest teraz na trasie /employer/job-offers/[id]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex flex-col items-center">
       <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Nagłówek */}
       {viewMode === 'list' && (
@@ -189,6 +206,40 @@ export default function JobOffersPage() {
             </div>
           </div>
 
+          {/* Pasek wyszukiwania */}
+          <div className="mb-6 bg-white rounded-lg shadow p-4">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Wyszukaj ofertę po nazwie..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button type="submit" className="transition-all duration-200 hover:scale-105">
+                Szukaj
+              </Button>
+              {searchQuery && (
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setSearchInput('');
+                    setSearchQuery('');
+                    setPagination(prev => ({ ...prev, page: 1 }));
+                    loadJobOffers(1, '');
+                  }}
+                  className="transition-all duration-200 hover:scale-105"
+                >
+                  Wyczyść
+                </Button>
+              )}
+            </form>
+          </div>
+
           {/* Lista ofert */}
           <JobOfferList
             jobOffers={jobOffers}
@@ -199,24 +250,52 @@ export default function JobOffersPage() {
           />
 
           {/* Paginacja */}
-          {pagination.totalPages > 1 && (
-            <div className="mt-6 flex justify-center gap-2">
+          {pagination.totalPages > 1 && jobOffers.length > 0 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
               <Button
-                onClick={() => loadJobOffers(pagination.page - 1)}
-                disabled={pagination.page <= 1}
                 variant="outline"
-                className="transition-all duration-200 hover:scale-105"
+                onClick={() => {
+                  const newPage = Math.max(1, pagination.page - 1);
+                  setPagination(prev => ({ ...prev, page: newPage }));
+                  loadJobOffers(newPage);
+                }}
+                disabled={pagination.page === 1}
               >
                 Poprzednia
               </Button>
-              <span className="flex items-center px-4">
-                Strona {pagination.page} z {pagination.totalPages}
-              </span>
+              
+              <div className="flex gap-2">
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  const pageNum = pagination.page <= 3 ? i + 1 : 
+                                 pagination.page > pagination.totalPages - 2 ? pagination.totalPages - 4 + i :
+                                 pagination.page - 2 + i;
+                  
+                  if (pageNum < 1 || pageNum > pagination.totalPages) return null;
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pagination.page === pageNum ? "default" : "outline"}
+                      onClick={() => {
+                        setPagination(prev => ({ ...prev, page: pageNum }));
+                        loadJobOffers(pageNum);
+                      }}
+                      className="w-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+
               <Button
-                onClick={() => loadJobOffers(pagination.page + 1)}
-                disabled={pagination.page >= pagination.totalPages}
                 variant="outline"
-                className="transition-all duration-200 hover:scale-105"
+                onClick={() => {
+                  const newPage = Math.min(pagination.totalPages, pagination.page + 1);
+                  setPagination(prev => ({ ...prev, page: newPage }));
+                  loadJobOffers(newPage);
+                }}
+                disabled={pagination.page === pagination.totalPages}
               >
                 Następna
               </Button>

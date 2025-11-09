@@ -1,16 +1,17 @@
 "use client";
 import { useAuth } from "@/context/authContext";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getEmployerProfile, updateEmployerProfile, addEmployerProfileLocation, removeEmployerProfileLocation } from "@/services/employerService";
 import { EmployerProfile, EmployerProfileUpdateRequest, EmployerProfileAddress } from "@/types/employer";
 import { COMPANY_LOGOS, CONTRACT_TYPES, POPULAR_INDUSTRIES, POPULAR_BENEFITS } from "@/constants/employer";
-import { Building } from "lucide-react";
+import { Building, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 
 export default function EmployerProfilePage() {
   const { user } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
   const [profile, setProfile] = useState<EmployerProfile | null>(null);
@@ -231,7 +232,18 @@ export default function EmployerProfilePage() {
 
   return (
     <div className="w-[70%] mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6">Profil pracodawcy</h1>
+      <div className="mb-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Powrót
+        </Button>
+        <h1 className="text-3xl font-bold">Profil pracodawcy</h1>
+      </div>
       
       {profile && (
         <div className="bg-white rounded shadow p-6 mb-6">

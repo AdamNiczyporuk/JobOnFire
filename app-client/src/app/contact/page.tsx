@@ -67,7 +67,7 @@ export default function ContactPage() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Formularz kontaktowy */}
-            <div className="bg-white rounded-lg border p-8 shadow-sm">
+            <div className="bg-white rounded-lg border p-8 shadow-md">
               <h2 className="text-2xl font-bold mb-6">Wyślij wiadomość</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -117,7 +117,7 @@ export default function ContactPage() {
 
             {/* Informacje kontaktowe */}
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border p-8 shadow-sm">
+              <div className="bg-white rounded-lg border p-8 shadow-md">
                 <h2 className="text-2xl font-bold mb-6">Dane kontaktowe</h2>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
@@ -151,7 +151,7 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border p-8 shadow-sm">
+              <div className="bg-white rounded-lg border p-8 shadow-md">
                 <div className="flex items-start gap-4 mb-6">
                   <Clock className="w-5 h-5 text-primary mt-1" />
                   <div>
@@ -164,7 +164,7 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border p-8 shadow-sm">
+              <div className="bg-white rounded-lg border p-8 shadow-md">
                 <h3 className="font-medium mb-4">Śledź nas</h3>
                 <div className="flex gap-4">
                   <a href="#" className="text-muted-foreground hover:text-primary transition-colors">

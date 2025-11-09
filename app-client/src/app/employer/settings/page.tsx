@@ -5,6 +5,7 @@ import { useAuth } from "@/context/authContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { changePassword, deleteAccount, logout } from "@/services/authService";
+import { ArrowLeft } from "lucide-react";
 
 export default function EmployerSettingsPage() {
   const router = useRouter();
@@ -64,10 +65,21 @@ export default function EmployerSettingsPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-6">Ustawienia konta</h1>
+      <div className="mb-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Powrót
+        </Button>
+        <h1 className="text-3xl font-bold">Ustawienia konta</h1>
+      </div>
 
       {/* Zmiana hasła */}
-      <section className="rounded-lg border bg-white p-6 shadow-sm mb-8">
+      <section className="rounded-lg border bg-white p-6 shadow-md mb-8">
         <h2 className="text-xl font-semibold mb-1">Zmień hasło</h2>
         <p className="text-sm text-muted-foreground mb-6">Zadbaj o bezpieczeństwo swojego konta.</p>
 
@@ -117,7 +129,7 @@ export default function EmployerSettingsPage() {
       </section>
 
       {/* Usunięcie konta */}
-      <section className="rounded-lg border bg-white p-6 shadow-sm">
+      <section className="rounded-lg border bg-white p-6 shadow-md">
         <h2 className="text-xl font-semibold mb-1 text-red-600">Usuń konto</h2>
         <p className="text-sm text-muted-foreground mb-4">Ta akcja jest nieodwracalna. Spowoduje dezaktywację Twojego konta.</p>
         {!confirmOpen ? (

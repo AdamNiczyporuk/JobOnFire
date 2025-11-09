@@ -222,9 +222,9 @@ export default function CandidateApplicationsPage() {
   }
 
   return (
-    <div className="flex flex-col items-center bg-gray-50">
+    <div className="flex flex-col items-center">
       <main className="w-full flex flex-col">
-        <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 flex flex-col">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 flex flex-col">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">Moje aplikacje</h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -350,7 +350,7 @@ export default function CandidateApplicationsPage() {
                     return (
                       <div
                         key={app.id}
-                        className="block rounded-lg border bg-white p-4 shadow-sm transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer min-w-[400px] w-full"
+                        className="block rounded-lg border bg-white p-4 shadow-md transition-colors duration-150 hover:bg-accent/30 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer min-w-[400px] w-full"
                       >
                         <div className="flex flex-col gap-4">
                           {/* Header */}

@@ -96,7 +96,7 @@ export default function EmployerJobOfferDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <main className="flex-1 w-full">
         <div className="w-full max-w-5xl mx-auto px-4 md:px-6 py-8">
           {/* Back link */}
@@ -289,7 +289,7 @@ export default function EmployerJobOfferDetailsPage() {
                 ) : (
                   <div className="space-y-3">
                     {apps.map((application) => (
-                      <div key={application.id} className="rounded-lg border bg-white p-4 shadow-sm">
+                      <div key={application.id} className="rounded-lg border bg-white p-4 shadow-md">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">

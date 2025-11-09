@@ -259,7 +259,7 @@ export default function EmployerProfilesPage() {
 								.slice((page - 1) * itemsPerPage, page * itemsPerPage)
 								.map((employer) => (
 								<Link key={employer.id} href={`/companies/${employer.id}`} className="block">
-								<Card className="relative flex h-full flex-col shadow-sm hover:bg-accent/30 transition-colors">
+								<Card className="relative flex h-full flex-col shadow-md hover:bg-accent/30 transition-colors">
 									<CardHeader className="pb-3">
 										<div className="flex items-start gap-4">
 																						<CompanyLogo src={employer.companyImageUrl} alt={employer.companyName} />

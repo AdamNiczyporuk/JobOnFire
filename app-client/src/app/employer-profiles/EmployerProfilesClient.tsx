@@ -284,10 +284,10 @@ export default function EmployerProfilesClient() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2">
               {filteredEmployers.map((employer) => (
-                <Card key={employer.id} className="flex h-full flex-col shadow-sm">
+                <Card key={employer.id} className="flex h-full flex-col shadow-md">
                   <CardHeader className="pb-4">
                     <div className="flex items-start gap-4">
-                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shadow-sm">
+                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shadow-md">
                         {employer.companyImageUrl ? (
                           <Image
                             src={employer.companyImageUrl}

@@ -16,7 +16,7 @@ export default function ToolsPage() {
 
             {/* Right content with tips */}
             <section className="flex-1">
-              <article className="bg-white rounded-xl p-6 md:p-10 shadow-sm border">
+              <article className="bg-white rounded-xl p-6 md:p-10 shadow-md border">
                 <h2 className="text-2xl md:text-3xl font-bold mb-4">Jak przygotować się do rozmowy rekrutacyjnej</h2>
 
                 <div className="grid gap-6 md:grid-cols-2">

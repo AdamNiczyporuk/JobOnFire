@@ -19,7 +19,7 @@ export default function AboutPage() {
               Poznaj historię i misję JobOnFire
             </p>
           </div>          <div className="space-y-12">
-            <section className="rounded-lg border bg-white p-8 shadow-sm">
+            <section className="rounded-lg border bg-white p-8 shadow-md">
               <h2 className="text-2xl font-bold mb-4">Nasza misja</h2>
               <p className="text-muted-foreground mb-4">
                 JobOnFire to platforma stworzona z myślą o frontend developerach, którzy szukają 
@@ -33,7 +33,7 @@ export default function AboutPage() {
               </p>
             </section>
 
-            <section className="rounded-lg border bg-white p-8 shadow-sm">
+            <section className="rounded-lg border bg-white p-8 shadow-md">
               <h2 className="text-2xl font-bold mb-6">Dlaczego warto korzystać z JobOnFire?</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -67,7 +67,7 @@ export default function AboutPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border bg-white p-8 shadow-sm">
+            <section className="rounded-lg border bg-white p-8 shadow-md">
               <h2 className="text-2xl font-bold mb-6">Nasz zespół</h2>
               <p className="text-muted-foreground mb-8">
                 JobOnFire to zespół pasjonatów technologii i rekrutacji, którzy rozumieją 

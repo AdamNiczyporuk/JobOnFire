@@ -1,4 +1,4 @@
-Ôªø"use client";
+"use client";
 
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ export default function CandidateCVsPage() {
   const [cvs, setCvs] = useState<CandidateCV[]>([]);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [cvToDelete, setCvToDelete] = useState<{ id: number; name: string } | null>(null);
-  const [previewCV, setPreviewCV] = useState<any | null>(null); // Stan dla podglƒÖdu wygenerowanego CV
+  const [previewCV, setPreviewCV] = useState<any | null>(null); // Stan dla podglπdu wygenerowanego CV
   
   const apiBase = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_API_PREFIX || '/api/v1'}`;
 
@@ -63,7 +63,7 @@ export default function CandidateCVsPage() {
   }, [user]);
 
   const handleDeleteCV = (cvId: number, cvName: string) => {
-    // Poka≈º modal potwierdzenia
+    // Pokaø modal potwierdzenia
     setCvToDelete({ id: cvId, name: cvName });
   };
 
@@ -71,7 +71,7 @@ export default function CandidateCVsPage() {
     if (!cvToDelete) return;
     
     const { id: cvId, name: cvName } = cvToDelete;
-    console.log('‚úÖ Starting deletion process for:', cvId, cvName);
+    console.log('? Starting deletion process for:', cvId, cvName);
     
     setDeleting(cvId);
     setCvToDelete(null); // Zamknij modal
@@ -81,14 +81,14 @@ export default function CandidateCVsPage() {
       await candidateService.deleteCV(cvId);
       console.log('Delete successful, refreshing list...');
       
-      // Po soft delete prze≈Çaduj listƒô z serwera, ≈ºeby UI by≈Ç zgodny z backendem
+      // Po soft delete prze≥aduj listÍ z serwera, øeby UI by≥ zgodny z backendem
       const refreshed = await candidateService.getCVs();
       console.log('Refreshed CVs:', refreshed);
       setCvs(refreshed);
     } catch (error: any) {
       console.error('Error deleting CV:', error);
       console.error('Error response:', error.response);
-      const errorMessage = error.response?.data?.message || 'Nie uda≈Ço siƒô usunƒÖƒá CV.';
+      const errorMessage = error.response?.data?.message || 'Nie uda≥o siÍ usunπÊ CV.';
       alert(errorMessage);
     } finally {
       console.log('Resetting deleting state');
@@ -104,13 +104,13 @@ export default function CandidateCVsPage() {
     try {
       const { data } = await api.get(`/candidate/cvs/${cvId}/preview`);
       
-      // Je≈õli to wygenerowane CV (bez cvUrl)
+      // Jeúli to wygenerowane CV (bez cvUrl)
       if (data.type === 'generated' && data.cvData) {
         setPreviewCV(data.cvData);
         return;
       }
       
-      // Je≈õli to CV z URL (Cloudinary)
+      // Jeúli to CV z URL (Cloudinary)
       const url = data?.url || `${apiBase}/candidate/cvs/${cvId}/preview`;
       window.open(url, '_blank', 'noopener');
     } catch (e) {
@@ -123,8 +123,8 @@ export default function CandidateCVsPage() {
     return (
       <main className="flex-1 w-full flex flex-col items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-        <p className="text-gray-600">Sprawdzanie uprawnie≈Ñ...</p>
-        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronƒô logowania</p>
+        <p className="text-gray-600">Sprawdzanie uprawnieÒ...</p>
+        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronÍ logowania</p>
       </main>
     );
   }
@@ -133,15 +133,15 @@ export default function CandidateCVsPage() {
     return (
       <main className="flex-1 w-full flex flex-col items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
-        <p className="text-red-600">Brak dostƒôpu do panelu kandydata</p>
-        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronƒô g≈Ç√≥wnƒÖ</p>
+        <p className="text-red-600">Brak dostÍpu do panelu kandydata</p>
+        <p className="text-sm text-gray-500 mt-2">Przekierowanie na stronÍ g≥Ûwnπ</p>
       </main>
     );
   }
 
   return (
     <>
-      {/* Modal podglƒÖdu wygenerowanego CV */}
+      {/* Modal podglπdu wygenerowanego CV */}
       {previewCV && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Overlay */}
@@ -154,7 +154,7 @@ export default function CandidateCVsPage() {
           <div className="relative bg-white rounded-lg shadow-2xl w-[95vw] h-[95vh] mx-4 flex flex-col animate-in fade-in zoom-in duration-200">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold">PodglƒÖd CV</h3>
+              <h3 className="text-lg font-semibold">Podglπd CV</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -181,7 +181,7 @@ export default function CandidateCVsPage() {
         </div>
       )}
 
-      {/* Modal potwierdzenia usuniƒôcia */}
+      {/* Modal potwierdzenia usuniÍcia */}
       {cvToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Overlay */}
@@ -193,7 +193,7 @@ export default function CandidateCVsPage() {
           {/* Modal */}
           <div className="relative bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 p-6 animate-in fade-in zoom-in duration-200">
             <div className="flex items-start gap-4">
-              {/* Ikona ostrze≈ºenia */}
+              {/* Ikona ostrzeøenia */}
               <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -202,10 +202,10 @@ export default function CandidateCVsPage() {
               
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Potwierd≈∫ usuniƒôcie
+                  Potwierdü usuniÍcie
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Czy na pewno chcesz usunƒÖƒá CV <span className="font-semibold">"{cvToDelete.name}"</span>? 
+                  Czy na pewno chcesz usunπÊ CV <span className="font-semibold">"{cvToDelete.name}"</span>? 
                   Ta operacja jest nieodwracalna.
                 </p>
                 
@@ -233,7 +233,7 @@ export default function CandidateCVsPage() {
                         Usuwanie...
                       </>
                     ) : (
-                      'Usu≈Ñ CV'
+                      'UsuÒ CV'
                     )}
                   </Button>
                 </div>
@@ -244,14 +244,14 @@ export default function CandidateCVsPage() {
       )}
 
       <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-8">
-        {/* Nag≈Ç√≥wek */}
+        {/* Nag≥Ûwek */}
         <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Moje CV üìÑ
+            Moje CV ??
           </h1>
           <p className="text-muted-foreground">
-            ZarzƒÖdzaj swoimi CV i dokumentami aplikacyjnymi
+            Zarzπdzaj swoimi CV i dokumentami aplikacyjnymi
           </p>
         </div>
         <div className="flex gap-3">
@@ -279,7 +279,7 @@ export default function CandidateCVsPage() {
         {loading ? (
           <div className="p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-600">≈Åadowanie CV...</p>
+            <p className="text-gray-600">£adowanie CV...</p>
           </div>
         ) : cvs.length === 0 ? (
           <div className="p-12 text-center">
@@ -288,7 +288,7 @@ export default function CandidateCVsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Nie masz jeszcze ≈ºadnego CV</h3>
+            <h3 className="text-lg font-semibold mb-2">Nie masz jeszcze øadnego CV</h3>
             <p className="text-muted-foreground mb-6">
               Dodaj swoje pierwsze CV lub wygeneruj je automatycznie
             </p>
@@ -342,7 +342,7 @@ export default function CandidateCVsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      PodglƒÖd
+                      Podglπd
                     </Button>
                     <Button
                       variant="outline"
@@ -354,7 +354,7 @@ export default function CandidateCVsPage() {
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                      {deleting === cv.id ? 'Usuwanie...' : 'Usu≈Ñ'}
+                      {deleting === cv.id ? 'Usuwanie...' : 'UsuÒ'}
                     </Button>
                   </div>
                 </div>
@@ -372,10 +372,10 @@ export default function CandidateCVsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <h4 className="font-semibold text-blue-900 mb-1">Wskaz√≥wka</h4>
+              <h4 className="font-semibold text-blue-900 mb-1">WskazÛwka</h4>
               <p className="text-sm text-blue-800">
-                Przechowuj r√≥≈ºne wersje CV dopasowane do konkretnych stanowisk. 
-                To zwiƒôkszy Twoje szanse na zatrudnienie!
+                Przechowuj rÛøne wersje CV dopasowane do konkretnych stanowisk. 
+                To zwiÍkszy Twoje szanse na zatrudnienie!
               </p>
             </div>
           </div>

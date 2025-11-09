@@ -172,7 +172,7 @@ export default function EmployerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-8">
         {/* Nagłówek powitania */}
         <div className="mb-8">
@@ -185,7 +185,7 @@ export default function EmployerDashboard() {
         </div>
 
         {/* Szybkie akcje */}
-        <div className="mb-8 bg-gradient-to-r from-primary/10 to-red-50 rounded-lg p-6 shadow-sm">
+        <div className="mb-8 bg-gradient-to-r from-primary/10 to-red-50 rounded-lg p-6 shadow-md">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -249,10 +249,10 @@ export default function EmployerDashboard() {
               </Button>
             </Link>
 
-            <Link href="/employer/profile?edit=1#locations" className="w-full group">
+            <Link href="/employer/profile?edit=1" className="w-full group">
               <Button className="w-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary group-hover:-translate-y-1" variant="outline">
-                <MapPin className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" />
-                Lokalizacje
+                <Edit className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-12" />
+                Edytuj profil
               </Button>
             </Link>
 
@@ -295,7 +295,7 @@ export default function EmployerDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Ostatnie aplikacje */}
-          <div className="bg-white rounded-lg border p-6 shadow-sm">
+          <div className="bg-white rounded-lg border p-6 shadow-md">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
@@ -362,7 +362,7 @@ export default function EmployerDashboard() {
           </div>
 
           {/* Aktywne oferty */}
-          <div className="bg-white rounded-lg border p-6 shadow-sm">
+          <div className="bg-white rounded-lg border p-6 shadow-md">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-primary" />

@@ -69,7 +69,7 @@ export default function CandidateSettingsPage() {
       <h1 className="text-3xl font-bold mb-6">Ustawienia konta</h1>
 
       {/* Zmiana hasła */}
-      <section className="rounded-lg border bg-white p-6 shadow-sm mb-8">
+      <section className="rounded-lg border bg-white p-6 shadow-md mb-8">
         <h2 className="text-xl font-semibold mb-1">Zmień hasło</h2>
         <p className="text-sm text-muted-foreground mb-6">Zadbaj o bezpieczeństwo swojego konta.</p>
 
@@ -119,7 +119,7 @@ export default function CandidateSettingsPage() {
       </section>
 
       {/* Usunięcie konta */}
-      <section className="rounded-lg border bg-white p-6 shadow-sm">
+      <section className="rounded-lg border bg-white p-6 shadow-md">
         <h2 className="text-xl font-semibold mb-1 text-red-600">Usuń konto</h2>
         <p className="text-sm text-muted-foreground mb-4">Ta akcja jest nieodwracalna. Spowoduje dezaktywację Twojego konta.</p>
         {!confirmOpen ? (

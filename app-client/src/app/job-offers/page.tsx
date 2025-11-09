@@ -261,7 +261,7 @@ export default function JobOffersPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
             {/* Sidebar filters - always visible */}
-            <aside className="rounded-lg border bg-white p-6 h-fit shadow-sm"> 
+            <aside className="rounded-lg border bg-white p-6 h-fit shadow-md"> 
               <h3 className="text-base font-semibold mb-4">Filtry</h3>
 
               {/* Tryb pracy */}
@@ -416,7 +416,7 @@ export default function JobOffersPage() {
                         router.push(`/job-offers/${jobOffer.id}`);
                       }
                     }}
-                    className="block rounded-lg border bg-white p-6 shadow-sm transition-all duration-200 hover:bg-accent/30 hover:shadow-lg hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                    className="block rounded-lg border bg-white p-6 shadow-md transition-all duration-200 hover:bg-accent/30 hover:shadow-lg hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">

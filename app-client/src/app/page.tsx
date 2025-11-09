@@ -258,7 +258,7 @@ export default function Home() {
               </div>
             </div>
             <div className="mx-auto grid items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
-              <div className="flex flex-col justify-center space-y-4 rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <div className="flex flex-col justify-center space-y-4 rounded-lg border bg-white p-6 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-all duration-300 group-hover:bg-primary/20">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -285,7 +285,7 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col justify-center space-y-4 rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <div className="flex flex-col justify-center space-y-4 rounded-lg border bg-white p-6 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -313,7 +313,7 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col justify-center space-y-4 rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <div className="flex flex-col justify-center space-y-4 rounded-lg border bg-white p-6 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -368,7 +368,7 @@ export default function Home() {
                     <Link 
                       key={offer.id} 
                       href={`/job-offers/${offer.id}`}
-                      className="group rounded-lg border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50 cursor-pointer"
+                      className="group rounded-lg border bg-white p-6 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50 cursor-pointer"
                     >
                       <div className="space-y-4">
                         <div className="flex items-start justify-between">

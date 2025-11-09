@@ -124,7 +124,7 @@ export default function EmployerRecruitmentTestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Link href="/employer/dashboard">
           <Button variant="outline" className="inline-flex items-center gap-2 mb-6">
@@ -135,7 +135,7 @@ export default function EmployerRecruitmentTestPage() {
         
         <h1 className="text-3xl font-bold mb-6">Testy rekrutacyjne</h1>
 
-        <div className="bg-white rounded-lg border p-6 shadow-sm">
+        <div className="bg-white rounded-lg border p-6 shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Twoje oferty pracy</h2>
             <Button variant="outline" onClick={() => router.push('/employer/job-offers')}>

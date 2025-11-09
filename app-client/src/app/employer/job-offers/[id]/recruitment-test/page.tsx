@@ -405,7 +405,7 @@ export default function CreateRecruitmentTestPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -413,7 +413,7 @@ export default function CreateRecruitmentTestPage() {
 
   if (!jobOffer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">Nie znaleziono oferty pracy</p>
           <Button onClick={() => router.push('/employer/recruitment-test')}>
@@ -453,7 +453,7 @@ export default function CreateRecruitmentTestPage() {
 
         {/* Mode selector - only show when creating new test */}
         {!existingTest && !viewMode && (
-          <div className="bg-white rounded-lg border p-6 shadow-sm mb-6">
+          <div className="bg-white rounded-lg border p-6 shadow-md mb-6">
             <h2 className="text-lg font-semibold mb-4">Sposób tworzenia</h2>
             <div className="flex gap-4">
               <Button
@@ -477,7 +477,7 @@ export default function CreateRecruitmentTestPage() {
 
         {/* AI Generation - only show when creating new test with AI mode */}
         {mode === 'ai' && (!existingTest || generating) && !viewMode && (
-          <div className="bg-white rounded-lg border p-6 shadow-sm mb-6">
+          <div className="bg-white rounded-lg border p-6 shadow-md mb-6">
             <h2 className="text-lg font-semibold mb-4">Parametry generowania AI</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
@@ -557,7 +557,7 @@ export default function CreateRecruitmentTestPage() {
         )}
 
         {/* Test form */}
-        <div className="bg-white rounded-lg border p-6 shadow-sm mb-6">
+        <div className="bg-white rounded-lg border p-6 shadow-md mb-6">
           <h2 className="text-lg font-semibold mb-4">Informacje o teście</h2>
           
           <div className="space-y-4">
@@ -574,7 +574,7 @@ export default function CreateRecruitmentTestPage() {
         </div>
 
         {/* Questions */}
-        <div className="bg-white rounded-lg border p-6 shadow-sm mb-6">
+        <div className="bg-white rounded-lg border p-6 shadow-md mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Pytania ({formData.questions.length})</h2>
             {!viewMode && (

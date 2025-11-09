@@ -270,10 +270,19 @@ router.get('/', ensureAuthenticated, ensureEmployer, async (req: Request, res: R
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const offset = (page - 1) * limit;
+    const search = req.query.search as string;
+
+    // Buduj warunek where
+    const whereCondition: any = { employerProfileId: employerProfile.id };
+    
+    // Dodaj wyszukiwanie po nazwie
+    if (search) {
+      whereCondition.name = { contains: search, mode: 'insensitive' };
+    }
 
     const [jobOffers, total] = await Promise.all([
       prisma.jobOffer.findMany({
-        where: { employerProfileId: employerProfile.id },
+        where: whereCondition,
         include: {
           lokalization: true,
           applications: {
@@ -288,7 +297,7 @@ router.get('/', ensureAuthenticated, ensureEmployer, async (req: Request, res: R
         take: limit
       }),
       prisma.jobOffer.count({
-        where: { employerProfileId: employerProfile.id }
+        where: whereCondition
       })
     ]);
 

@@ -152,7 +152,7 @@ export default function JobOfferDetailsPage() {
     <div className="flex min-h-screen flex-col">
       <SmartHeader />
       
-      <main className="flex-1 w-full bg-gray-50">
+      <main className="flex-1 w-full">
         <div className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12">
           {/* Breadcrumb i powrót */}
           <div className="mb-6">
@@ -247,7 +247,7 @@ export default function JobOfferDetailsPage() {
             <div className="lg:col-span-2 space-y-6">
               {/* Opis */}
               {jobOffer.description && (
-                <Card className="shadow-sm">
+                <Card className="shadow-md border">
                   <CardHeader>
                     <CardTitle className="text-2xl">Opis stanowiska</CardTitle>
                   </CardHeader>

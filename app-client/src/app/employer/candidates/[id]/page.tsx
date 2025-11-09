@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -17,7 +18,8 @@ import {
   GraduationCap,
   ExternalLink,
   FileText,
-  User
+  User,
+  Eye
 } from "lucide-react";
 
 export default function CandidateDetailPage() {
@@ -117,6 +119,37 @@ export default function CandidateDetailPage() {
       'CANCELED': 'Anulowana'
     };
     return labels[status as keyof typeof labels] || status;
+  };
+
+  const handleViewCV = async (cv: any) => {
+    if (!cv) {
+      alert('CV nie zostało dodane przez kandydata');
+      return;
+    }
+
+    // Jeśli CV jest w chmurze (ma cvUrl), otwórz w nowym oknie
+    if (cv.cvUrl) {
+      window.open(cv.cvUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // Jeśli CV jest w formacie JSON, wygeneruj i pobierz PDF
+    if (cv.cvJson) {
+      try {
+        const cvData = JSON.parse(cv.cvJson);
+        const { pdf } = await import('@react-pdf/renderer');
+        const { CVDocument } = await import('@/components/CVDocument');
+        const blob = await pdf(<CVDocument cv={cvData} />).toBlob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.error('Błąd podczas generowania PDF:', err);
+        alert('Nie udało się wygenerować podglądu CV');
+      }
+      return;
+    }
+
+    alert('CV nie ma dostępnego podglądu');
   };
 
   if (loading) {
@@ -326,15 +359,17 @@ export default function CandidateDetailPage() {
                   </h2>
                   <div className="space-y-2">
                     {candidate.candidateCVs.map((cv: any) => (
-                      <div key={cv.id} className="flex items-center justify-between p-2 border rounded">
+                      <div key={cv.id} className="flex items-center justify-between p-3 border rounded hover:bg-gray-50 transition-colors">
                         <span className="text-sm font-medium">{cv.name || 'CV'}</span>
-                        {cv.cvUrl && (
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={cv.cvUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                          </Button>
-                        )}
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => handleViewCV(cv)}
+                          disabled={!cv.cvUrl && !cv.cvJson}
+                          className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:text-primary"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>

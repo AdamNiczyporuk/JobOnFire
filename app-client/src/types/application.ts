@@ -114,6 +114,7 @@ export interface EmployerApplicationDetail {
     id: number;
     name?: string;
     cvUrl?: string;
+    cvJson?: string;
   };
   answers: {
     recruitmentQuestionId: number;

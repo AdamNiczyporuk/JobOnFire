@@ -897,7 +897,8 @@ router.get('/candidates/:id', async (req: Request, res: Response): Promise<void>
           select: {
             id: true,
             name: true,
-            cvUrl: true
+            cvUrl: true,
+            cvJson: true
           },
           where: { isDeleted: false } as any,
           orderBy: {

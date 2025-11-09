@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -50,6 +51,7 @@ export default function EmployerApplicationDetailPage() {
   const [responseText, setResponseText] = useState('');
   const [isRespondingMode, setIsRespondingMode] = useState(false);
   const [isMeetingMode, setIsMeetingMode] = useState(false);
+  const [isViewingCV, setIsViewingCV] = useState(false);
   // Modal confirmations
   const [statusConfirm, setStatusConfirm] = useState<{ show: boolean; status: ApplicationStatusUpdateRequest['status'] | null }>({ show: false, status: null });
   const [meetingDeleteConfirm, setMeetingDeleteConfirm] = useState<{ show: boolean; meetingId: number | null }>({ show: false, meetingId: null });
@@ -145,6 +147,37 @@ export default function EmployerApplicationDetailPage() {
     }
   };
 
+  const handleViewCV = async () => {
+    if (!application?.candidateCV) {
+      alert('CV nie zostało dodane przez kandydata');
+      return;
+    }
+
+    // Jeśli CV jest w chmurze (ma cvUrl), otwórz w nowym oknie
+    if (application.candidateCV.cvUrl) {
+      window.open(application.candidateCV.cvUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // Jeśli CV jest w formacie JSON, wygeneruj i pobierz PDF
+    if (application.candidateCV.cvJson) {
+      try {
+        const cvData = JSON.parse(application.candidateCV.cvJson);
+        const { pdf } = await import('@react-pdf/renderer');
+        const { CVDocument } = await import('@/components/CVDocument');
+        const blob = await pdf(<CVDocument cv={cvData} />).toBlob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.error('Błąd podczas generowania PDF:', err);
+        alert('Nie udało się wygenerować podglądu CV');
+      }
+      return;
+    }
+
+    alert('CV nie ma dostępnego podglądu');
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'PENDING': return <Clock className="w-5 h-5 text-yellow-500" />;
@@ -223,10 +256,10 @@ export default function EmployerApplicationDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Ładowanie szczegółów aplikacji...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Ładowanie szczegółów aplikacji...</p>
         </div>
       </div>
     );
@@ -234,7 +267,7 @@ export default function EmployerApplicationDetailPage() {
 
   if (error || !application) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-600 text-lg mb-4">{error || 'Aplikacja nie została znaleziona'}</p>
@@ -248,7 +281,7 @@ export default function EmployerApplicationDetailPage() {
 
   return (
     <>
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Back Button */}
         <div className="mb-4">
@@ -275,7 +308,7 @@ export default function EmployerApplicationDetailPage() {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Application Overview */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-md border p-6">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Przegląd aplikacji</h2>
@@ -383,7 +416,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
 
             {/* Meetings Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-md border p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
@@ -530,12 +563,12 @@ export default function EmployerApplicationDetailPage() {
 
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
-            {/* Candidate Info */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
+            {/* Candidate Info Card */}
+            <div className="bg-white rounded-lg shadow-md border p-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <User className="w-5 h-5" />
                 Kandydat
-              </h3>
+              </h2>
               
               <div className="space-y-4">
                 <div>
@@ -580,6 +613,14 @@ export default function EmployerApplicationDetailPage() {
                   </div>
                 )}
 
+                {/* CV Info */}
+                {application.candidateCV?.name && (
+                  <div className="pt-4 border-t">
+                    <p className="text-sm font-medium mb-1">CV</p>
+                    <p className="text-sm text-gray-600 break-words">{String(application.candidateCV.name)}</p>
+                  </div>
+                )}
+
                 {/* Actions */}
                 <div className="space-y-2 pt-4 border-t">
                   <Link href={`/employer/candidates/${application.candidateProfile.id}`}>
@@ -588,7 +629,13 @@ export default function EmployerApplicationDetailPage() {
                       Profil kandydata
                     </Button>
                   </Link>
-                  <Button variant="outline" size="sm" className="w-full justify-start transition-all duration-200 hover:scale-105">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full justify-start transition-all duration-200 hover:scale-105"
+                    onClick={handleViewCV}
+                    disabled={!application.candidateCV || (!application.candidateCV.cvUrl && !application.candidateCV.cvJson)}
+                  >
                     <Eye className="w-4 h-4 mr-2" />
                     Podgląd CV
                   </Button>
@@ -597,7 +644,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
 
             {/* Status Actions - always visible so employer can change status any time */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-md border p-6">
               <h3 className="font-semibold mb-4">Akcje</h3>
               <div className="space-y-2">
                 <Button
@@ -619,7 +666,7 @@ export default function EmployerApplicationDetailPage() {
             </div>
 
             {/* Job Offer Info */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-md border p-6">
               <h3 className="font-semibold mb-4">Oferta pracy</h3>
               <div>
                 <h4 className="font-medium">{application.jobOffer.name}</h4>

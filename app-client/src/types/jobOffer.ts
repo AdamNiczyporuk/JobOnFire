@@ -120,4 +120,5 @@ export interface JobOfferResponse {
 export interface JobOfferListParams {
   page?: number;
   limit?: number;
+  search?: string;
 }

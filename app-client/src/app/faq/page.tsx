@@ -108,7 +108,7 @@ export default function FaqPage() {
                       const isOpen = openIndex === globalIndex;
                       
                       return (
-                        <div key={globalIndex} className="bg-white rounded-lg border shadow-sm">
+                        <div key={globalIndex} className="bg-white rounded-lg border shadow-md">
                           <button
                             onClick={() => setOpenIndex(isOpen ? null : globalIndex)}
                             className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-muted/50 transition-colors"

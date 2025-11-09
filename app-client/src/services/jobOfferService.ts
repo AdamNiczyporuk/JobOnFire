@@ -20,6 +20,9 @@ export const getJobOffers = async (params?: JobOfferListParams): Promise<JobOffe
   if (params?.limit) {
     queryParams.append('limit', params.limit.toString());
   }
+  if (params?.search) {
+    queryParams.append('search', params.search);
+  }
 
   const url = `/job-offers${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   const response = await api.get(url);

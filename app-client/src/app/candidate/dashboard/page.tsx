@@ -124,7 +124,7 @@ export default function CandidateDashboard() {
       </div>
 
       {/* Szybkie akcje - na górze */}
-      <div className="mb-8 bg-gradient-to-r from-primary/10 to-blue-50 rounded-lg p-6 shadow-sm">
+      <div className="mb-8 bg-gradient-to-r from-primary/10 to-red-50 rounded-lg p-6 shadow-md">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -241,7 +241,7 @@ export default function CandidateDashboard() {
 
       <div className="grid grid-cols-1 gap-8">
         {/* Ostatnie aplikacje */}
-        <div className="bg-white rounded-lg border p-6 shadow-sm">
+        <div className="bg-white rounded-lg border p-6 shadow-md">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold flex items-center gap-2">
               <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

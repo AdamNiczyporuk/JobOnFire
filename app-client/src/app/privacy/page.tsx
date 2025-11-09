@@ -17,7 +17,7 @@ export default function PrivacyPage() {
             </p>
           </div>
 
-          <div className="space-y-8 bg-white rounded-lg border p-8 shadow-sm">
+          <div className="space-y-8 bg-white rounded-lg border p-8 shadow-md">
             <section>
               <h2 className="text-2xl font-bold mb-4">1. Informacje ogólne</h2>
               <div className="space-y-3 text-muted-foreground">

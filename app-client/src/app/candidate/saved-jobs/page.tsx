@@ -199,7 +199,7 @@ export default function SavedJobsPage() {
                     {items.map((item) => (
                       <div 
                         key={item.id} 
-                        className="border rounded-lg bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200"
+                        className="border rounded-lg bg-white p-6 shadow-md hover:shadow-md transition-shadow duration-200"
                       >
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1 min-w-0">

@@ -891,7 +891,8 @@ router.get('/employer/:id', ensureAuthenticated, ensureEmployer, async (req: Req
           select: {
             id: true,
             name: true,
-            cvUrl: true
+            cvUrl: true,
+            cvJson: true
           }
         },
         answers: {
