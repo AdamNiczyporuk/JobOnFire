@@ -37,3 +37,16 @@ export const removeEmployerProfileLocation = async (lokalizationId: number) => {
   const response = await api.delete(`/employer/profile/location/${lokalizationId}`);
   return response.data;
 };
+
+export const uploadCompanyLogo = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('logo', file);
+  
+  const response = await api.post("/employer/profile/upload-logo", formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  
+  return response.data.logoUrl;
+};

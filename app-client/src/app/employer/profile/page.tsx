@@ -2,7 +2,7 @@
 import { useAuth } from "@/context/authContext";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getEmployerProfile, updateEmployerProfile, addEmployerProfileLocation, removeEmployerProfileLocation } from "@/services/employerService";
+import { getEmployerProfile, updateEmployerProfile, addEmployerProfileLocation, removeEmployerProfileLocation, uploadCompanyLogo } from "@/services/employerService";
 import { EmployerProfile, EmployerProfileUpdateRequest, EmployerProfileAddress } from "@/types/employer";
 import { COMPANY_LOGOS, CONTRACT_TYPES, POPULAR_INDUSTRIES, POPULAR_BENEFITS } from "@/constants/employer";
 import { Building, ArrowLeft } from "lucide-react";
@@ -39,6 +39,8 @@ export default function EmployerProfilePage() {
     longtitude: undefined
   });
   const [addingLocation, setAddingLocation] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     loadProfile();
@@ -120,13 +122,99 @@ export default function EmployerProfilePage() {
     });
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Walidacja typu pliku
+    if (!file.type.startsWith('image/')) {
+      addToast({
+        title: "Błąd",
+        description: "Proszę wybrać plik obrazu (JPG, PNG, GIF)",
+        type: "error",
+        duration: 5000
+      });
+      return;
+    }
+
+    // Walidacja rozmiaru pliku (max 3MB)
+    if (file.size > 3 * 1024 * 1024) {
+      addToast({
+        title: "Błąd",
+        description: "Rozmiar pliku nie może przekraczać 3MB",
+        type: "error",
+        duration: 5000
+      });
+      return;
+    }
+
+    try {
+      setUploadingLogo(true);
+      const logoUrl = await uploadCompanyLogo(file);
+      setFormData({
+        ...formData,
+        companyImageUrl: logoUrl
+      });
+      addToast({
+        title: "Sukces!",
+        description: "Logo firmy zostało przesłane pomyślnie",
+        type: "success",
+        duration: 5000
+      });
+    } catch (error) {
+      console.error("Błąd podczas przesyłania logo:", error);
+      addToast({
+        title: "Błąd",
+        description: "Nie udało się przesłać logo",
+        type: "error",
+        duration: 5000
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: {[key: string]: string} = {};
+
+    if (!formData.companyName || formData.companyName.trim().length === 0) {
+      errors.companyName = "Nazwa firmy jest wymagana";
+    } else if (formData.companyName.trim().length < 2) {
+      errors.companyName = "Nazwa firmy musi mieć minimum 2 znaki";
+    }
+
+    if (formData.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
+      errors.contactEmail = "Nieprawidłowy format adresu email";
+    }
+
+    if (formData.contactPhone && !/^[\d\s\+\-\(\)]+$/.test(formData.contactPhone)) {
+      errors.contactPhone = "Nieprawidłowy format numeru telefonu";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Walidacja po stronie klienta
+    if (!validateForm()) {
+      addToast({
+        title: "Błąd walidacji",
+        description: "Proszę poprawić błędy w formularzu",
+        type: "error",
+        duration: 5000
+      });
+      return;
+    }
+
     try {
       console.log("Wysyłane dane profilu:", formData);
       await updateEmployerProfile(formData);
       await loadProfile();
       setEditing(false);
+      setValidationErrors({});
       addToast({
         title: "Sukces!",
         description: "Profil zaktualizowany pomyślnie!",
@@ -260,43 +348,72 @@ export default function EmployerProfilePage() {
           {editing ? (
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Nazwa firmy *</label>
+                <label className="block text-sm font-medium mb-1">
+                  Nazwa firmy <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={formData.companyName}
-                  onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
+                  onChange={(e) => {
+                    setFormData({...formData, companyName: e.target.value});
+                    if (validationErrors.companyName) {
+                      setValidationErrors({...validationErrors, companyName: ''});
+                    }
+                  }}
+                  className={`w-full border rounded px-3 py-2 transition-colors ${
+                    validationErrors.companyName 
+                      ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200' 
+                      : 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                  }`}
                   required
                 />
+                {validationErrors.companyName && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {validationErrors.companyName}
+                  </p>
+                )}
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-1">Logo firmy</label>
-                <div className="grid grid-cols-5 gap-3 mt-2">
-                  {COMPANY_LOGOS.map((logo) => (
-                    <div key={logo.id} className="text-center">
-                      <div
-                        className={`cursor-pointer border-2 rounded p-2 ${
-                          formData.companyImageUrl === logo.url 
-                            ? 'border-red-500 bg-red-50' 
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                        onClick={() => setFormData({...formData, companyImageUrl: logo.url})}
-                      >
-                        <img 
-                          src={logo.url} 
-                          alt={logo.name} 
-                          className="w-16 h-16 mx-auto object-contain"
-                          onError={(e) => {
-                            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyOEgzNlYzNkgyOFYyOFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+';
-                          }}
-                        />
-                      </div>
-                      <p className="text-xs mt-1 text-gray-600">{logo.name}</p>
+                <div className="flex items-center gap-4 mt-2">
+                  {formData.companyImageUrl && (
+                    <div className="relative">
+                      <img 
+                        src={formData.companyImageUrl} 
+                        alt="Logo firmy" 
+                        className="w-24 h-24 object-contain border-2 border-gray-300 rounded p-2"
+                        onError={(e) => {
+                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yOCAyOEgzNlYzNkgyOFYyOFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+';
+                        }}
+                      />
                     </div>
-                  ))}
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      id="logoUpload"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                    />
+                    <Button
+                      type="button"
+                      className="bg-primary hover:bg-primary/90 text-white"
+                      onClick={() => document.getElementById('logoUpload')?.click()}
+                      disabled={uploadingLogo}
+                    >
+                      {uploadingLogo ? 'Przesyłanie...' : 'Prześlij logo'}
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Prześlij logo swojej firmy (max 3MB, formaty: JPG, PNG, GIF)
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Wybierz jedno z dostępnych logo dla swojej firmy</p>
               </div>
 
               <div>
@@ -307,7 +424,7 @@ export default function EmployerProfilePage() {
                     value={newIndustry}
                     onChange={(e) => setNewIndustry(e.target.value)}
                     placeholder="Dodaj branżę..."
-                    className="flex-1 border rounded px-3 py-2"
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -376,8 +493,12 @@ export default function EmployerProfilePage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full border rounded px-3 py-2 h-24"
+                  placeholder="Opisz swoją firmę, jej misję i wartości..."
+                  className="w-full border border-gray-300 rounded px-3 py-2 h-24 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors resize-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.description?.length || 0} znaków
+                </p>
               </div>
 
               <div>
@@ -391,7 +512,7 @@ export default function EmployerProfilePage() {
                         e.target.value = "";
                       }
                     }}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                   >
                     <option value="">Wybierz typ umowy...</option>
                     {CONTRACT_TYPES.filter(type => !formData.contractType?.includes(type)).map(type => (
@@ -426,9 +547,27 @@ export default function EmployerProfilePage() {
                 <input
                   type="tel"
                   value={formData.contactPhone}
-                  onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
+                  onChange={(e) => {
+                    setFormData({...formData, contactPhone: e.target.value});
+                    if (validationErrors.contactPhone) {
+                      setValidationErrors({...validationErrors, contactPhone: ''});
+                    }
+                  }}
+                  placeholder="np. +48 123 456 789"
+                  className={`w-full border rounded px-3 py-2 transition-colors ${
+                    validationErrors.contactPhone 
+                      ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200' 
+                      : 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                  }`}
                 />
+                {validationErrors.contactPhone && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {validationErrors.contactPhone}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -436,9 +575,27 @@ export default function EmployerProfilePage() {
                 <input
                   type="email"
                   value={formData.contactEmail}
-                  onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
+                  onChange={(e) => {
+                    setFormData({...formData, contactEmail: e.target.value});
+                    if (validationErrors.contactEmail) {
+                      setValidationErrors({...validationErrors, contactEmail: ''});
+                    }
+                  }}
+                  placeholder="np. kontakt@firma.pl"
+                  className={`w-full border rounded px-3 py-2 transition-colors ${
+                    validationErrors.contactEmail 
+                      ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200' 
+                      : 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                  }`}
                 />
+                {validationErrors.contactEmail && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {validationErrors.contactEmail}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -449,7 +606,7 @@ export default function EmployerProfilePage() {
                     value={newBenefit}
                     onChange={(e) => setNewBenefit(e.target.value)}
                     placeholder="Dodaj benefit..."
-                    className="flex-1 border rounded px-3 py-2"
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -667,15 +824,19 @@ export default function EmployerProfilePage() {
         </div>
 
         {addingLocation && (
-          <form onSubmit={handleAddLocation} className="mb-4 p-4 border rounded space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleAddLocation} className="mb-4 p-6 border-2 border-primary/20 rounded-lg bg-gradient-to-br from-white to-red-50/30 space-y-4 shadow-sm">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Miasto</label>
+                <label className="block text-sm font-medium mb-1">
+                  Miasto <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={newLocation.city}
                   onChange={(e) => setNewLocation({...newLocation, city: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
+                  placeholder="np. Warszawa"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+                  required
                 />
               </div>
               <div>
@@ -684,7 +845,8 @@ export default function EmployerProfilePage() {
                   type="text"
                   value={newLocation.state}
                   onChange={(e) => setNewLocation({...newLocation, state: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
+                  placeholder="np. Mazowieckie"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                 />
               </div>
               <div>
@@ -693,7 +855,8 @@ export default function EmployerProfilePage() {
                   type="text"
                   value={newLocation.street}
                   onChange={(e) => setNewLocation({...newLocation, street: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
+                  placeholder="np. Nowa 10"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                 />
               </div>
               <div>
@@ -702,36 +865,55 @@ export default function EmployerProfilePage() {
                   type="text"
                   value={newLocation.postalCode}
                   onChange={(e) => setNewLocation({...newLocation, postalCode: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
+                  placeholder="np. 00-001"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Szerokość geograficzna</label>
+                <label className="block text-sm font-medium mb-1">
+                  Szerokość geograficzna
+                  <span className="text-xs text-gray-500 ml-1">(opcjonalnie)</span>
+                </label>
                 <input
                   type="number"
                   step="any"
                   value={newLocation.latitude || ""}
                   onChange={(e) => setNewLocation({...newLocation, latitude: e.target.value ? Number(e.target.value) : undefined})}
-                  className="w-full border rounded px-3 py-2"
+                  placeholder="np. 52.2297"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Długość geograficzna</label>
+                <label className="block text-sm font-medium mb-1">
+                  Długość geograficzna
+                  <span className="text-xs text-gray-500 ml-1">(opcjonalnie)</span>
+                </label>
                 <input
                   type="number"
                   step="any"
                   value={newLocation.longtitude || ""}
                   onChange={(e) => setNewLocation({...newLocation, longtitude: e.target.value ? Number(e.target.value) : undefined})}
-                  className="w-full border rounded px-3 py-2"
+                  placeholder="np. 21.0122"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                 />
               </div>
             </div>
-            <Button
-              type="submit"
-              className="transition-all duration-200 hover:scale-105"
-            >
-              Dodaj lokalizację
-            </Button>
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="submit"
+                className="transition-all duration-200 hover:scale-105"
+              >
+                Dodaj lokalizację
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setAddingLocation(false)}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                Anuluj
+              </Button>
+            </div>
           </form>
         )}
 

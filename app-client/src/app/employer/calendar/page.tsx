@@ -320,23 +320,42 @@ export default function EmployerCalendarPage() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Data i godzina</label>
-                  <input type="datetime-local" value={editForm.dateTime} onChange={e => setEditForm({ ...editForm, dateTime: e.target.value })} className="w-full p-2 border rounded" />
+                  <input 
+                    type="datetime-local" 
+                    value={editForm.dateTime} 
+                    onChange={e => setEditForm({ ...editForm, dateTime: e.target.value })} 
+                    className="w-full p-2 border border-gray-300 rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Typ spotkania</label>
-                  <select value={editForm.type} onChange={e => setEditForm({ ...editForm, type: e.target.value as 'ONLINE' | 'OFFLINE' })} className="w-full p-2 border rounded">
+                  <select 
+                    value={editForm.type} 
+                    onChange={e => setEditForm({ ...editForm, type: e.target.value as 'ONLINE' | 'OFFLINE' })} 
+                    className="w-full p-2 border border-gray-300 rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+                  >
                     <option value="ONLINE">Online</option>
                     <option value="OFFLINE">Stacjonarnie</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Uczestnicy</label>
-                  <input value={editForm.contributors} onChange={e => setEditForm({ ...editForm, contributors: e.target.value })} className="w-full p-2 border rounded" />
+                  <input 
+                    value={editForm.contributors} 
+                    onChange={e => setEditForm({ ...editForm, contributors: e.target.value })} 
+                    placeholder="Imię i nazwisko uczestników"
+                    className="w-full p-2 border border-gray-300 rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" 
+                  />
                 </div>
                 {editForm.type === 'ONLINE' && (
                   <div>
                     <label className="block text-sm font-medium mb-1">Link do spotkania</label>
-                    <input value={editForm.onlineMeetingUrl} onChange={e => setEditForm({ ...editForm, onlineMeetingUrl: e.target.value })} className="w-full p-2 border rounded" />
+                    <input 
+                      value={editForm.onlineMeetingUrl} 
+                      onChange={e => setEditForm({ ...editForm, onlineMeetingUrl: e.target.value })} 
+                      placeholder="https://meet.google.com/..."
+                      className="w-full p-2 border border-gray-300 rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" 
+                    />
                   </div>
                 )}
                 <div>

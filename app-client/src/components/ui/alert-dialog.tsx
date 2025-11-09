@@ -45,6 +45,7 @@ export function AlertDialog({
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="transition-all duration-200 hover:scale-105"
             >
               {cancelText}
             </Button>
@@ -54,6 +55,10 @@ export function AlertDialog({
                 onAction();
                 onOpenChange(false);
               }}
+              className={cn(
+                "transition-all duration-200 hover:scale-105",
+                variant === "destructive" && "bg-red-600 hover:bg-red-700 text-white"
+              )}
             >
               {actionText}
             </Button>
