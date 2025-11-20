@@ -7,6 +7,7 @@ import { ensureAuthenticated } from '../auth/auth_middleware';
 import { userRegisterValidation } from '../validation/authValidation';
 import { employerProfileEditValidation } from '../validation/employerValidation';
 import { UserRole, Prisma } from '@prisma/client';
+import { buildAnonymizedIdentifiers } from '../utils/anonymization';
 
 export const router = Router();
 
@@ -207,9 +208,8 @@ router.delete('/delete-account', ensureAuthenticated, async (req: Request, res: 
       return;
     }
 
-    // Anonimizacja danych użytkownika
-    const anonymizedUsername = `deleted_user_${userId}_${Date.now()}`;
-    const anonymizedEmail = `deleted_${userId}_${Date.now()}@anonymized.local`;
+  // Anonimizacja danych użytkownika (wzorzec wyekstrahowany do helpera)
+  const { username: anonymizedUsername, email: anonymizedEmail } = buildAnonymizedIdentifiers(userId);
 
     // Anonimizacja profilu kandydata
     if (user.candidateProfile) {
