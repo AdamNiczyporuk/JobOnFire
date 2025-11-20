@@ -40,4 +40,34 @@ describe('performAccountAnonymization', () => {
     expect(result!.hadCandidateProfile).toBe(true);
     expect(result!.hadEmployerProfile).toBe(true);
   });
+
+  test('anonymizes candidate-only user', async () => {
+    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 6,
+      candidateProfile: { id: 60 },
+      employerProfile: null
+    });
+    const result = await performAccountAnonymization(6);
+    expect(result).not.toBeNull();
+    expect(result!.hadCandidateProfile).toBe(true);
+    expect(result!.hadEmployerProfile).toBe(false);
+    expect(prisma.candidateProfile.update).toHaveBeenCalled();
+    expect(prisma.employerProfile.update).not.toHaveBeenCalled();
+    expect(prisma.jobOffer.updateMany).not.toHaveBeenCalled();
+  });
+
+  test('anonymizes employer-only user', async () => {
+    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 7,
+      candidateProfile: null,
+      employerProfile: { id: 70 }
+    });
+    const result = await performAccountAnonymization(7);
+    expect(result).not.toBeNull();
+    expect(result!.hadCandidateProfile).toBe(false);
+    expect(result!.hadEmployerProfile).toBe(true);
+    expect(prisma.employerProfile.update).toHaveBeenCalled();
+    expect(prisma.jobOffer.updateMany).toHaveBeenCalled();
+    expect(prisma.candidateProfile.update).not.toHaveBeenCalled();
+  });
 });

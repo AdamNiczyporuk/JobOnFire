@@ -10,6 +10,26 @@ describe('Candidate data validators', () => {
     expect(res[0]).toEqual({ name: 'JS', level: 'ADVANCED' });
   });
 
+  test('validateSkillsData returns empty array for empty input', () => {
+    const res = validateSkillsData([]);
+    expect(res).toEqual([]);
+  });
+
+  test('validateSkillsData throws on missing level', () => {
+    expect(() => validateSkillsData([{ name: 'JS' } as any])).toThrow(/Niepoprawny poziom/);
+  });
+
+  test('validateSkillsData maps multiple skills', () => {
+    const res = validateSkillsData([
+      { name: 'JS', level: 'BEGINNER' },
+      { name: 'TS', level: 'EXPERT' }
+    ]);
+    expect(res).toEqual([
+      { name: 'JS', level: 'BEGINNER' },
+      { name: 'TS', level: 'EXPERT' }
+    ]);
+  });
+
   test('validateExperienceData throws when not array', () => {
     expect(() => validateExperienceData(null as any)).toThrow(/musi być tablicą/);
   });

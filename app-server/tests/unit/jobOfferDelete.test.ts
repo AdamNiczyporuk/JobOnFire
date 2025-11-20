@@ -40,4 +40,30 @@ describe('deleteOrDeactivateJobOffer helper', () => {
     expect(result.mode).toBe('deleted');
     expect(prisma.$transaction).toHaveBeenCalled();
   });
+
+  test('fully deletes with questions & candidate answers cascade', async () => {
+    (prisma.applicationForJobOffer.count as jest.Mock).mockResolvedValueOnce(0);
+    const qIds = [{ id: 201 }, { id: 202 }];
+    (prisma.recruitmentQuestion.findMany as jest.Mock).mockResolvedValueOnce(qIds);
+    const jobOfferDeleteMock = jest.fn();
+    (prisma.$transaction as jest.Mock).mockImplementation(async (fn: any) => fn({
+      recruitmentQuestion: prisma.recruitmentQuestion,
+      candidateAnswer: prisma.candidateAnswer,
+      recruitmentTest: prisma.recruitmentTest,
+      jobOffer: { delete: jobOfferDeleteMock }
+    }));
+    await deleteOrDeactivateJobOffer(12);
+    expect(prisma.recruitmentQuestion.findMany).toHaveBeenCalledWith({
+      where: { jobOfferId: 12 },
+      select: { id: true }
+    });
+    expect(prisma.candidateAnswer.deleteMany).toHaveBeenCalledWith({
+      where: { recruitmentQuestionId: { in: [201, 202] } }
+    });
+    expect(prisma.recruitmentQuestion.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: [201, 202] } }
+    });
+    expect(prisma.recruitmentTest.deleteMany).toHaveBeenCalledWith({ where: { jobOfferId: 12 } });
+    expect(jobOfferDeleteMock).toHaveBeenCalledWith({ where: { id: 12 } });
+  });
 });
