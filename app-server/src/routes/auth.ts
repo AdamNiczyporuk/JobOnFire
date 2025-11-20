@@ -8,6 +8,7 @@ import { userRegisterValidation } from '../validation/authValidation';
 import { employerProfileEditValidation } from '../validation/employerValidation';
 import { UserRole, Prisma } from '@prisma/client';
 import { buildAnonymizedIdentifiers } from '../utils/anonymization';
+import { performAccountAnonymization } from '../utils/anonymization/account';
 
 export const router = Router();
 
@@ -198,95 +199,21 @@ router.put('/change-password', ensureAuthenticated, async (req: Request, res: Re
 router.delete('/delete-account', ensureAuthenticated, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const user = await prisma.user.findUnique({ 
-      where: { id: userId },
-      include: { candidateProfile: true, employerProfile: true }
-    });
-
-    if (!user) {
+    const summary = await performAccountAnonymization(userId);
+    if (!summary) {
       res.status(404).json({ message: 'Użytkownik nie istnieje' });
       return;
     }
-
-  // Anonimizacja danych użytkownika (wzorzec wyekstrahowany do helpera)
-  const { username: anonymizedUsername, email: anonymizedEmail } = buildAnonymizedIdentifiers(userId);
-
-    // Anonimizacja profilu kandydata
-    if (user.candidateProfile) {
-      await prisma.candidateProfile.update({
-        where: { id: user.candidateProfile.id },
-        data: {
-          name: null,
-          lastName: null,
-          description: null,
-          birthday: null,
-          experience: Prisma.JsonNull,
-          phoneNumber: null,
-          skills: Prisma.JsonNull,
-          place: null,
-          education: Prisma.JsonNull
-        }
-      });
-
-      // Usunięcie linków profilowych
-      await prisma.profileLink.deleteMany({
-        where: { candidateProfileId: user.candidateProfile.id }
-      });
-
-      // Oznaczenie CV jako usuniętych
-      await prisma.candidateCV.updateMany({
-        where: { candidateProfileId: user.candidateProfile.id },
-        data: { isDeleted: true }
-      });
-    }
-
-    // Anonimizacja profilu pracodawcy
-    if (user.employerProfile) {
-      await prisma.employerProfile.update({
-        where: { id: user.employerProfile.id },
-        data: {
-          companyName: `Usunięta firma ${userId}`,
-          companyImageUrl: null,
-          industry: Prisma.JsonNull,
-          description: null,
-          contractType: Prisma.JsonNull,
-          contactPhone: null,
-          contactEmail: null,
-          benefits: Prisma.JsonNull
-        }
-      });
-
-      // Dezaktywacja wszystkich ofert pracy
-      await prisma.jobOffer.updateMany({
-        where: { employerProfileId: user.employerProfile.id },
-        data: { isActive: false }
-      });
-    }
-
-    // Usunięcie dodatkowych credentiali (np. Google OAuth)
-    await prisma.additionalCredentials.deleteMany({
-      where: { userId }
-    });
-
-    // Anonimizacja i soft delete użytkownika
-    await prisma.user.update({ 
-      where: { id: userId }, 
-      data: { 
-        username: anonymizedUsername,
-        email: anonymizedEmail,
-        passwordHash: null,
-        isDeleted: true 
-      } 
-    });
-
-    // Wyloguj i wyczyść sesję
     req.logout(function(err) {
       if (err) {
         console.error('Logout after delete error:', err);
       }
       req.session?.destroy(() => {
         res.clearCookie('connect.sid');
-        res.status(200).json({ message: 'Konto zostało usunięte i zanonimizowane' });
+        res.status(200).json({ 
+          message: 'Konto zostało usunięte i zanonimizowane',
+          summary
+        });
       });
     });
   } catch (err) {

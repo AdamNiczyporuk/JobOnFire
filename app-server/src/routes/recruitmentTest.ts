@@ -7,6 +7,7 @@ import {
   recruitmentTestGenerateValidation,
   recruitmentTestUpdateValidation 
 } from '../validation/recruitmentTestValidation';
+import { createRecruitmentTest } from '../utils/recruitmentTestHelpers';
 
 export const router = Router();
 
@@ -90,25 +91,16 @@ router.post('/', ensureAuthenticated, ensureEmployer, async (req: Request, res: 
       return;
     }
 
-    // Check if test already exists
-    const existingTest = await prisma.recruitmentTest.findUnique({
-      where: { jobOfferId: jobOfferId }
-    });
-
-    if (existingTest) {
-      res.status(409).json({ message: 'Test already exists for this job offer. Use PUT to update.' });
-      return;
-    }
-
-    // Create test
-    const test = await prisma.recruitmentTest.create({
-      data: {
-        jobOfferId: jobOfferId,
-        testJson: testJson
+    try {
+      const test = await createRecruitmentTest(jobOfferId, testJson);
+      res.status(201).json({ test });
+    } catch (e: any) {
+      if (e.code === 'RECRUITMENT_TEST_EXISTS') {
+        res.status(409).json({ message: 'Test already exists for this job offer. Use PUT to update.' });
+        return;
       }
-    });
-
-    res.status(201).json({ test });
+      throw e;
+    }
   } catch (error: any) {
     console.error('Error creating recruitment test:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
