@@ -8,6 +8,7 @@ import {
   validateJobOfferOwnership, 
   validateLokalizationExists 
 } from '../utils/employerHelpers';
+import { deleteOrDeactivateJobOffer } from '../utils/jobOfferDelete';
 
 export const router = Router();
 
@@ -454,65 +455,22 @@ router.put('/:id', ensureAuthenticated, ensureEmployer, async (req: Request, res
   }
 });
 
-// Usunięcie oferty pracy
+// Usunięcie oferty pracy (lub dezaktywacja jeśli ma aplikacje) - delegowane do helpera
 router.delete('/:id', ensureAuthenticated, ensureEmployer, async (req: Request, res: Response) => {
   try {
     const jobOfferId = parseInt(req.params.id);
-
-    // Sprawdź profil pracodawcy
     const employerProfile = await validateEmployerProfile(req, res);
     if (!employerProfile) return;
-
-    // Sprawdź czy oferta należy do pracodawcy
     const existingOffer = await validateJobOfferOwnership(jobOfferId, employerProfile.id, res);
     if (!existingOffer) return;
-
-    // Sprawdź czy oferta ma aplikacje
-    const applicationCount = await prisma.applicationForJobOffer.count({
-      where: { jobOfferId: jobOfferId }
-    });
-
-    if (applicationCount > 0) {
-      // Zamiast usuwać, dezaktywuj ofertę
-      const deactivatedOffer = await prisma.jobOffer.update({
-        where: { id: jobOfferId },
-        data: { isActive: false }
-      });
-
-      res.status(200).json({ 
-        message: 'Job offer deactivated (has applications)', 
-        jobOffer: deactivatedOffer 
+    const result = await deleteOrDeactivateJobOffer(jobOfferId);
+    if (result.mode === 'deactivated') {
+      res.status(200).json({
+        message: 'Job offer deactivated (has applications)',
+        jobOffer: { id: jobOfferId, isActive: false },
+        applicationCount: result.applicationCount
       });
     } else {
-      // Usuń ofertę jeśli nie ma aplikacji wraz z zależnymi danymi (pytania, odpowiedzi, ewentualny test)
-      await prisma.$transaction(async (tx) => {
-        // Pytania powiązane z ofertą
-        const qIds = await tx.recruitmentQuestion.findMany({
-          where: { jobOfferId: jobOfferId },
-          select: { id: true }
-        });
-
-        const questionIds = qIds.map((q) => q.id);
-
-        if (questionIds.length > 0) {
-          // Najpierw usuń odpowiedzi kandydatów do tych pytań
-          await tx.candidateAnswer.deleteMany({
-            where: { recruitmentQuestionId: { in: questionIds } }
-          });
-
-          // Usuń same pytania
-          await tx.recruitmentQuestion.deleteMany({
-            where: { id: { in: questionIds } }
-          });
-        }
-
-        // Usuń ewentualny powiązany test rekrutacyjny
-        await tx.recruitmentTest.deleteMany({ where: { jobOfferId: jobOfferId } });
-
-        // Na końcu usuń ofertę pracy
-        await tx.jobOffer.delete({ where: { id: jobOfferId } });
-      });
-
       res.status(200).json({ message: 'Job offer deleted successfully' });
     }
   } catch (err) {
