@@ -299,10 +299,11 @@ export default function JobOfferForm({
         {/* Podstawowe informacje */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="offer-name" className="block text-sm font-medium mb-2">
               Nazwa oferty *
             </label>
             <Input
+              id="offer-name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="np. Senior Frontend Developer"
@@ -312,10 +313,11 @@ export default function JobOfferForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="offer-expireDate" className="block text-sm font-medium mb-2">
               Data wygaśnięcia *
             </label>
             <Input
+              id="offer-expireDate"
               type="date"
               value={formData.expireDate}
               onChange={(e) => setFormData(prev => ({ ...prev, expireDate: e.target.value }))}
@@ -342,10 +344,11 @@ export default function JobOfferForm({
         {/* Podstawowe dane oferty */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="offer-contractType" className="block text-sm font-medium mb-2">
               Typ umowy
             </label>
             <select
+              id="offer-contractType"
               value={formData.contractType}
               onChange={(e) => setFormData(prev => ({ ...prev, contractType: e.target.value }))}
               className="w-full p-2 border border-gray-300 rounded-md"
@@ -358,10 +361,11 @@ export default function JobOfferForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="offer-salary" className="block text-sm font-medium mb-2">
               Wynagrodzenie
             </label>
             <Input
+              id="offer-salary"
               value={formData.salary}
               onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
               placeholder="np. 10000 - 15000 PLN"
@@ -369,10 +373,11 @@ export default function JobOfferForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label htmlFor="offer-workload" className="block text-sm font-medium mb-2">
               Wymiar pracy
             </label>
             <select
+              id="offer-workload"
               value={formData.workload}
               onChange={(e) => setFormData(prev => ({ ...prev, workload: e.target.value }))}
               className="w-full p-2 border border-gray-300 rounded-md"

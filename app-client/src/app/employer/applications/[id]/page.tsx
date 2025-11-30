@@ -208,6 +208,9 @@ export default function EmployerApplicationDetailPage() {
     }
   };
 
+  // Flaga blokująca dalsze działania gdy aplikacja jest anulowana
+  const isCanceled = application?.status === 'CANCELED';
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pl-PL', {
@@ -368,7 +371,7 @@ export default function EmployerApplicationDetailPage() {
                     <Send className="w-4 h-4" />
                     Twoja odpowiedź
                   </h3>
-                  {!isRespondingMode && (
+                  {!isRespondingMode && !isCanceled && (
                     <Button
                       size="sm"
                       onClick={() => setIsRespondingMode(true)}
@@ -379,8 +382,13 @@ export default function EmployerApplicationDetailPage() {
                     </Button>
                   )}
                 </div>
+                {isCanceled && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm text-gray-600">Aplikacja została anulowana. Nie można już dodawać odpowiedzi ani edytować istniejącej.</p>
+                  </div>
+                )}
 
-                {isRespondingMode ? (
+                {!isCanceled && isRespondingMode ? (
                   <div className="space-y-4">
                     <textarea
                       value={responseText}
@@ -405,13 +413,13 @@ export default function EmployerApplicationDetailPage() {
                       </Button>
                     </div>
                   </div>
-                ) : (
+                ) : !isRespondingMode && !isCanceled ? (
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="text-gray-700">
                       {String(application.response?.response || 'Nie wysłano jeszcze odpowiedzi')}
                     </p>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -422,17 +430,19 @@ export default function EmployerApplicationDetailPage() {
                   <Calendar className="w-5 h-5" />
                   Spotkania
                 </h2>
-                <Button
-                  size="sm"
-                  onClick={() => setIsMeetingMode(true)}
-                  className="flex items-center gap-2 transition-all duration-200 hover:scale-105"
-                >
-                  <Calendar className="w-4 h-4" />
-                  Zaplanuj spotkanie
-                </Button>
+                {!isCanceled && (
+                  <Button
+                    size="sm"
+                    onClick={() => setIsMeetingMode(true)}
+                    className="flex items-center gap-2 transition-all duration-200 hover:scale-105"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Zaplanuj spotkanie
+                  </Button>
+                )}
               </div>
 
-              {isMeetingMode && (
+              {!isCanceled && isMeetingMode && (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <h3 className="font-medium mb-4">Nowe spotkanie</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -506,7 +516,9 @@ export default function EmployerApplicationDetailPage() {
 
               {/* Existing Meetings */}
               <div className="space-y-4">
-                {application.meetings.length === 0 ? (
+                {isCanceled ? (
+                  <p className="text-muted-foreground text-center py-8">Aplikacja anulowana – zarządzanie spotkaniami zablokowane.</p>
+                ) : application.meetings.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8">
                     Nie zaplanowano jeszcze żadnych spotkań
                   </p>
@@ -643,27 +655,29 @@ export default function EmployerApplicationDetailPage() {
               </div>
             </div>
 
-            {/* Status Actions - always visible so employer can change status any time */}
-            <div className="bg-white rounded-lg shadow-md border p-6">
-              <h3 className="font-semibold mb-4">Akcje</h3>
-              <div className="space-y-2">
-                <Button
-                  onClick={() => setStatusConfirm({ show: true, status: 'ACCEPTED' })}
-                  className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-white hover:bg-red-50 text-red-600 border border-red-600 hover:border-red-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Zaakceptuj aplikację
-                </Button>
-                <Button
-                  onClick={() => setStatusConfirm({ show: true, status: 'REJECTED' })}
-                  className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-red-600 hover:bg-red-700 text-white"
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Odrzuć aplikację
-                </Button>
+            {/* Status Actions - ukryte gdy aplikacja anulowana */}
+            {!isCanceled && (
+              <div className="bg-white rounded-lg shadow-md border p-6">
+                <h3 className="font-semibold mb-4">Akcje</h3>
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => setStatusConfirm({ show: true, status: 'ACCEPTED' })}
+                    className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-white hover:bg-red-50 text-red-600 border border-red-600 hover:border-red-700"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Zaakceptuj aplikację
+                  </Button>
+                  <Button
+                    onClick={() => setStatusConfirm({ show: true, status: 'REJECTED' })}
+                    className="w-full px-4 py-2 text-sm transition-all duration-200 hover:scale-105 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Odrzuć aplikację
+                  </Button>
+                </div>
+                {/* Modal handled below */}
               </div>
-              {/* Modal handled below */}
-            </div>
+            )}
 
             {/* Job Offer Info */}
             <div className="bg-white rounded-lg shadow-md border p-6">

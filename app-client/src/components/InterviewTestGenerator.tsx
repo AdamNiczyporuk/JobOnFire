@@ -166,14 +166,14 @@ const selectedApplication = applications.find(app => app.id === selectedApplicat
 						)}
 					</div>
 				) : (
-					<div className="space-y-4">
-						<div className="flex flex-col">
-							<label className="text-sm font-medium block mb-1">Stanowisko *</label>
-							<input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="np. Frontend Developer, Backend Engineer" className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
-						</div>
-						<div className="flex flex-col">
-							<label className="text-sm font-medium block mb-1">Poziom *</label>
-							<select value={jobLevel} onChange={(e) => setJobLevel(e.target.value)} className="w-full sm:w-48 rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40">
+						<div className="space-y-4">
+							<div className="flex flex-col">
+								<label htmlFor="it-position" className="text-sm font-medium block mb-1">Stanowisko *</label>
+								<input id="it-position" value={position} onChange={(e) => setPosition(e.target.value)} placeholder="np. Frontend Developer, Backend Engineer" className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+							</div>
+							<div className="flex flex-col">
+								<label htmlFor="it-jobLevel" className="text-sm font-medium block mb-1">Poziom *</label>
+								<select id="it-jobLevel" value={jobLevel} onChange={(e) => setJobLevel(e.target.value)} className="w-full sm:w-48 rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40">
 								<option value="">Wybierz poziom</option>
 								<option value="junior">Junior</option>
 								<option value="mid">Mid</option>
@@ -181,16 +181,16 @@ const selectedApplication = applications.find(app => app.id === selectedApplicat
 							</select>
 						</div>
 						<div className="flex flex-col">
-							<label className="text-sm font-medium block mb-1">Opis stanowiska *</label>
-							<textarea value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Krótki opis stanowiska..." rows={2} className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+							<label htmlFor="it-description" className="text-sm font-medium block mb-1">Opis stanowiska *</label>
+							<textarea id="it-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Krótki opis stanowiska..." rows={2} className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
 						</div>
 						<div className="flex flex-col">
-							<label className="text-sm font-medium block mb-1">Wymagania *</label>
-							<textarea value={requirements} onChange={(e) => setRequirements(e.target.value)} placeholder="np. React, TypeScript, REST API..." rows={2} className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+							<label htmlFor="it-requirements" className="text-sm font-medium block mb-1">Wymagania *</label>
+							<textarea id="it-requirements" value={requirements} onChange={(e) => setRequirements(e.target.value)} placeholder="np. React, TypeScript, REST API..." rows={2} className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
 						</div>
 						<div className="flex flex-col">
-							<label className="text-sm font-medium block mb-1">Obowiązki *</label>
-							<textarea value={responsibilities} onChange={(e) => setResponsibilities(e.target.value)} placeholder="np. Tworzenie nowych funkcjonalności, code review..." rows={2} className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+							<label htmlFor="it-responsibilities" className="text-sm font-medium block mb-1">Obowiązki *</label>
+							<textarea id="it-responsibilities" value={responsibilities} onChange={(e) => setResponsibilities(e.target.value)} placeholder="np. Tworzenie nowych funkcjonalności, code review..." rows={2} className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40" />
 						</div>
 					</div>
 				)}
