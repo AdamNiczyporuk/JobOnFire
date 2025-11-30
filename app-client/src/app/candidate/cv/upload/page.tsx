@@ -16,6 +16,8 @@ export default function CVUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [uploadedName, setUploadedName] = useState<string>("");
 
   useEffect(() => {
     if (!user) {
@@ -112,8 +114,12 @@ export default function CVUploadPage() {
       });
 
       if (response.status === 201) {
-        alert('CV zostało pomyślnie przesłane! ✅');
-        router.push('/candidate/cvs');
+        const usedName = name || file.name.replace('.pdf', '');
+        setUploadedName(usedName);
+        setSuccessOpen(true);
+        setFile(null);
+        setName("");
+        setDragActive(false);
       }
     } catch (error: any) {
       console.error('Error uploading CV:', error);
@@ -145,7 +151,7 @@ export default function CVUploadPage() {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 md:px-8 py-8">
       {/* Nagłówek */}
-      <div className="mb-8">
+        <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">
           Dodaj CV 📄
         </h1>
@@ -313,6 +319,40 @@ export default function CVUploadPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal sukcesu */}
+      {successOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative z-10 w-full max-w-md mx-4 rounded-2xl bg-white shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95">
+            <div className="p-5 border-b text-center">
+              <p className="text-sm font-semibold text-primary uppercase tracking-widest">Sukces</p>
+            </div>
+
+            <div className="p-6 text-center space-y-5">
+              <div className="mx-auto h-16 w-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">CV zostało dodane</h3>
+                <p className="text-sm text-muted-foreground">
+                  {uploadedName ? `"${uploadedName}"` : "Twoje CV"} jest już bezpiecznie zapisane i dostępne w panelu kandydata.
+                </p>
+              </div>
+              <div>
+                <Button
+                  onClick={() => router.push('/candidate/cvs')}
+                  className="w-full"
+                >
+                  Przejdź do moich CV
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

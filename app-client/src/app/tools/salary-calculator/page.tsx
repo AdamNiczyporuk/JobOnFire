@@ -331,11 +331,11 @@ export default function SalaryCalculatorPage() {
                     {inputs.contract === "UOP" && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label className="inline-flex items-center gap-2 text-sm">
-                          <input type="checkbox" checked={inputs.pit2} onChange={(e) => setInputs((p) => ({ ...p, pit2: e.target.checked }))} />
+                          <input type="radio" checked={inputs.pit2} onChange={(e) => setInputs((p) => ({ ...p, pit2: e.target.checked }))} />
                           PIT-2 (kwota zmniejszająca 300 zł)
                         </label>
                         <label className="inline-flex items-center gap-2 text-sm">
-                          <input type="checkbox" checked={inputs.ulgaMlodzi} onChange={(e) => setInputs((p) => ({ ...p, ulgaMlodzi: e.target.checked }))} />
+                          <input type="radio" checked={inputs.ulgaMlodzi} onChange={(e) => setInputs((p) => ({ ...p, ulgaMlodzi: e.target.checked }))} />
                           Ulga dla młodych (PIT 0%)
                         </label>
                       </div>
