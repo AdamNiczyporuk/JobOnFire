@@ -257,6 +257,13 @@ export default function JobOffersPage() {
                 </Button>
               </div>
             </form>
+
+            {/* Licznik wyników pod wyszukiwaniem */}
+            <div className="mt-3 text-sm text-muted-foreground">
+              <span>
+                Znaleziono <span className="text-red-600 font-semibold">{filteredJobOffers.length}</span> ofert pracy
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">

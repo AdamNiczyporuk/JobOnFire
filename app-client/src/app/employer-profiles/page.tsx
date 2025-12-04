@@ -231,7 +231,9 @@ export default function EmployerProfilesPage() {
 							{loading ? (
 								<span>Ładujemy dane o pracodawcach…</span>
 							) : (
-								<span>Znaleziono {filteredEmployers.length} firm</span>
+								<span>
+									Znaleziono <span className="text-red-600 font-semibold">{filteredEmployers.length}</span> firm
+								</span>
 							)}
 						</div>
 					</section>
