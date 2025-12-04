@@ -208,8 +208,9 @@ export default function EmployerApplicationDetailPage() {
     }
   };
 
-  // Flaga blokująca dalsze działania gdy aplikacja jest anulowana
+  // Flagi blokujące akcje dla statusów finalnych
   const isCanceled = application?.status === 'CANCELED';
+  const isFinalStatus = application?.status === 'REJECTED' || application?.status === 'ACCEPTED' || isCanceled;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -371,7 +372,7 @@ export default function EmployerApplicationDetailPage() {
                     <Send className="w-4 h-4" />
                     Twoja odpowiedź
                   </h3>
-                  {!isRespondingMode && !isCanceled && (
+                  {!isRespondingMode && !isFinalStatus && (
                     <Button
                       size="sm"
                       onClick={() => setIsRespondingMode(true)}
@@ -382,13 +383,13 @@ export default function EmployerApplicationDetailPage() {
                     </Button>
                   )}
                 </div>
-                {isCanceled && (
+                {isFinalStatus && (
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-600">Aplikacja została anulowana. Nie można już dodawać odpowiedzi ani edytować istniejącej.</p>
+                    <p className="text-sm text-gray-600">Aplikacja ma status ostateczny. Nie można już dodawać odpowiedzi ani edytować istniejącej.</p>
                   </div>
                 )}
 
-                {!isCanceled && isRespondingMode ? (
+                {!isFinalStatus && isRespondingMode ? (
                   <div className="space-y-4">
                     <textarea
                       value={responseText}
@@ -413,7 +414,7 @@ export default function EmployerApplicationDetailPage() {
                       </Button>
                     </div>
                   </div>
-                ) : !isRespondingMode && !isCanceled ? (
+                ) : !isRespondingMode && !isFinalStatus ? (
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="text-gray-700">
                       {String(application.response?.response || 'Nie wysłano jeszcze odpowiedzi')}
@@ -430,7 +431,7 @@ export default function EmployerApplicationDetailPage() {
                   <Calendar className="w-5 h-5" />
                   Spotkania
                 </h2>
-                {!isCanceled && (
+                {!isFinalStatus && (
                   <Button
                     size="sm"
                     onClick={() => setIsMeetingMode(true)}
@@ -442,7 +443,7 @@ export default function EmployerApplicationDetailPage() {
                 )}
               </div>
 
-              {!isCanceled && isMeetingMode && (
+              {!isFinalStatus && isMeetingMode && (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <h3 className="font-medium mb-4">Nowe spotkanie</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -516,8 +517,8 @@ export default function EmployerApplicationDetailPage() {
 
               {/* Existing Meetings */}
               <div className="space-y-4">
-                {isCanceled ? (
-                  <p className="text-muted-foreground text-center py-8">Aplikacja anulowana – zarządzanie spotkaniami zablokowane.</p>
+                {isFinalStatus ? (
+                  <p className="text-muted-foreground text-center py-8">Aplikacja w statusie ostatecznym – zarządzanie spotkaniami zablokowane.</p>
                 ) : application.meetings.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8">
                     Nie zaplanowano jeszcze żadnych spotkań
@@ -655,8 +656,8 @@ export default function EmployerApplicationDetailPage() {
               </div>
             </div>
 
-            {/* Status Actions - ukryte gdy aplikacja anulowana */}
-            {!isCanceled && (
+            {/* Status Actions - ukryte dla statusów ostatecznych (odrzucona/zaakceptowana/anulowana) */}
+            {!isFinalStatus && (
               <div className="bg-white rounded-lg shadow-md border p-6">
                 <h3 className="font-semibold mb-4">Akcje</h3>
                 <div className="space-y-2">

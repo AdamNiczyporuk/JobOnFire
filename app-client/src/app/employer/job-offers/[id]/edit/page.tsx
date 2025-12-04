@@ -80,18 +80,7 @@ export default function EmployerJobOfferEditPage() {
       <div className="flex min-h-screen flex-col items-center">
         <main className="flex-1 w-full">
           <div className="w-full max-w-4xl mx-auto px-4 md:px-6 py-12">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Edytuj ofertę</h1>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.back()}
-                className="inline-flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Powrót
-              </Button>
-            </div>
+            <h1 className="text-2xl font-bold mb-6">Edytuj ofertę</h1>
             <div className="text-center">
               <p className="text-red-500 mb-4">{error}</p>
               <Button onClick={fetchData}>Spróbuj ponownie</Button>
@@ -107,15 +96,6 @@ export default function EmployerJobOfferEditPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Edytuj ofertę pracy</h1>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Powrót
-        </Button>
       </div>
 
       <JobOfferForm
