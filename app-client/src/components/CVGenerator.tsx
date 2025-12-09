@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import CVPreview from "@/components/CVPreview";
 import { useSearchParams } from "next/navigation";
@@ -8,7 +9,7 @@ import { getPublicJobOffer, generateCVWithAI } from "@/services/jobOfferService"
 import { getCandidateApplications } from "@/services/applicationService";
 import type { CandidateProfile, Application } from "@/types/candidate";
 import type { JobOffer } from "@/types/jobOffer";
-import { Save, Download, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Save, Download, ArrowLeft, CheckCircle2, RotateCcw } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 
 type CVForm = {
@@ -37,6 +38,7 @@ type DataSource = "manual" | "application";
 
 export default function CVGenerator() {
 	const searchParams = useSearchParams();
+	const router = useRouter();
 	const { addToast } = useToast();
 	const [dataSource, setDataSource] = useState<DataSource>("manual");
 	const [applications, setApplications] = useState<Application[]>([]);
@@ -63,6 +65,9 @@ export default function CVGenerator() {
 	const [generatedCV, setGeneratedCV] = useState<any>(null);
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveSuccess, setSaveSuccess] = useState(false);
+	const [savedCvId, setSavedCvId] = useState<number | null>(null);
+
+	const jobOfferIdFromQuery = searchParams?.get("jobOfferId");
 
 	// refs for auto-resizing fields
 	const fullNameRef = useRef<HTMLTextAreaElement | null>(null);
@@ -158,10 +163,13 @@ export default function CVGenerator() {
 		setErrorMsg(null);
 		try {
 			const response = await getCandidateApplications({ limit: 100 });
-			// Filtruj tylko aplikacje ze statusem PENDING
-			const pendingApps = response.applications.filter(
-				app => app.status === 'PENDING'
-			);
+			// Filtruj tylko aplikacje ze statusem PENDING i nieprzeterminowaną ofertą
+			const now = new Date();
+			const pendingApps = response.applications.filter(app => {
+				if (app.status !== 'PENDING') return false;
+				const expire = app.jobOffer?.expireDate ? new Date(app.jobOffer.expireDate) : null;
+				return expire ? expire >= now : true;
+			});
 			setApplications(pendingApps);
 			if (pendingApps.length > 0) {
 				setSelectedApplicationId(pendingApps[0].id);
@@ -295,8 +303,14 @@ export default function CVGenerator() {
 		adjustHeight(educationRef.current);
 	}, [form.fullName, form.position, form.skills, form.summary, form.experience, form.education]);
 
-	// Load generated CV from sessionStorage on mount
+	// Load previously generated CV only when not coming from a specific job offer.
 	useEffect(() => {
+		if (jobOfferIdFromQuery) {
+			setGeneratedCV(null);
+			sessionStorage.removeItem('generatedCV');
+			return;
+		}
+
 		const savedCV = sessionStorage.getItem('generatedCV');
 		if (savedCV) {
 			try {
@@ -307,7 +321,45 @@ export default function CVGenerator() {
 				sessionStorage.removeItem('generatedCV');
 			}
 		}
-	}, []);
+	}, [jobOfferIdFromQuery]);
+
+	// Gdy wybieramy aplikację, pobierz pełne dane oferty i wstępnie uzupełnij formularz
+	useEffect(() => {
+		const loadJobOfferFromApplication = async () => {
+			if (dataSource !== "application" || !selectedApplicationId) return;
+			const selectedApp = applications.find(app => app.id === selectedApplicationId);
+			if (!selectedApp) return;
+
+			try {
+				const fullJobOffer = await getPublicJobOffer(selectedApp.jobOfferId);
+				setJobOfferData({
+					jobName: fullJobOffer.name || undefined,
+					jobLevel: Array.isArray(fullJobOffer.jobLevel) ? fullJobOffer.jobLevel.join(", ") : fullJobOffer.jobLevel,
+					jobDescription: fullJobOffer.description || undefined,
+					salary: fullJobOffer.salary || undefined,
+					requirements: Array.isArray(fullJobOffer.requirements) ? fullJobOffer.requirements.join("\n") : fullJobOffer.requirements,
+					responsibilities: Array.isArray(fullJobOffer.responsibilities) ? fullJobOffer.responsibilities.join("\n") : fullJobOffer.responsibilities,
+					whatWeOffer: Array.isArray(fullJobOffer.whatWeOffer) ? fullJobOffer.whatWeOffer.join("\n") : fullJobOffer.whatWeOffer,
+					companyName: fullJobOffer.employerProfile?.companyName || undefined,
+				});
+
+				setForm(prev => {
+					const next = { ...prev } as CVForm;
+					next.position = fullJobOffer.name || prev.position;
+					const levelInfo = fullJobOffer.jobLevel ? (Array.isArray(fullJobOffer.jobLevel) ? `Poziom: ${fullJobOffer.jobLevel.join(", ")}` : `Poziom: ${fullJobOffer.jobLevel}`) : "";
+					const salaryInfo = fullJobOffer.salary ? `Wynagrodzenie: ${fullJobOffer.salary}` : "";
+					if (levelInfo || salaryInfo || fullJobOffer.description) {
+						next.summary = [levelInfo, salaryInfo, fullJobOffer.description].filter(Boolean).join("\n");
+					}
+					return next;
+				});
+			} catch (err) {
+				console.error("Error fetching job offer for application:", err);
+			}
+		};
+
+		loadJobOfferFromApplication();
+	}, [applications, dataSource, selectedApplicationId]);
 
 	const handleGenerateCV = async () => {
 		try {
@@ -374,6 +426,28 @@ export default function CVGenerator() {
 
 	// Success view: show CV preview with download button below
 	if (generatedCV) {
+		const ensureCvSaved = async () => {
+			if (savedCvId) return savedCvId;
+			if (!generatedCV) return null;
+			try {
+				setIsSaving(true);
+				setErrorMsg(null);
+				const cvName = generatedCV.position || form.position || 'CV';
+				const saved = await candidateService.saveGeneratedCV(cvName, generatedCV);
+				setSavedCvId(saved.id);
+				setSaveSuccess(true);
+				setTimeout(() => setSaveSuccess(false), 3000);
+				return saved.id;
+			} catch (error: any) {
+				console.error('Error saving CV to profile:', error);
+				const errorMessage = error?.response?.data?.message || error.message || 'Nie udało się zapisać CV na profilu';
+				setErrorMsg(errorMessage);
+				return null;
+			} finally {
+				setIsSaving(false);
+			}
+		};
+
 		const handleDownloadPDF = async () => {
 			try {
 				// Dynamiczny import @react-pdf/renderer
@@ -393,44 +467,39 @@ export default function CVGenerator() {
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
-			URL.revokeObjectURL(url);
-		} catch (error) {
-			console.error('Error generating PDF:', error);
-			addToast({
-				title: "Błąd",
-				description: "Nie udało się pobrać PDF. Spróbuj ponownie.",
-				type: "error",
-				duration: 5000
-			});
-		}
-	};		const handleGenerateNew = () => {
+				URL.revokeObjectURL(url);
+			} catch (error) {
+				console.error('Error generating PDF:', error);
+				addToast({
+					title: "Błąd",
+					description: "Nie udało się pobrać PDF. Spróbuj ponownie.",
+					type: "error",
+					duration: 5000
+				});
+			}
+		};
+
+		const handleGenerateNew = () => {
 			setGeneratedCV(null);
 			sessionStorage.removeItem('generatedCV');
 			setSaveSuccess(false);
+			setSavedCvId(null);
 		};
 
 		const handleSaveToProfile = async () => {
-			if (!generatedCV) return;
-			
-			try {
-				setIsSaving(true);
-				setErrorMsg(null);
-				
-				// Nazwa CV to stanowisko z wygenerowanego CV
-				const cvName = generatedCV.position || form.position || 'CV';
-				
-				await candidateService.saveGeneratedCV(cvName, generatedCV);
-				setSaveSuccess(true);
-				
-				// Opcjonalnie: wyczyść komunikat sukcesu po 3 sekundach
-				setTimeout(() => setSaveSuccess(false), 3000);
-			} catch (error: any) {
-				console.error('Error saving CV to profile:', error);
-				const errorMessage = error?.response?.data?.message || error.message || 'Nie udało się zapisać CV na profilu';
-				setErrorMsg(errorMessage);
-			} finally {
-				setIsSaving(false);
+			await ensureCvSaved();
+		};
+
+		const handleSaveAndReturn = async () => {
+			if (!jobOfferIdFromQuery) {
+				setErrorMsg('Brakuje identyfikatora oferty pracy, wróć do listy ofert.');
+				return;
 			}
+
+			const cvId = await ensureCvSaved();
+			if (!cvId) return;
+
+			router.push(`/job-offers/${jobOfferIdFromQuery}?apply=1&cvId=${cvId}`);
 		};
 
 		return (
@@ -452,14 +521,25 @@ export default function CVGenerator() {
 				
 				<CVPreview cv={generatedCV} />
 				
-				<div className="flex flex-col gap-4 print:hidden">
+				<div className="flex flex-col gap-4 print:hidden w-full">
 					{/* Główne akcje */}
-					<div className="flex items-center justify-center gap-3">
-						<Button variant="outline" onClick={handleGenerateNew} className="gap-2">
-							<ArrowLeft className="w-4 h-4" />
+					<div className="flex flex-wrap justify-center gap-3 w-full items-center">
+						{jobOfferIdFromQuery && (
+							<Button
+								variant="outline"
+								onClick={handleSaveAndReturn}
+								disabled={isSaving}
+								className="gap-2 w-full md:w-[250px]"
+							>
+								<ArrowLeft className="w-4 h-4" />
+								Zapisz i wróć do aplikacji
+							</Button>
+						)}
+						<Button variant="outline" onClick={handleGenerateNew} className="gap-2 w-full md:w-[250px]">
+							<RotateCcw className="w-4 h-4" />
 							Wygeneruj nowe CV
 						</Button>
-						<Button onClick={handleDownloadPDF} className="gap-2">
+						<Button onClick={handleDownloadPDF} className="gap-2 w-full md:w-[250px]">
 							<Download className="w-4 h-4" />
 							Pobierz PDF
 						</Button>
@@ -479,7 +559,7 @@ export default function CVGenerator() {
 								size="lg"
 								onClick={handleSaveToProfile}
 								disabled={isSaving || saveSuccess}
-								className={`gap-2 min-w-[200px] transition-all ${
+								className={`gap-2 w-full md:w-[250px] transition-all ${
 									saveSuccess 
 										? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-50' 
 										: ''

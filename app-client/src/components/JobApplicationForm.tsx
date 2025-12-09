@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,16 +18,18 @@ interface JobApplicationFormProps {
   jobOffer: JobOffer;
   onSuccess: () => void;
   onCancel: () => void;
+  prefilledCvId?: number | null;
 }
 
-export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: JobApplicationFormProps) {
+export default function JobApplicationForm({ jobOffer, onSuccess, onCancel, prefilledCvId = null }: JobApplicationFormProps) {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { addToast } = useToast();
+  const prefillAppliedRef = useRef(false);
   
   const [formData, setFormData] = useState<ApplicationFormData>({
     message: '',
-    cvId: null,
+    cvId: prefilledCvId,
     answers: []
   });
   
@@ -88,7 +90,13 @@ export default function JobApplicationForm({ jobOffer, onSuccess, onCancel }: Jo
         // CV
         const cvsResult = results[1];
         if (cvsResult.status === 'fulfilled') {
-          setCvs(cvsResult.value);
+          const cvList = cvsResult.value;
+          setCvs(cvList);
+
+          if (!prefillAppliedRef.current && prefilledCvId && cvList.some((cv) => cv.id === prefilledCvId)) {
+            setFormData((prev) => ({ ...prev, cvId: prefilledCvId }));
+            prefillAppliedRef.current = true;
+          }
         } else {
           console.error('Błąd podczas ładowania CV:', cvsResult.reason);
           setCvs([]);

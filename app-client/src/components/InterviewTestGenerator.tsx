@@ -32,9 +32,12 @@ setLoadingApplications(true);
 setError(null);
 try {
 const response = await getCandidateApplications({ limit: 100 });
-const activeApps = response.applications.filter(
-app => app.status === 'PENDING' || app.status === 'ACCEPTED'
-);
+const now = new Date();
+const activeApps = response.applications.filter(app => {
+	if (app.status !== 'PENDING') return false;
+	const expire = app.jobOffer?.expireDate ? new Date(app.jobOffer.expireDate) : null;
+	return expire ? expire >= now : true;
+});
 setApplications(activeApps);
 if (activeApps.length > 0) {
 setSelectedApplicationId(activeApps[0].id);

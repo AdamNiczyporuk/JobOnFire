@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/toast";
 export default function JobOfferDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addToast } = useToast();
   const [jobOffer, setJobOffer] = useState<JobOffer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,7 @@ export default function JobOfferDetailsPage() {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [applicationId, setApplicationId] = useState<number | null>(null);
+  const [prefilledCvId, setPrefilledCvId] = useState<number | null>(null);
 
   const jobOfferId = parseInt(params.id as string);
 
@@ -38,6 +40,22 @@ export default function JobOfferDetailsPage() {
     // Po załadowaniu oferty sprawdzimy, czy kandydat już aplikował (jeśli jest zalogowany)
     checkApplied();
   }, [jobOfferId]);
+
+  useEffect(() => {
+    const applyParam = searchParams.get("apply");
+    const cvIdParam = searchParams.get("cvId");
+
+    if (applyParam === "1") {
+      setShowApplicationForm(true);
+    }
+
+    if (cvIdParam) {
+      const parsedCvId = parseInt(cvIdParam, 10);
+      if (!isNaN(parsedCvId)) {
+        setPrefilledCvId(parsedCvId);
+      }
+    }
+  }, [searchParams]);
 
   const fetchJobOffer = async () => {
     try {
@@ -173,6 +191,7 @@ export default function JobOfferDetailsPage() {
               jobOffer={jobOffer}
               onSuccess={handleApplicationSuccess}
               onCancel={handleApplicationCancel}
+              prefilledCvId={prefilledCvId}
             />
           ) : (
             <>
