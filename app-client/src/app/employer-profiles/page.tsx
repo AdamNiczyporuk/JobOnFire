@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { SmartHeader } from "@/components/SmartHeader";
@@ -56,12 +57,15 @@ const workingModeBadgeClasses = (mode: string): string => {
 // Removed contract type badge classes as contract types are no longer displayed
 
 export default function EmployerProfilesPage() {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const pathname = usePathname();
 	const [employers, setEmployers] = useState<EmployerCardData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [searchTerm, setSearchTerm] = useState("");
+	const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') || "");
 	const [sortOption, setSortOption] = useState<"relevance" | "alphabetical">("relevance");
-  const [page, setPage] = useState(1);
+	const [page, setPage] = useState(() => Number(searchParams.get('page')) || 1);
   const itemsPerPage = 12;
 
 	const fetchEmployerProfiles = useCallback(async () => {
@@ -145,10 +149,20 @@ export default function EmployerProfilesPage() {
 		fetchEmployerProfiles();
 	}, [fetchEmployerProfiles]);
 
-	// Resetuj stronę przy zmianie filtrów/sortowania
+	// Resetuj stronę przy zmianie filtrów/sortowania i aktualizuj URL
 	useEffect(() => {
 		setPage(1);
+		updateQueryParams({ q: searchTerm || undefined, sort: sortOption, page: 1 });
 	}, [searchTerm, sortOption]);
+
+  const updateQueryParams = (updates: Record<string, string | number | undefined>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === undefined || value === '' || value === null) current.delete(key); else current.set(key, String(value));
+    });
+    const qs = current.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
+  };
 
 	const filteredEmployers = useMemo(() => {
 		const query = searchTerm.trim().toLowerCase();
@@ -208,11 +222,11 @@ export default function EmployerProfilesPage() {
 								/>
 							</div>
 							<div className="flex items-center gap-2 justify-center">
-								<Button
+																		<Button
 									type="button"
 									size="sm"
 									variant={sortOption === "relevance" ? "default" : "outline"}
-									onClick={() => setSortOption("relevance")}
+																			onClick={() => { setSortOption("relevance"); updateQueryParams({ sort: "relevance", page: 1 }); }}
 								>
 									Najpopularniejsze
 								</Button>
@@ -220,7 +234,7 @@ export default function EmployerProfilesPage() {
 									type="button"
 									size="sm"
 									variant={sortOption === "alphabetical" ? "default" : "outline"}
-									onClick={() => setSortOption("alphabetical")}
+																			onClick={() => { setSortOption("alphabetical"); updateQueryParams({ sort: "alphabetical", page: 1 }); }}
 								>
 									Alfabetycznie
 								</Button>
@@ -342,9 +356,9 @@ export default function EmployerProfilesPage() {
 							{/* Paginacja */}
 							{filteredEmployers.length > itemsPerPage && (
 								<div className="flex justify-center items-center gap-2 mt-8">
-									<Button
+																		<Button
 										variant="outline"
-										onClick={() => setPage((p) => Math.max(1, p - 1))}
+																			onClick={() => { const np = Math.max(1, page - 1); setPage(np); updateQueryParams({ page: np }); }}
 										disabled={page === 1}
 									>
 										Poprzednia
@@ -360,10 +374,10 @@ export default function EmployerProfilesPage() {
 											const pageNum = base + i;
 											if (pageNum < 1 || pageNum > totalPages) return null;
 											return (
-												<Button
+																								<Button
 													key={pageNum}
 													variant={page === pageNum ? "default" : "outline"}
-													onClick={() => setPage(pageNum)}
+																									onClick={() => { setPage(pageNum); updateQueryParams({ page: pageNum }); }}
 													className="w-10"
 												>
 													{pageNum}
@@ -372,9 +386,9 @@ export default function EmployerProfilesPage() {
 										})}
 									</div>
 
-									<Button
+																		<Button
 										variant="outline"
-										onClick={() => setPage((p) => Math.min(Math.ceil(filteredEmployers.length / itemsPerPage), p + 1))}
+																			onClick={() => { const total = Math.ceil(filteredEmployers.length / itemsPerPage); const np = Math.min(total, page + 1); setPage(np); updateQueryParams({ page: np }); }}
 										disabled={page === Math.ceil(filteredEmployers.length / itemsPerPage)}
 									>
 										Następna
