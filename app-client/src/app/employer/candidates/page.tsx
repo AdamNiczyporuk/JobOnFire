@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useMemo, useState } from "react";
@@ -9,25 +10,28 @@ import { CandidateListItem, CandidateFilters } from "@/types/candidate";
 import { Search, MapPin, User, Briefcase, GraduationCap, Award } from "lucide-react";
 
 export default function EmployerCandidatesPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [candidates, setCandidates] = useState<CandidateListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => Number(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('q') || '');
   
   // Filtry
-  const [experienceFilter, setExperienceFilter] = useState('');
-  const [skillsFilter, setSkillsFilter] = useState('');
-  const [placeFilter, setPlaceFilter] = useState('');
-  const [educationFilter, setEducationFilter] = useState('');
+  const [experienceFilter, setExperienceFilter] = useState(() => searchParams.get('experience') || '');
+  const [skillsFilter, setSkillsFilter] = useState(() => searchParams.get('skills') || '');
+  const [placeFilter, setPlaceFilter] = useState(() => searchParams.get('place') || '');
+  const [educationFilter, setEducationFilter] = useState(() => searchParams.get('education') || '');
   // Applied filters: used when user clicks "Zastosuj filtry"
-  const [appliedExperience, setAppliedExperience] = useState('');
-  const [appliedSkills, setAppliedSkills] = useState('');
-  const [appliedPlace, setAppliedPlace] = useState('');
-  const [appliedEducation, setAppliedEducation] = useState('');
+  const [appliedExperience, setAppliedExperience] = useState(() => searchParams.get('experience') || '');
+  const [appliedSkills, setAppliedSkills] = useState(() => searchParams.get('skills') || '');
+  const [appliedPlace, setAppliedPlace] = useState(() => searchParams.get('place') || '');
+  const [appliedEducation, setAppliedEducation] = useState(() => searchParams.get('education') || '');
 
   useEffect(() => {
     fetchCandidates();
@@ -69,6 +73,16 @@ export default function EmployerCandidatesPage() {
     e.preventDefault();
     setSearchQuery(searchInput);
     setPage(1);
+    updateQueryParams({ q: searchInput, page: 1 });
+  };
+
+  const updateQueryParams = (updates: Record<string, string | number | undefined>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === undefined || value === '' || value === null) current.delete(key); else current.set(key, String(value));
+    });
+    const qs = current.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   };
 
   const formatSkills = (skills: any): string[] => {
@@ -269,6 +283,13 @@ export default function EmployerCandidatesPage() {
                       setAppliedPlace(placeFilter);
                       setAppliedEducation(educationFilter);
                       setPage(1);
+                      updateQueryParams({
+                        experience: experienceFilter || undefined,
+                        skills: skillsFilter || undefined,
+                        place: placeFilter || undefined,
+                        education: educationFilter || undefined,
+                        page: 1,
+                      });
                     }}
                     className="flex-1"
                   >
@@ -289,6 +310,7 @@ export default function EmployerCandidatesPage() {
                       setAppliedPlace('');
                       setAppliedEducation('');
                       setPage(1);
+                      updateQueryParams({ experience: undefined, skills: undefined, place: undefined, education: undefined, q: undefined, page: 1 });
                     }}
                     className="w-36"
                   >
@@ -391,7 +413,7 @@ export default function EmployerCandidatesPage() {
             <div className="flex justify-center items-center gap-2 mt-8">
               <Button
                 variant="outline"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => { const np = Math.max(1, page - 1); setPage(np); updateQueryParams({ page: np }); }}
                 disabled={page === 1}
               >
                 Poprzednia
@@ -409,7 +431,7 @@ export default function EmployerCandidatesPage() {
                     <Button
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
-                      onClick={() => setPage(pageNum)}
+                      onClick={() => { setPage(pageNum); updateQueryParams({ page: pageNum }); }}
                       className="w-10"
                     >
                       {pageNum}
@@ -420,7 +442,7 @@ export default function EmployerCandidatesPage() {
 
               <Button
                 variant="outline"
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => { const np = Math.min(totalPages, page + 1); setPage(np); updateQueryParams({ page: np }); }}
                 disabled={page === totalPages}
               >
                 Następna
