@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SmartHeader } from "@/components/SmartHeader";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { getPublicJobOffers } from "@/services/jobOfferService";
 import { JobOffer } from "@/types/jobOffer";
 import { Search } from "lucide-react";
@@ -12,10 +12,11 @@ import { Search } from "lucide-react";
 export default function JobOffersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const [jobOffers, setJobOffers] = useState<JobOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => Number(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
   
   // Initialize search from URL parameter immediately
@@ -23,23 +24,27 @@ export default function JobOffersPage() {
   const [searchQuery, setSearchQuery] = useState(searchFromUrl);
   const [searchInput, setSearchInput] = useState(searchFromUrl);
   
-  const [selectedWorkingModes, setSelectedWorkingModes] = useState<string[]>([]);
-  const [selectedContractTypes, setSelectedContractTypes] = useState<string[]>([]);
+  const [selectedWorkingModes, setSelectedWorkingModes] = useState<string[]>(() => (searchParams.get('workingModes') || '').split(',').map(s => s.trim()).filter(Boolean));
+  const [selectedContractTypes, setSelectedContractTypes] = useState<string[]>(() => (searchParams.get('contractTypes') || '').split(',').map(s => s.trim()).filter(Boolean));
   // Job level is now free-text input instead of checkboxes
-  const [jobLevelInput, setJobLevelInput] = useState("");
-  const [selectedWorkloads, setSelectedWorkloads] = useState<string[]>([]);
-  const [techInput, setTechInput] = useState(''); // comma-separated technologies
+  const [jobLevelInput, setJobLevelInput] = useState(() => searchParams.get('jobLevel') || "");
+  const [selectedWorkloads, setSelectedWorkloads] = useState<string[]>(() => (searchParams.get('workloads') || '').split(',').map(s => s.trim()).filter(Boolean));
+  const [techInput, setTechInput] = useState(() => searchParams.get('tech') || ''); // comma-separated technologies
 
   // Applied filters: used only after clicking "Zastosuj"
-  const [appliedWorkingModes, setAppliedWorkingModes] = useState<string[]>([]);
-  const [appliedContractTypes, setAppliedContractTypes] = useState<string[]>([]);
-  const [appliedJobLevel, setAppliedJobLevel] = useState("");
-  const [appliedWorkloads, setAppliedWorkloads] = useState<string[]>([]);
-  const [appliedTechInput, setAppliedTechInput] = useState('');
+  const [appliedWorkingModes, setAppliedWorkingModes] = useState<string[]>(() => (searchParams.get('workingModes') || '').split(',').map(s => s.trim()).filter(Boolean));
+  const [appliedContractTypes, setAppliedContractTypes] = useState<string[]>(() => (searchParams.get('contractTypes') || '').split(',').map(s => s.trim()).filter(Boolean));
+  const [appliedJobLevel, setAppliedJobLevel] = useState(() => searchParams.get('jobLevel') || "");
+  const [appliedWorkloads, setAppliedWorkloads] = useState<string[]>(() => (searchParams.get('workloads') || '').split(',').map(s => s.trim()).filter(Boolean));
+  const [appliedTechInput, setAppliedTechInput] = useState(() => searchParams.get('tech') || '');
 
   // Salary minimum filter (PLN)
-  const [minSalaryInput, setMinSalaryInput] = useState<string>('');
-  const [appliedMinSalary, setAppliedMinSalary] = useState<number | undefined>(undefined);
+  const [minSalaryInput, setMinSalaryInput] = useState<string>(() => searchParams.get('minSalary') || '');
+  const [appliedMinSalary, setAppliedMinSalary] = useState<number | undefined>(() => {
+    const v = searchParams.get('minSalary');
+    const n = v ? parseInt(v, 10) : NaN;
+    return !Number.isNaN(n) && n > 0 ? n : undefined;
+  });
 
   // Compute backend filter params (first selected for workingMode/contractType; tags as CSV)
   const backendWorkingMode = useMemo(() => appliedWorkingModes[0], [appliedWorkingModes]);
@@ -84,6 +89,7 @@ export default function JobOffersPage() {
     e.preventDefault();
     setSearchQuery(searchInput);
     setPage(1); // Reset to first page when searching
+    updateQueryParams({ search: searchInput || undefined, page: 1 });
   }, [searchInput]);
 
   const toggleSelection = useCallback((arr: string[], value: string, setter: (v: string[]) => void) => {
@@ -107,6 +113,16 @@ export default function JobOffersPage() {
   const formatTags = (tags?: string[]) => {
     if (!tags || tags.length === 0) return [];
     return tags.slice(0, 2); // Show max 2 tags for thin rows
+  };
+
+  // Helper to sync URL query params
+  const updateQueryParams = (updates: Record<string, string | number | undefined>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === undefined || value === '' || value === null) current.delete(key); else current.set(key, String(value));
+    });
+    const qs = current.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   };
 
   // Parse salary string like "10 000 - 15 000 PLN" to min/max numbers
@@ -371,6 +387,16 @@ export default function JobOffersPage() {
                     const parsed = parseInt(minSalaryInput, 10);
                     setAppliedMinSalary(!Number.isNaN(parsed) && parsed > 0 ? parsed : undefined);
                     setPage(1);
+                    updateQueryParams({
+                      workingModes: selectedWorkingModes.join(',') || undefined,
+                      contractTypes: selectedContractTypes.join(',') || undefined,
+                      jobLevel: jobLevelInput || undefined,
+                      workloads: selectedWorkloads.join(',') || undefined,
+                      tech: techInput || undefined,
+                      minSalary: (!Number.isNaN(parsed) && parsed > 0 ? parsed : undefined) as any,
+                      search: searchQuery || undefined,
+                      page: 1,
+                    });
                   }}
                   className="flex-1 transition-all duration-200 hover:scale-105"
                   size="default"
@@ -394,6 +420,7 @@ export default function JobOffersPage() {
                     setAppliedTechInput('');
                     setAppliedMinSalary(undefined);
                     setPage(1);
+                    updateQueryParams({ workingModes: undefined, contractTypes: undefined, jobLevel: undefined, workloads: undefined, tech: undefined, minSalary: undefined, page: 1 });
                   }}
                   className="flex-1 transition-all duration-200 hover:scale-105"
                   size="default"
@@ -487,7 +514,7 @@ export default function JobOffersPage() {
             <div className="flex justify-center items-center gap-3 mt-10">
               <Button
                 variant="outline"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => { const np = Math.max(1, page - 1); setPage(np); updateQueryParams({ page: np }); }}
                 disabled={page === 1}
                 size="default"
               >
@@ -506,7 +533,7 @@ export default function JobOffersPage() {
                     <Button
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
-                      onClick={() => setPage(pageNum)}
+                      onClick={() => { setPage(pageNum); updateQueryParams({ page: pageNum }); }}
                       className="w-11 h-11"
                       size="default"
                     >
@@ -518,7 +545,7 @@ export default function JobOffersPage() {
 
               <Button
                 variant="outline"
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => { const np = Math.min(totalPages, page + 1); setPage(np); updateQueryParams({ page: np }); }}
                 disabled={page === totalPages}
                 size="default"
               >
