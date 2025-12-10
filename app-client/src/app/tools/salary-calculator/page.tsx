@@ -132,7 +132,7 @@ function calcFromBrutto(brutto: number, opts: { pit2: boolean; ulgaMlodzi: boole
 }
 
 // Umowa zlecenie: uproszczona kalkulacja
-function calcUZFromBrutto(brutto: number, opts: { kupPercent: number; chorobowa: boolean; ulgaMlodzi: boolean }): ResultUZ {
+function calcUZFromBrutto(brutto: number, opts: { chorobowa: boolean; ulgaMlodzi: boolean }): ResultUZ {
   const emp = RATES.employee;
   const pit = RATES.pit;
 
@@ -144,7 +144,7 @@ function calcUZFromBrutto(brutto: number, opts: { kupPercent: number; chorobowa:
   const podstawaZdrowotnej = brutto - spoleczne;
   const zdrowotna = round2(podstawaZdrowotnej * emp.zdrowotna);
 
-  const podstawaPIT = Math.max(0, Math.floor(podstawaZdrowotnej - opts.kupPercent * (brutto - spoleczne)));
+  const podstawaPIT = Math.max(0, Math.floor(podstawaZdrowotnej));
   const zaliczkaPIT = opts.ulgaMlodzi ? 0 : Math.max(0, Math.round(podstawaPIT * pit.stawka));
 
   const netto = round2(brutto - spoleczne - zdrowotna - zaliczkaPIT);
@@ -244,7 +244,7 @@ export default function SalaryCalculatorPage() {
           case "UOP":
             return calcFromBrutto(b, { pit2: inputs.pit2, ulgaMlodzi: inputs.ulgaMlodzi });
           case "UZ":
-            return calcUZFromBrutto(b, { kupPercent: inputs.kupPercent, chorobowa: inputs.chorobowaUZ, ulgaMlodzi: inputs.ulgaMlodzi });
+            return calcUZFromBrutto(b, { chorobowa: inputs.chorobowaUZ, ulgaMlodzi: inputs.ulgaMlodzi });
           case "UOD":
             return calcUODFromBrutto(b, { kupPercent: inputs.kupPercent });
           case "B2B":
@@ -261,7 +261,7 @@ export default function SalaryCalculatorPage() {
       case "UOP":
         return calcFromBrutto(brutto || 0, { pit2: inputs.pit2, ulgaMlodzi: inputs.ulgaMlodzi });
       case "UZ":
-        return calcUZFromBrutto(brutto || 0, { kupPercent: inputs.kupPercent, chorobowa: inputs.chorobowaUZ, ulgaMlodzi: inputs.ulgaMlodzi });
+        return calcUZFromBrutto(brutto || 0, { chorobowa: inputs.chorobowaUZ, ulgaMlodzi: inputs.ulgaMlodzi });
       case "UOD":
         return calcUODFromBrutto(brutto || 0, { kupPercent: inputs.kupPercent });
       case "B2B":
@@ -367,14 +367,14 @@ export default function SalaryCalculatorPage() {
                             Składka chorobowa (opcjonalna)
                           </label>
                           <div className="text-sm">
-                            <label className="block font-medium mb-1">Koszty uzyskania</label>
+                            <label className="block font-medium mb-1">Ulga dla młodych (PIT 0%)</label>
                             <div className="flex items-center gap-3">
-                              <label className="inline-flex items-center gap-2"><input type="radio" name="kupUZ" checked={inputs.kupPercent === 0.2} onChange={() => setInputs((p) => ({ ...p, kupPercent: 0.2 }))} /> 20%</label>
-                              <label className="inline-flex items-center gap-2"><input type="radio" name="kupUZ" checked={inputs.kupPercent === 0.5} onChange={() => setInputs((p) => ({ ...p, kupPercent: 0.5 }))} /> 50%</label>
+                              <label className="inline-flex items-center gap-2"><input type="radio" name="ulgaUZ" checked={inputs.ulgaMlodzi === true} onChange={() => setInputs((p) => ({ ...p, ulgaMlodzi: true }))} /> Tak</label>
+                              <label className="inline-flex items-center gap-2"><input type="radio" name="ulgaUZ" checked={inputs.ulgaMlodzi === false} onChange={() => setInputs((p) => ({ ...p, ulgaMlodzi: false }))} /> Nie</label>
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">Uproszczenie: pominięto przypadki zwolnień (np. studenci do 26 r.ż.).</p>
+                        <p className="text-xs text-muted-foreground">Uproszczenie: wliczono ulgę PIT-0 dla młodych na UZ, bez limitu rocznego.</p>
                       </div>
                     )}
 
