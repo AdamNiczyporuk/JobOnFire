@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -9,27 +10,41 @@ import { EmployerApplication, EmployerApplicationsParams } from "@/types/applica
 import { Search, Briefcase, User, Calendar, MessageSquare, Video, CheckCircle, XCircle, Clock, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function EmployerApplicationsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [applications, setApplications] = useState<EmployerApplication[]>([]);
   const [allApplications, setAllApplications] = useState<EmployerApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => Number(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('q') || '');
   
   // Filtry
-  const [statusFilter, setStatusFilter] = useState('');
-  const [jobOfferFilter, setJobOfferFilter] = useState('');
-  const [meetingFilter, setMeetingFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || '');
+  const [jobOfferFilter, setJobOfferFilter] = useState(() => searchParams.get('jobOffer') || '');
+  const [meetingFilter, setMeetingFilter] = useState(() => searchParams.get('meeting') || '');
   const [questionsFilter, setQuestionsFilter] = useState('');
 
   // Applied filters
-  const [appliedStatus, setAppliedStatus] = useState('');
-  const [appliedJobOffer, setAppliedJobOffer] = useState('');
-  const [appliedMeeting, setAppliedMeeting] = useState('');
+  const [appliedStatus, setAppliedStatus] = useState(() => searchParams.get('status') || '');
+  const [appliedJobOffer, setAppliedJobOffer] = useState(() => searchParams.get('jobOffer') || '');
+  const [appliedMeeting, setAppliedMeeting] = useState(() => searchParams.get('meeting') || '');
   const [appliedQuestions, setAppliedQuestions] = useState('');
+
+  // State initialized from URL via useState initializers above
+
+  const updateQueryParams = (updates: Record<string, string | number | undefined>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v === undefined || v === '' || v === null) current.delete(k); else current.set(k, String(v));
+    });
+    const qs = current.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
+  };
 
   useEffect(() => {
     fetchApplications();
@@ -127,6 +142,7 @@ export default function EmployerApplicationsPage() {
     e.preventDefault();
     setSearchQuery(searchInput);
     setPage(1);
+    updateQueryParams({ q: searchInput, page: 1 });
   };
 
   const getStatusIcon = (status: string) => {
@@ -330,6 +346,7 @@ export default function EmployerApplicationsPage() {
                     setAppliedJobOffer(jobOfferFilter);
                     setAppliedMeeting(meetingFilter);
                     setPage(1);
+                    updateQueryParams({ status: statusFilter || undefined, jobOffer: jobOfferFilter || undefined, meeting: meetingFilter || undefined, page: 1 });
                   }}
                   className="transition-all duration-200 hover:scale-105"
                 >
@@ -347,6 +364,7 @@ export default function EmployerApplicationsPage() {
                     setAppliedMeeting('');
                     setAppliedQuestions('');
                     setPage(1);
+                    updateQueryParams({ status: undefined, jobOffer: undefined, meeting: undefined, q: undefined, page: 1 });
                   }}
                   className="w-36 px-4 py-2 text-sm transition-all duration-200 hover:scale-105"
                 >
@@ -493,7 +511,7 @@ export default function EmployerApplicationsPage() {
             <div className="flex justify-center items-center gap-2 mt-4 pt-4 border-t">
               <Button
                 variant="outline"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => { const np = Math.max(1, page - 1); setPage(np); updateQueryParams({ page: np }); }}
                 disabled={page === 1}
               >
                 Poprzednia
@@ -511,7 +529,7 @@ export default function EmployerApplicationsPage() {
                     <Button
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
-                      onClick={() => setPage(pageNum)}
+                      onClick={() => { setPage(pageNum); updateQueryParams({ page: pageNum }); }}
                       className="w-10"
                     >
                       {pageNum}
@@ -522,7 +540,7 @@ export default function EmployerApplicationsPage() {
 
               <Button
                 variant="outline"
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => { const np = Math.min(totalPages, page + 1); setPage(np); updateQueryParams({ page: np }); }}
                 disabled={page === totalPages}
               >
                 Następna
