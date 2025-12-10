@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { getEmployerApplications } from "@/services/applicationService";
+import { getEmployerApplications, updateApplicationStatus } from "@/services/applicationService";
 import { EmployerApplication, EmployerApplicationsParams } from "@/types/application";
 import { Search, Briefcase, User, Calendar, MessageSquare, Video, CheckCircle, XCircle, Clock, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -107,6 +107,19 @@ export default function EmployerApplicationsPage() {
       setError('Nie udało się pobrać aplikacji. Spróbuj ponownie.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInlineStatusUpdate = async (id: number, status: 'ACCEPTED' | 'REJECTED') => {
+    try {
+      await updateApplicationStatus(id, { status });
+      // Optimistyczna aktualizacja lokalnej listy
+      setApplications(prev => prev.map(app => app.id === id ? { ...app, status } : app));
+      setAllApplications(prev => prev.map(app => app.id === id ? { ...app, status } : app));
+    } catch (err) {
+      console.error('Błąd aktualizacji statusu aplikacji:', err);
+      // Fallback: odśwież listę z serwera
+      fetchApplications();
     }
   };
 
@@ -453,11 +466,13 @@ export default function EmployerApplicationsPage() {
                           {application.status === 'PENDING' && (
                             <>
                               <Button
+                                onClick={() => handleInlineStatusUpdate(application.id, 'ACCEPTED')}
                                 className="w-full transition-all duration-200 hover:scale-105 bg-white hover:bg-red-50 text-red-600 border border-red-600 hover:border-red-700"
                               >
                                 Akceptuj
                               </Button>
                               <Button
+                                onClick={() => handleInlineStatusUpdate(application.id, 'REJECTED')}
                                 className="w-full transition-all duration-200 hover:scale-105"
                               >
                                 Odrzuć
