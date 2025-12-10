@@ -329,15 +329,33 @@ export default function SalaryCalculatorPage() {
 
                     {/* Parametry specyficzne dla umów */}
                     {inputs.contract === "UOP" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label className="inline-flex items-center gap-2 text-sm">
-                          <input type="radio" checked={inputs.pit2} onChange={(e) => setInputs((p) => ({ ...p, pit2: e.target.checked }))} />
-                          PIT-2 (kwota zmniejszająca 300 zł)
-                        </label>
-                        <label className="inline-flex items-center gap-2 text-sm">
-                          <input type="radio" checked={inputs.ulgaMlodzi} onChange={(e) => setInputs((p) => ({ ...p, ulgaMlodzi: e.target.checked }))} />
-                          Ulga dla młodych (PIT 0%)
-                        </label>
+                      <div className="flex flex-col gap-3">
+                        <div className="text-sm">
+                          <label className="block font-medium mb-1">PIT-2 (kwota zmniejszająca 300 zł)</label>
+                          <div className="flex items-center gap-3">
+                            <label className="inline-flex items-center gap-2">
+                              <input type="radio" name="pit2" checked={inputs.pit2 === true} onChange={() => setInputs((p) => ({ ...p, pit2: true }))} />
+                              Tak
+                            </label>
+                            <label className="inline-flex items-center gap-2">
+                              <input type="radio" name="pit2" checked={inputs.pit2 === false} onChange={() => setInputs((p) => ({ ...p, pit2: false }))} />
+                              Nie
+                            </label>
+                          </div>
+                        </div>
+                        <div className="text-sm">
+                          <label className="block font-medium mb-1">Ulga dla młodych (PIT 0%)</label>
+                          <div className="flex items-center gap-3">
+                            <label className="inline-flex items-center gap-2">
+                              <input type="radio" name="ulgaMlodzi" checked={inputs.ulgaMlodzi === true} onChange={() => setInputs((p) => ({ ...p, ulgaMlodzi: true }))} />
+                              Tak
+                            </label>
+                            <label className="inline-flex items-center gap-2">
+                              <input type="radio" name="ulgaMlodzi" checked={inputs.ulgaMlodzi === false} onChange={() => setInputs((p) => ({ ...p, ulgaMlodzi: false }))} />
+                              Nie
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     )}
 
